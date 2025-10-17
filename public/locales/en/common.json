@@ -1,0 +1,12 @@
+{
+  "navbar": {
+    "company_name": "Data4Decision International",
+    "about": "About",
+    "countries": "Countries",
+    "admin_login": "Admin Login",
+    "get_started": "Get Started",
+     "welcome": "Welcome {{name}}",
+  "profile": "Profile",
+  "logout": "Logout"
+  }
+}

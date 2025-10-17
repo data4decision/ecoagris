@@ -1,0 +1,18 @@
+
+[
+  { "name": "Benin", "dial_code": "+229", "code": "BJ", "flag": "/flags/bj.png" },
+  { "name": "Burkina Faso", "dial_code": "+226", "code": "BF", "flag": "/flags/bf.png" },
+  { "name": "Cape Verde", "dial_code": "+238", "code": "CV", "flag": "/flags/cv.png" },
+  { "name": "Côte d'Ivoire", "dial_code": "+225", "code": "CI", "flag": "/flags/ci.png" },
+  { "name": "Gambia", "dial_code": "+220", "code": "GM", "flag": "/flags/gm.png" },
+  { "name": "Ghana", "dial_code": "+233", "code": "GH", "flag": "/flags/gh.png" },
+  { "name": "Guinea", "dial_code": "+224", "code": "GN", "flag": "/flags/gn.png" },
+  { "name": "Guinea-Bissau", "dial_code": "+245", "code": "GW", "flag": "/flags/gw.png" },
+  { "name": "Liberia", "dial_code": "+231", "code": "LR", "flag": "/flags/lr.png" },
+  { "name": "Mali", "dial_code": "+223", "code": "ML", "flag": "/flags/ml.png" },
+  { "name": "Niger", "dial_code": "+227", "code": "NE", "flag": "/flags/ne.png" },
+  { "name": "Nigeria", "dial_code": "+234", "code": "NG", "flag": "/flags/ng.png" },
+  { "name": "Senegal", "dial_code": "+221", "code": "SN", "flag": "/flags/sn.png" },
+  { "name": "Sierra Leone", "dial_code": "+232", "code": "SL", "flag": "/flags/sl.png" },
+  { "name": "Togo", "dial_code": "+228", "code": "TG", "flag": "/flags/tg.png" }
+]
