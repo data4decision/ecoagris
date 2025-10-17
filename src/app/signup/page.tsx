@@ -1,16 +1,25 @@
-'use client'; // Ensure this is at the top
+'use client'; // Ensure this is a client component for Next.js
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; 
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
-import Link from 'next/link'
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import Link from 'next/link';
+import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/app/lib/firebase';
 
-const Page = () => {
+// Define the structure of country data
+interface Country {
+  name: string;
+  dial_code: string;
+  code: string;
+  flag: string;
+}
+
+const SignupPage = () => {
+  // State for form inputs and UI
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [occupation, setOccupation] = useState('');
@@ -18,13 +27,13 @@ const Page = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null); // Explicitly typed as string | null
   const [country, setCountry] = useState<string>('Benin');
-  const router = useRouter(); 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const router = useRouter();
 
-
-  const countryData = [
+  // Country data for dropdown
+  const countryData: Country[] = [
     { name: 'Benin', dial_code: '+229', code: 'BJ', flag: '/flags/bj.png' },
     { name: 'Burkina Faso', dial_code: '+226', code: 'BF', flag: '/flags/bf.png' },
     { name: 'Cape Verde', dial_code: '+238', code: 'CV', flag: '/flags/cv.png' },
@@ -42,35 +51,45 @@ const Page = () => {
     { name: 'Togo', dial_code: '+228', code: 'TG', flag: '/flags/tg.png' },
   ];
 
-  const getCountryDetails = (countryName: string) => {
+  // Function to get country details by name
+  const getCountryDetails = (countryName: string): Country | undefined => {
     return countryData.find((country) => country.name === countryName);
   };
 
+  // Handle form submission for signup
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Clear any existing error
+    setError(null); // Clear any existing error
 
-    const countryDetails = getCountryDetails(country); // Get country details
+    // Validate country selection
+    const countryDetails = getCountryDetails(country);
     if (!countryDetails) {
-      setError('Error: Invalid country selected.');
+      setError('Invalid country selected.');
       return;
     }
 
     // Normalize phone number
     let normalizedPhoneNumber = phoneNumber.replace(/\s+/g, '');
-    if (!normalizedPhoneNumber.startsWith('+')) {
-      normalizedPhoneNumber = `+${normalizedPhoneNumber}`;
+    if (!normalizedPhoneNumber.startsWith(countryDetails.dial_code)) {
+      normalizedPhoneNumber = `${countryDetails.dial_code}${normalizedPhoneNumber}`;
     }
 
     // Validate phone number country code
     const phoneCountryCode = normalizedPhoneNumber.substring(0, countryDetails.dial_code.length);
     if (phoneCountryCode !== countryDetails.dial_code) {
-      setError('Error: The country code you entered does not match the country you selected.');
+      setError('The phone number country code does not match the selected country.');
       return;
     }
 
-    // Create user with Firebase Authentication
+    // Validate phone number format (basic regex for digits after country code)
+    const phoneRegex = /^\+\d{1,4}\d{6,}$/;
+    if (!phoneRegex.test(normalizedPhoneNumber)) {
+      setError('Please enter a valid phone number with the correct country code.');
+      return;
+    }
+
     try {
+      // Create user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -89,176 +108,281 @@ const Page = () => {
       console.log('User signed up and data stored in Firestore!');
       router.push('/login'); // Redirect to login page
     } catch (error: unknown) {
-      if (error.code === 'auth/email-already-in-use') {
-        setError('This email is already associated with an existing account. Please log in or use a different email.');
+      // Use AuthError type for Firebase errors
+      const authError = error as AuthError;
+      if (authError.code === 'auth/email-already-in-use') {
+        setError(
+          'This email is already associated with an existing account. Please log in or use a different email.'
+        );
       } else {
-        setError('Error signing up: ' + error.message);
+        setError(`Error signing up: ${authError.message || 'Unknown error'}`);
       }
     }
   };
+
+  // Text for welcome message
   const text =
-    'Welcome ECOWAS Agricultural Information System (ECOAGRIS). To sign up for EcoAgris, visit the signup page, enter your first name, last name, occupation, gender, email, password, phone number, select your country with its flag, and click "Sign Up".';
+    'Welcome to ECOWAS Agricultural Information System (ECOAGRIS). Sign up by entering your details and selecting your country.';
 
   return (
-    <div className="bg-[var(--yellow)]">
+    <div className="bg-[var(--yellow)] min-h-screen flex flex-col">
+      {/* Navbar component */}
       <Navbar />
-      <div className="bg-[var(--yellow)]">
-        <div className="bg-[var(--medium-green)] grid grid-cols-1 sm:grid-cols-2 w-[80%] m-auto mt-10 mb-10 px-5 py-4">
+
+      {/* Main content */}
+      <div className="flex-grow">
+        <div className="bg-[var(--medium-green)] grid grid-cols-1 sm:grid-cols-2 w-[90%] max-w-5xl mx-auto mt-10 mb-10 px-5 py-4 rounded-lg">
+          {/* Left section with background image and welcome text */}
           <div
-            className="relative rounded-lg pl-10 pr-10 py-5  bg-cover bg-center object-contain rounded-tl-lg rounded-bl-xl"
-              style={{ backgroundImage: "url('/about.jpg')" }}
-              >
-                    <span className="absolute inset-0 z-0"></span>
-                    <div className="flex items-center justify-start gap-2 mt-7">
-                      <Image src="/logo.png" alt="EcoAgris logo" width={40} height={40} />
-                      <h1 className="font-bold text-[var(--medium-green)] text-[17px] sm:text-[20px]">EcoAgris</h1>
-                    </div>
-                    <div className="flex flex-col leading-none mt-15">
-                      <h1 className="text-[var(--white)] text-[60px] font-semibold">Hello,</h1>
-                      <h1 className="text-[var(--yellow)] text-[60px] font-bold">
-                        <b>Welcome!</b>
-                      </h1>
-                    </div>
-                    <div className="mt-7">
-                      <h3 className="bg-[var(--olive-green)] px-2 py-2 rounded-lg text-[var(--white)] sm:text-[15px] text-[10px] font-semibold">
-                        {text}
-                      </h3>
-                    </div>
-                  </div>
-                  
-          <div className="ml-5">
-            <form onSubmit={handleEmailSignup}>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={firstName}
-                  placeholder="First Name"
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
-                  required
-                />
-                <input
-                  type="text"
-                  value={lastName}
-                  placeholder="Last Name"
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
-                  required
-                />
+            className="relative rounded-lg p-10 bg-cover bg-center"
+            style={{ backgroundImage: "url('/about.jpg')" }}
+          >
+            <span className="absolute inset-0 bg-black/20 z-0 rounded-lg"></span>
+            <div className="relative z-10">
+              <div className="flex items-center justify-start gap-2 mb-7">
+                <Image src="/logo.png" alt="EcoAgris logo" width={40} height={40} />
+                <h1 className="font-bold text-[var(--white)] text-[17px] sm:text-[20px]">
+                  EcoAgris
+                </h1>
               </div>
-              <div className="flex items-center gap-2 mt-2">
-                <input
-                  type="text"
-                  value={occupation}
-                  placeholder="Occupation"
-                  onChange={(e) => setOccupation(e.target.value)}
-                  className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg w-full border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  value={gender}
-                  placeholder="Gender"
-                  onChange={(e) => setGender(e.target.value)}
-                  className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg w-full border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none"
-                  required
-                />
+              <div className="flex flex-col leading-none">
+                <h1 className="text-[var(--white)] text-[40px] sm:text-[60px] font-semibold">
+                  Hello,
+                </h1>
+                <h1 className="text-[var(--yellow)] text-[40px] sm:text-[60px] font-bold">
+                  Welcome!
+                </h1>
               </div>
-              <div className="flex items-center gap-2 mt-2">
-                <input
-                  type="tel" // Use type="tel" for phone numbers
-                  value={phoneNumber}
-                  placeholder="Phone Number"
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="text-[var(--olive-green)] bg-[var(--white)] mt-6 p-2 rounded-lg w-full border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none"
-                  required
-                />
-                
-                  <div className="w-full relative">
-  <label className="block text-[10px] sm:text-[15px] text-[var(--white)]">Select Your Country</label>
-  {/* Hidden select to maintain form functionality */}
-  <select
-    value={country}
-    onChange={(e) => setCountry(e.target.value)}
-    className="hidden" // Hide the select
-    required
-  >
-    {countryData.map((country) => (
-      <option key={country.code} value={country.name}>
-        {country.name}
-      </option>
-    ))}
-  </select>
-  {/* Custom dropdown button */}
-  <div
-    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg w-full border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none cursor-pointer flex items-center gap-2"
-    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-  >
-    <Image
-      src={getCountryDetails(country)?.flag || '/flags/bj.png'}
-      alt={`${country} flag`}
-      width={20}
-      height={20}
-      className="inline-block"
-    />
-    <span>{country}</span>
-  </div>
-  {/* Custom dropdown menu */}
-  {isDropdownOpen && (
-    <div className="absolute z-10 mt-1 w-full bg-[var(--white)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
-      {countryData.map((country) => (
-        <div
-          key={country.code}
-          className="flex items-center gap-2 p-2 hover:bg-[var(--yellow)]/50 cursor-pointer text-[var(--olive-green)]"
-          onClick={() => {
-            setCountry(country.name);
-            setIsDropdownOpen(false);
-          }}
-        >
-          <Image
-            src={country.flag}
-            alt={`${country.name} flag`}
-            width={20}
-            height={20}
-            className="inline-block"
-          />
-          <span>{country.name}</span>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-                  <div>
+              <div className="mt-7">
+                <h3 className="bg-[var(--olive-green)] px-4 py-3 rounded-lg text-[var(--white)] text-[12px] sm:text-[15px] font-medium">
+                  {text}
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Right section with signup form */}
+          <div className="ml-0 sm:ml-5 p-6 bg-[var(--white)] rounded-lg">
+            <form onSubmit={handleEmailSignup} className="space-y-4">
+              {/* First and Last Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="firstName" className="sr-only">
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    placeholder="First Name"
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                    required
+                    aria-label="First Name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="sr-only">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    placeholder="Last Name"
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                    required
+                    aria-label="Last Name"
+                  />
                 </div>
               </div>
-              <input
-                type="email"
-                value={email}
-                placeholder="Email"
-                onChange={(e) => setEmail(e.target.value)}
-                className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg w-full border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none mt-2"
-                required
-              />
-              <input
-                type="password"
-                value={password}
-                placeholder="Password"
-                onChange={(e) => setPassword(e.target.value)}
-                className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg w-full border border-[var(--white)] focus:ring-2 focus:ring-[var(--yellow)] outline-none mt-2"
-                required
-              />
-              <div className="mt-2">
-                {error && <p className="text-red-500">{error}</p>}
+
+              {/* Occupation and Gender */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="occupation" className="sr-only">
+                    Occupation
+                  </label>
+                  <input
+                    id="occupation"
+                    type="text"
+                    value={occupation}
+                    placeholder="Occupation"
+                    onChange={(e) => setOccupation(e.target.value)}
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                    required
+                    aria-label="Occupation"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="gender" className="sr-only">
+                    Gender
+                  </label>
+                  <input
+                    id="gender"
+                    type="text"
+                    value={gender}
+                    placeholder="Gender"
+                    onChange={(e) => setGender(e.target.value)}
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                    required
+                    aria-label="Gender"
+                  />
+                </div>
+              </div>
+
+              {/* Phone Number and Country Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="phoneNumber" className="sr-only">
+                    Phone Number
+                  </label>
+                  <input
+                    id="phoneNumber"
+                    type="tel"
+                    value={phoneNumber}
+                    placeholder="Phone Number (e.g., +22912345678)"
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                    required
+                    aria-label="Phone Number"
+                  />
+                </div>
+                <div className="relative">
+                  <label htmlFor="country" className="block text-[12px] sm:text-[15px] text-[var(--dark-green)] mb-1">
+                    Select Your Country
+                  </label>
+                  {/* Hidden select for form submission */}
+                  <select
+                    id="country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="hidden"
+                    required
+                    aria-hidden="true"
+                  >
+                    {countryData.map((country) => (
+                      <option key={country.code} value={country.name}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Custom dropdown button */}
+                  <div
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none cursor-pointer flex items-center gap-2"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    role="button"
+                    aria-label={`Select country, current: ${country}`}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setIsDropdownOpen(!isDropdownOpen);
+                      }
+                    }}
+                  >
+                    <Image
+                      src={getCountryDetails(country)?.flag || '/flags/bj.png'}
+                      alt={`${country} flag`}
+                      width={20}
+                      height={20}
+                      className="inline-block"
+                    />
+                    <span>{country}</span>
+                  </div>
+                  {/* Custom dropdown menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute z-20 mt-1 w-full bg-[var(--white)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {countryData.map((country) => (
+                        <div
+                          key={country.code}
+                          className="flex items-center gap-2 p-2 hover:bg-[var(--yellow)]/50 cursor-pointer text-[var(--olive-green)]"
+                          onClick={() => {
+                            setCountry(country.name);
+                            setIsDropdownOpen(false);
+                          }}
+                          role="option"
+                          aria-selected={country.name === country}
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              setCountry(country.name);
+                              setIsDropdownOpen(false);
+                            }
+                          }}
+                        >
+                          <Image
+                            src={country.flag}
+                            alt={`${country.name} flag`}
+                            width={20}
+                            height={20}
+                            className="inline-block"
+                          />
+                          <span>{country.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="sr-only">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  placeholder="Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                  required
+                  aria-label="Email"
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  placeholder="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                  required
+                  aria-label="Password"
+                />
+              </div>
+
+              {/* Error Message and Submit Button */}
+              <div className="mt-4">
+                {error && (
+                  <p className="text-red-500 text-sm" role="alert">
+                    {error}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  className="bg-[var(--wine)] hover:bg-[var(--white)] px-3 py-2 w-full mt-3 rounded-lg text-[var(--white)] hover:text-[var(--dark-green)] font-medium transition-all duration-300 ease-in-out"
+                  className="bg-[var(--wine)] hover:bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 w-full rounded-lg font-medium transition-all duration-300 ease-in-out focus:ring-2 focus:ring-[var(--yellow)] outline-none"
+                  aria-label="Sign Up"
                 >
                   Sign Up
                 </button>
               </div>
-              <p className="text-[var(--white)] text-[15px] mt-4">
+
+              {/* Login Link */}
+              <p className="text-[var(--dark-green)] text-[15px] mt-4 text-center">
                 Already have an account?{' '}
-                <Link className="text-[var(--yellow)] text-[17px]" href="/login">
+                <Link
+                  className="text-[var(--yellow)] hover:underline font-medium"
+                  href="/login"
+                >
                   Log In
                 </Link>
               </p>
@@ -266,9 +390,11 @@ const Page = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer component */}
       <Footer />
     </div>
   );
 };
 
-export default Page;
+export default SignupPage;

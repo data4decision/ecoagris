@@ -69,9 +69,9 @@ const HeroSection: React.FC = () => {
   }, []);
 
   // Handle manual slide navigation
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
+  // const goToSlide = (index: number) => {
+  //   setCurrentSlide(index);
+  // };
 
   return (
     <section className="relative bg-[var(--medium-green)] text-white py-20 px-6 sm:px-12">
