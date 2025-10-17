@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { FaRegSun, FaDatabase, FaWrench, FaChartLine } from 'react-icons/fa'; // Importing some sample icons for challenges and solutions
-import Image from 'next/image'; // Assuming you have images/icons for the challenges and solutions
-
 const AgriculturalChallengesAndSolutions: React.FC = () => {
   return (
     <section className="py-16 px-4 bg-white" id="challenges-solutions">

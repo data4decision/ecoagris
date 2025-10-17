@@ -1,12 +1,22 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-// JSON data imported (replace this with the real data or fetch from an API)
-const simulatedInputData = [
+// Define the structure of the country data
+interface CountryData {
+  country: string;
+  fertilizerTons: number;
+  cerealSeedsTons: number;
+  pesticideLiters: number;
+  improvedSeedUsePct: number;
+  fertilizerKgPerHa: number;
+}
+
+// Simulated data (replace with API fetch in production)
+const simulatedInputData: CountryData[] = [
   {
-    country: "Benin",
+    country: 'Benin',
     fertilizerTons: 94672,
     cerealSeedsTons: 62384,
     pesticideLiters: 25865,
@@ -14,7 +24,7 @@ const simulatedInputData = [
     fertilizerKgPerHa: 28.8,
   },
   {
-    country: "Burkina Faso",
+    country: 'Burkina Faso',
     fertilizerTons: 162064,
     cerealSeedsTons: 95862,
     pesticideLiters: 45232,
@@ -26,18 +36,21 @@ const simulatedInputData = [
 
 const HeroSection: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('Benin');
-  const [countryData, setCountryData] = useState<any>(simulatedInputData[0]);
+  const [countryData, setCountryData] = useState<CountryData>(
+    simulatedInputData[0]
+  );
 
-  // Function to change selected country (for location selector)
+  // Handle country selection change
   const handleCountryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const countryName = event.target.value;
     setSelectedCountry(countryName);
 
-    // Find the data for the selected country
-    const countryData = simulatedInputData.find(
+    const selectedData = simulatedInputData.find(
       (data) => data.country === countryName
     );
-    if (countryData) setCountryData(countryData);
+    if (selectedData) {
+      setCountryData(selectedData);
+    }
   };
 
   return (
@@ -47,11 +60,14 @@ const HeroSection: React.FC = () => {
         <Image
           src="/Hero.jpg"
           alt="Agriculture in ECOWAS"
-          className="w-full h-full object-cover opacity-60" width={500} height={500}
+          fill
+          className="object-cover opacity-60"
+          priority
+          sizes="100vw"
         />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 max-w-7xl mx-auto">
         {/* Headline */}
         <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center">
           Empowering Sustainable Agriculture Across ECOWAS
@@ -59,15 +75,21 @@ const HeroSection: React.FC = () => {
 
         {/* Subheadline */}
         <p className="text-lg md:text-2xl text-center mb-6">
-          Connecting ECOWAS countries with agricultural insights for growth and resilience.
+          Connecting ECOWAS countries with agricultural insights for growth and
+          resilience.
         </p>
 
         {/* Location Selector */}
         <div className="text-center mb-8">
+          <label htmlFor="country-select" className="sr-only">
+            Select a country
+          </label>
           <select
+            id="country-select"
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="bg-white text-green-600 border-2 border-green-600 p-2 rounded-md"
+            className="bg-white text-green-600 border-2 border-green-600 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            aria-label="Select a country"
           >
             {simulatedInputData.map((data) => (
               <option key={data.country} value={data.country}>
@@ -78,25 +100,34 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* CTA Button */}
-        <div className="text-center">
-          <button className="bg-yellow-500 text-green-800 px-8 py-4 rounded-lg text-xl hover:bg-yellow-600 transition">
+        <div className="text-center mb-12">
+          <button
+            className="bg-yellow-500 text-green-800 px-8 py-4 rounded-lg text-xl hover:bg-yellow-600 transition focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Explore agricultural data"
+          >
             Explore Data
           </button>
         </div>
 
         {/* Statistics Snapshot */}
-        <div className="flex justify-center space-x-4 mt-12">
-          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg w-32 text-center">
-            <p className="font-bold text-2xl">{countryData.fertilizerTons}</p>
-            <p>Fertilizer Tons</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 justify-center mt-12">
+          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg text-center">
+            <p className="font-bold text-2xl">
+              {countryData.fertilizerTons.toLocaleString()}
+            </p>
+            <p className="text-sm">Fertilizer (Tons)</p>
           </div>
-          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg w-32 text-center">
-            <p className="font-bold text-2xl">{countryData.cerealSeedsTons}</p>
-            <p>Cereal Seeds Tons</p>
+          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg text-center">
+            <p className="font-bold text-2xl">
+              {countryData.cerealSeedsTons.toLocaleString()}
+            </p>
+            <p className="text-sm">Cereal Seeds (Tons)</p>
           </div>
-          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg w-32 text-center">
-            <p className="font-bold text-2xl">{countryData.pesticideLiters}</p>
-            <p>Pesticide Liters</p>
+          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg text-center">
+            <p className="font-bold text-2xl">
+              {countryData.pesticideLiters.toLocaleString()}
+            </p>
+            <p className="text-sm">Pesticides (Liters)</p>
           </div>
         </div>
       </div>
