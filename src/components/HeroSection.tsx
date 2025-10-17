@@ -74,7 +74,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative bg-green-600 text-white py-20 px-6 sm:px-12">
+    <section className="relative bg-[var(--medium-green)] text-white py-20 px-6 sm:px-12">
       {/* Background image */}
       <div className="absolute inset-0">
         <Image
@@ -101,7 +101,7 @@ const HeroSection: React.FC = () => {
         {/* CTA Button */}
         <div className="text-center mb-12">
           <button
-            className="bg-yellow-500 text-green-800 px-8 py-4 rounded-lg text-xl hover:bg-yellow-600 transition focus:outline-none focus:ring-2 focus:ring-white"
+            className="bg-[var(--yellow)] text-[var(--dark-green)] px-8 py-4 rounded-lg text-xl hover:bg-[var(--yellow)] transition focus:outline-none focus:ring-2 focus:ring-[var(--white)]"
             aria-label="Explore agricultural data"
           >
             Explore Data
@@ -117,25 +117,27 @@ const HeroSection: React.FC = () => {
             {dataHeadlines.map((headline, index) => (
               <div
                 key={headline.title}
-                className="min-w-full text-center p-6  text-[var(--white)] rounded-lg shadow-lg"
+                className="min-w-full text-center p-6 bg-[var(--white)] bg-opacity-90 text-[var(--dark-green)] rounded-lg shadow-lg"
                 role="region"
                 aria-live="polite"
                 aria-label={`Slide ${index + 1}: ${headline.title}`}
               >
                 <h2 className="text-2xl font-bold mb-2">{headline.title}</h2>
-                <p className="text-lg font-semibold">{headline.description}</p>
+                <p className="text-lg">{headline.description}</p>
               </div>
             ))}
           </div>
 
-          {/* Navigation Dots
-          <div className="flex justify-center mt-4 space-x-2">
+          {/* Navigation Dots */}
+          {/* <div className="flex justify-center mt-4 space-x-2">
             {dataHeadlines.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full ${
-                  currentSlide === index ? 'bg-yellow-500' : 'bg-white opacity-50'
+                  currentSlide === index
+                    ? 'bg-[var(--yellow)]'
+                    : 'bg-[var(--white)] opacity-50'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
