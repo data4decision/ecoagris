@@ -295,37 +295,40 @@ const SignupPage = () => {
                   </div>
                   {/* Custom dropdown menu */}
                   {isDropdownOpen && (
-                    <div className="absolute z-20 mt-1 w-full bg-[var(--white)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {countryData.map((country) => (
-                        <div
-                          key={country.code}
-                          className="flex items-center gap-2 p-2 hover:bg-[var(--yellow)]/50 cursor-pointer text-[var(--olive-green)]"
-                          onClick={() => {
-                            setCountry(country.name);
-                            setIsDropdownOpen(false);
-                          }}
-                          role="option"
-                          aria-selected={country.name === country} // Fixed: Should be country.name === state country
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              setCountry(country.name);
-                              setIsDropdownOpen(false);
-                            }
-                          }}
-                        >
-                          <Image
-                            src={country.flag}
-                            alt={`${country.name} flag`}
-                            width={20}
-                            height={20}
-                            className="inline-block"
-                          />
-                          <span>{country.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+  <div className="absolute z-20 mt-1 w-full bg-[var(--white)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+    {countryData.map((option) => {
+      const isSelected = option.name === country; // Compare option.name with state country
+      return (
+        <div
+          key={option.code}
+          className="flex items-center gap-2 p-2 hover:bg-[var(--yellow)]/50 cursor-pointer text-[var(--olive-green)]"
+          onClick={() => {
+            setCountry(option.name);
+            setIsDropdownOpen(false);
+          }}
+          role="option"
+          aria-selected={isSelected} // Use isSelected boolean
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setCountry(option.name);
+              setIsDropdownOpen(false);
+            }
+          }}
+        >
+          <Image
+            src={option.flag}
+            alt={`${option.name} flag`}
+            width={20}
+            height={20}
+            className="inline-block"
+          />
+          <span>{option.name}</span>
+        </div>
+      );
+    })}
+  </div>
+)}
                 </div>
               </div>
 
