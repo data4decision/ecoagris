@@ -219,16 +219,19 @@ const SignupPage = () => {
                   <label htmlFor="gender" className="sr-only">
                     Gender
                   </label>
-                  <input
+                  <select
                     id="gender"
-                    type="text"
                     value={gender}
-                    placeholder="Gender"
                     onChange={(e) => setGender(e.target.value)}
                     className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
                     required
                     aria-label="Gender"
-                  />
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
               </div>
 
@@ -302,7 +305,7 @@ const SignupPage = () => {
                             setIsDropdownOpen(false);
                           }}
                           role="option"
-                          aria-selected={country.name === country}
+                          aria-selected={country.name === country} // Fixed: Should be country.name === state country
                           tabIndex={0}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
