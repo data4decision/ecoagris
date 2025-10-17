@@ -1,61 +1,81 @@
 'use client';
 
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Define the structure of the country data
-interface CountryData {
-  country: string;
-  fertilizerTons: number;
-  cerealSeedsTons: number;
-  pesticideLiters: number;
-  improvedSeedUsePct: number;
-  fertilizerKgPerHa: number;
+// Define the structure of the data headline descriptions
+interface DataHeadline {
+  title: string;
+  description: string;
 }
 
-// Simulated data (replace with API fetch in production)
-const simulatedInputData: CountryData[] = [
+// Data headlines with descriptions
+const dataHeadlines: DataHeadline[] = [
   {
-    country: 'Benin',
-    fertilizerTons: 94672,
-    cerealSeedsTons: 62384,
-    pesticideLiters: 25865,
-    improvedSeedUsePct: 26.1,
-    fertilizerKgPerHa: 28.8,
+    title: 'Agric Input',
+    description: 'Explore data on fertilizers, seeds, and pesticides to optimize agricultural productivity across ECOWAS.',
   },
   {
-    country: 'Burkina Faso',
-    fertilizerTons: 162064,
-    cerealSeedsTons: 95862,
-    pesticideLiters: 45232,
-    improvedSeedUsePct: 25.0,
-    fertilizerKgPerHa: 40.7,
+    title: 'Agro-hydro-meteorology',
+    description: 'Access weather and hydrological insights to support climate-smart farming practices.',
   },
-  // Add other countries here
+  {
+    title: 'Agricultural Production',
+    description: 'Analyze crop yields and production trends to enhance food security in the region.',
+  },
+  {
+    title: 'Agricultural Market',
+    description: 'Track market prices and trade data to empower farmers and stakeholders.',
+  },
+  {
+    title: 'Food Stocks',
+    description: 'Monitor food reserves to ensure stability and preparedness for shortages.',
+  },
+  {
+    title: 'Nutrition',
+    description: 'Understand nutritional outcomes to promote healthier diets and food systems.',
+  },
+  {
+    title: 'Livestock',
+    description: 'Dive into livestock production and health data to boost animal husbandry.',
+  },
+  {
+    title: 'Fishery',
+    description: 'Discover fishery production and sustainability metrics for coastal communities.',
+  },
+  {
+    title: 'Aquaculture',
+    description: 'Learn about aquaculture practices to enhance fish farming and food supply.',
+  },
+  {
+    title: 'Agric Research Results',
+    description: 'Access cutting-edge research to drive innovation in agriculture.',
+  },
+  {
+    title: 'Macroeconomics Indices',
+    description: 'Examine economic indicators impacting agriculture for informed policy-making.',
+  },
 ];
 
 const HeroSection: React.FC = () => {
-  const [selectedCountry, setSelectedCountry] = useState<string>('Benin');
-  const [countryData, setCountryData] = useState<CountryData>(
-    simulatedInputData[0]
-  );
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Handle country selection change
-  const handleCountryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const countryName = event.target.value;
-    setSelectedCountry(countryName);
+  // Auto-slide every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % dataHeadlines.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
-    const selectedData = simulatedInputData.find(
-      (data) => data.country === countryName
-    );
-    if (selectedData) {
-      setCountryData(selectedData);
-    }
+  // Handle manual slide navigation
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
   };
 
   return (
     <section className="relative bg-green-600 text-white py-20 px-6 sm:px-12">
-      {/* Background image with subtle animations */}
+      {/* Background image */}
       <div className="absolute inset-0">
         <Image
           src="/Hero.jpg"
@@ -75,29 +95,8 @@ const HeroSection: React.FC = () => {
 
         {/* Subheadline */}
         <p className="text-lg md:text-2xl text-center mb-6">
-          Connecting ECOWAS countries with agricultural insights for growth and
-          resilience.
+          Connecting ECOWAS countries with agricultural insights for growth and resilience.
         </p>
-
-        {/* Location Selector */}
-        <div className="text-center mb-8">
-          <label htmlFor="country-select" className="sr-only">
-            Select a country
-          </label>
-          <select
-            id="country-select"
-            value={selectedCountry}
-            onChange={handleCountryChange}
-            className="bg-white text-green-600 border-2 border-green-600 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            aria-label="Select a country"
-          >
-            {simulatedInputData.map((data) => (
-              <option key={data.country} value={data.country}>
-                {data.country}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* CTA Button */}
         <div className="text-center mb-12">
@@ -109,28 +108,48 @@ const HeroSection: React.FC = () => {
           </button>
         </div>
 
-        {/* Statistics Snapshot */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 justify-center mt-12">
-          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg text-center">
-            <p className="font-bold text-2xl">
-              {countryData.fertilizerTons.toLocaleString()}
-            </p>
-            <p className="text-sm">Fertilizer (Tons)</p>
+        {/* Sliding Carousel for Data Headlines */}
+        <div className="relative overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {dataHeadlines.map((headline, index) => (
+              <div
+                key={headline.title}
+                className="min-w-full text-center p-6  text-[var(--white)] rounded-lg shadow-lg"
+                role="region"
+                aria-live="polite"
+                aria-label={`Slide ${index + 1}: ${headline.title}`}
+              >
+                <h2 className="text-2xl font-bold mb-2">{headline.title}</h2>
+                <p className="text-lg font-semibold">{headline.description}</p>
+              </div>
+            ))}
           </div>
-          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg text-center">
-            <p className="font-bold text-2xl">
-              {countryData.cerealSeedsTons.toLocaleString()}
-            </p>
-            <p className="text-sm">Cereal Seeds (Tons)</p>
-          </div>
-          <div className="bg-white text-green-600 p-4 rounded-md shadow-lg text-center">
-            <p className="font-bold text-2xl">
-              {countryData.pesticideLiters.toLocaleString()}
-            </p>
-            <p className="text-sm">Pesticides (Liters)</p>
-          </div>
+
+          {/* Navigation Dots
+          <div className="flex justify-center mt-4 space-x-2">
+            {dataHeadlines.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full ${
+                  currentSlide === index ? 'bg-yellow-500' : 'bg-white opacity-50'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div> */}
         </div>
       </div>
+
+      {/* CSS for Smooth Sliding */}
+      <style jsx>{`
+        .transition-transform {
+          transition: transform 0.5s ease-in-out;
+        }
+      `}</style>
     </section>
   );
 };

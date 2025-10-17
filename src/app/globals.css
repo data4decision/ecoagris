@@ -19,6 +19,10 @@
   background-color: var(--yellow);
 }
 
+.bg-\[var\(--wine\)\] {
+  background-color: var(--wine);
+}
+
 .text-\[var\(--medium-green\)\] {
   color: var(--medium-green);
 }
@@ -27,7 +31,15 @@
   color: var(--yellow);
 }
 
-/* Example usage for more dynamic classes */
+.text-\[var\(--wine\)\] {
+  color: var(--wine);
+}
+
+.text-\[var\(--dark-green\)\] {
+  color: var(--dark-green);
+}
+
+/* Consistent custom classes for dynamic usage */
 .bg-custom-green {
   background-color: var(--green);
 }
@@ -35,10 +47,19 @@
 .text-custom-green {
   color: var(--green);
 }
-.bg-\[var\(--wine\)\] {
-  background-color: var(--wine);
+
+.bg-custom-dark-green {
+  background-color: var(--dark-green);
 }
 
-.text-\[var\(--wine\)\] {
-  color: var(--wine);
+.text-custom-dark-green {
+  color: var(--dark-green);
+}
+
+.bg-custom-olive-green {
+  background-color: var(--olive-green);
+}
+
+.text-custom-olive-green {
+  color: var(--olive-green);
 }
