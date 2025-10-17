@@ -1,6 +1,6 @@
-const XLSX = require("xlsx");
-const fs = require("fs");
-const path = require("path");
+import XLSX from 'xlsx';
+import fs from 'fs';
+import path from 'path';
 
 // Path to your Excel file
 const inputFilePath = path.resolve(__dirname, "../data/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx");
