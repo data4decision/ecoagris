@@ -3,6 +3,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Overview from '@/app/[country]/dashboard/livestock/Overview';
 
+
 export default function LivestockDashboard() {
   const { country } = useParams();
   const [loading, setLoading] = useState(true);
@@ -10,20 +11,31 @@ export default function LivestockDashboard() {
 
   useEffect(() => {
     // Simulate data loading for Livestock
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
+    const fetchData = async () => {
+      try {
+        // Add actual data fetching logic if needed (e.g., for Overview data)
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulated delay
+        setLoading(false);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading livestock dashboard');
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [country]);
 
   if (loading) return <div className="text-[var(--olive-green)]">Loading Livestock Dashboard...</div>;
   if (error) return <div className="text-[var(--wine)]">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-[var(--white)] p-6">
-      <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
-        Livestock Overview for {country.charAt(0).toUpperCase() + country.slice(1)}
-      </h1>
-      <Overview />
+    <div className="flex min-h-screen bg-[var(--white)]">
+      
+      <div className="flex-1 p-6">
+        <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
+          Livestock Overview for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+        </h1>
+        <Overview />
+      </div>
     </div>
   );
 }
