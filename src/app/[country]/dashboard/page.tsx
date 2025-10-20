@@ -1,7 +1,7 @@
 'use client';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import Link from 'next/link';
 import { FaLeaf } from 'react-icons/fa';
@@ -25,7 +25,7 @@ const products = [
 export default function ProductSelection() {
   const router = useRouter();
   const { country } = useParams();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -45,7 +45,7 @@ export default function ProductSelection() {
       <Navbar />
       <div className="p-6 w-full sm:w-[80%] mx-auto">
         <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-6">
-          Select a Product for {country.charAt(0).toUpperCase() + country.slice(1)}
+          Select a Product for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
