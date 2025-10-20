@@ -7,6 +7,12 @@ const nextConfig = {
       'newmail-ng.com', // Add the new hostname
     ],
   },
+  webpack(config) {
+    // Add alias for `@` to map to the `src` directory
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    
+    return config;
+  }
 };
 
 module.exports = nextConfig;
