@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '@/app/[country]/dashboard/livestock/Sidebar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaCaretDown, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
