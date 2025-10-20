@@ -18,7 +18,6 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",  // Ensure baseUrl is set to the root directory
     "paths": {
       "@/*": ["./src/*"]
     }
