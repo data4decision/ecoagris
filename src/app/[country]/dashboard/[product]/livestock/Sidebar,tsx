@@ -1,0 +1,34 @@
+'use client';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+
+export default function LivestockSidebar() {
+  const { country } = useParams();
+
+  const livestockLinks = [
+    { name: 'Overview', href: `/${country}/dashboard/livestock` },
+    { name: 'Population', href: `/${country}/dashboard/livestock/population` },
+    { name: 'Production', href: `/${country}/dashboard/livestock/production` },
+    { name: 'Economic Indicators', href: `/${country}/dashboard/livestock/economic-indicators` },
+    { name: 'Health & Welfare', href: `/${country}/dashboard/livestock/health-welfare` },
+    { name: 'Grazing & Transhumance', href: `/${country}/dashboard/livestock/grazing-transhumance` },
+    { name: 'Country Comparison', href: `/${country}/dashboard/livestock/country-comparison` },
+    { name: 'Forecast & Simulation', href: `/${country}/dashboard/livestock/forecast-simulation` },
+    { name: 'Data & Methodology', href: `/${country}/dashboard/livestock/data-methodology` },
+  ];
+
+  return (
+    <div className="w-64 bg-[var(--olive-green)] text-[var(--white)] p-4">
+      <h2 className="text-lg font-bold mb-4">Livestock Menu</h2>
+      <ul>
+        {livestockLinks.map((link) => (
+          <li key={link.name} className="mb-2">
+            <Link href={link.href} className="hover:text-[var(--yellow)]">
+              {link.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

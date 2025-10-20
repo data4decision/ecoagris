@@ -135,7 +135,7 @@ const SignupPage = () => {
           {/* Left section with background image and welcome text */}
           <div
             className="relative rounded-lg p-10 bg-cover bg-center"
-            style={{ backgroundImage: "url('/about.jpg')" }}
+            style={{ backgroundImage: "url('/sign.jpg')" }}
           >
             <span className="absolute inset-0 bg-black/20 z-0 rounded-lg"></span>
             <div className="relative z-10">
@@ -162,7 +162,7 @@ const SignupPage = () => {
           </div>
 
           {/* Right section with signup form */}
-          <div className="ml-0 sm:ml-5 p-6 bg-[var(--white)] rounded-lg">
+          <div className="ml-0 sm:ml-5 p-6 rounded-lg">
             <form onSubmit={handleEmailSignup} className="space-y-4">
               {/* First and Last Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -247,13 +247,13 @@ const SignupPage = () => {
                     value={phoneNumber}
                     placeholder="Phone Number (e.g., +22912345678)"
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full"
+                    className="text-[var(--olive-green)] bg-[var(--white)] p-2 rounded-lg border border-[var(--medium-green)] focus:ring-2 focus:ring-[var(--yellow)] outline-none w-full mt-7"
                     required
                     aria-label="Phone Number"
                   />
                 </div>
                 <div className="relative">
-                  <label htmlFor="country" className="block text-[12px] sm:text-[15px] text-[var(--dark-green)] mb-1">
+                  <label htmlFor="country" className="block text-[12px] sm:text-[15px] text-[var(--white)] mb-1">
                     Select Your Country
                   </label>
                   {/* Hidden select for form submission */}
@@ -295,40 +295,40 @@ const SignupPage = () => {
                   </div>
                   {/* Custom dropdown menu */}
                   {isDropdownOpen && (
-  <div className="absolute z-20 mt-1 w-full bg-[var(--white)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
-    {countryData.map((option) => {
-      const isSelected = option.name === country; // Compare option.name with state country
-      return (
-        <div
-          key={option.code}
-          className="flex items-center gap-2 p-2 hover:bg-[var(--yellow)]/50 cursor-pointer text-[var(--olive-green)]"
-          onClick={() => {
-            setCountry(option.name);
-            setIsDropdownOpen(false);
-          }}
-          role="option"
-          aria-selected={isSelected} // Use isSelected boolean
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              setCountry(option.name);
-              setIsDropdownOpen(false);
-            }
-          }}
-        >
-          <Image
-            src={option.flag}
-            alt={`${option.name} flag`}
-            width={20}
-            height={20}
-            className="inline-block"
-          />
-          <span>{option.name}</span>
-        </div>
-      );
-    })}
-  </div>
-)}
+                    <div className="absolute z-20 mt-1 w-full bg-[var(--white)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {countryData.map((option) => {
+                        const isSelected = option.name === country; // Compare option.name with state country
+                        return (
+                          <div
+                            key={option.code}
+                            className="flex items-center gap-2 p-2 hover:bg-[var(--yellow)]/50 cursor-pointer text-[var(--olive-green)]"
+                            onClick={() => {
+                              setCountry(option.name);
+                              setIsDropdownOpen(false);
+                            }}
+                            role="option"
+                            aria-selected={isSelected} // Use isSelected boolean
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                setCountry(option.name);
+                                setIsDropdownOpen(false);
+                              }
+                            }}
+                          >
+                          <Image
+                            src={option.flag}
+                            alt={`${option.name} flag`}
+                            width={20}
+                            height={20}
+                            className="inline-block"
+                          />
+                          <span>{option.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 </div>
               </div>
 
@@ -375,7 +375,7 @@ const SignupPage = () => {
                 )}
                 <button
                   type="submit"
-                  className="bg-[var(--wine)] hover:bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 w-full rounded-lg font-medium transition-all duration-300 ease-in-out focus:ring-2 focus:ring-[var(--yellow)] outline-none"
+                  className="bg-[var(--wine)] hover:bg-[var(--yellow)] text-[var(--white)] px-3 py-2 w-full rounded-lg font-medium transition-all duration-300 ease-in-out focus:ring-2 focus:ring-[var(--yellow)] outline-none cursor-pointer"
                   aria-label="Sign Up"
                 >
                   Sign Up
@@ -383,7 +383,7 @@ const SignupPage = () => {
               </div>
 
               {/* Login Link */}
-              <p className="text-[var(--dark-green)] text-[15px] mt-4 text-center">
+              <p className="text-[var(--white)] text-[15px] mt-4 text-center">
                 Already have an account?{' '}
                 <Link
                   className="text-[var(--yellow)] hover:underline font-medium"

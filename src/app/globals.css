@@ -10,7 +10,7 @@
   --wine: #7a0917;
 }
 
-/* Fixed color variables for TailwindCSS usage */
+/* Correct usage of CSS variable */
 .bg-\[var\(--medium-green\)\] {
   background-color: var(--medium-green);
 }
@@ -21,6 +21,14 @@
 
 .bg-\[var\(--wine\)\] {
   background-color: var(--wine);
+}
+
+.bg-\[var\(--dark-green\)\] {
+  background-color: var(--dark-green);
+}
+
+.bg-\[var\(--white\)\] {
+  background-color: var(--white);
 }
 
 .text-\[var\(--medium-green\)\] {
@@ -37,6 +45,30 @@
 
 .text-\[var\(--dark-green\)\] {
   color: var(--dark-green);
+}
+
+.text-\[var\(--white\)\] {
+  color: var(--white);
+}
+
+.text-\[var\(--olive-green\)\] {
+  color: var(--olive-green);
+}
+
+.text-\[var\(--green\)\] {
+  color: var(--green);
+}
+
+.border-\[var\(--yellow\)\] {
+  border-color: var(--yellow);
+}
+
+.hover\:bg-\[var\(--medium-green\)\]\/90:hover {
+  background-color: rgba(var(--medium-green-rgb, 0, 128, 0), 0.9);
+}
+
+.hover\:bg-\[var\(--yellow\)\]:hover {
+  background-color: var(--yellow);
 }
 
 /* Consistent custom classes for dynamic usage */

@@ -117,13 +117,13 @@ const HeroSection: React.FC = () => {
             {dataHeadlines.map((headline, index) => (
               <div
                 key={headline.title}
-                className="min-w-full text-center p-6 bg-[var(--white)] bg-opacity-90 text-[var(--dark-green)] rounded-lg shadow-lg"
+                className="min-w-full text-center p-6  text-[var(--white)]"
                 role="region"
                 aria-live="polite"
                 aria-label={`Slide ${index + 1}: ${headline.title}`}
               >
-                <h2 className="text-2xl font-bold mb-2">{headline.title}</h2>
-                <p className="text-lg">{headline.description}</p>
+                <h2 className="text-3xl font-bold mb-2">{headline.title}</h2>
+                <p className="text-[17px] sm:text-[20px] font-semibold">{headline.description}</p>
               </div>
             ))}
           </div>

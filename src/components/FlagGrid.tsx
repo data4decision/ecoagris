@@ -25,7 +25,7 @@ const FlagGrid: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
           {countryCodes.map(({ code, name }) => (
             <a
-              href={`/${code.toLowerCase()}/login`} 
+              href={`/login`} 
               key={code}
               className="flex flex-col items-center justify-center p-4 bg-white rounded shadow hover:shadow-lg hover:scale-105 transition-transform"
             >

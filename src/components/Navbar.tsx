@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import countryCode from '@/app/flags/countryCode.json'; // Adjust path to your countryCode.json
+import countryCode from '@/app/flags/countryCode.json';
 
 interface Country {
   name: string;
@@ -15,6 +15,18 @@ interface Country {
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLLIElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav className="bg-[var(--medium-green)] text-white shadow-md px-6 py-4 md:flex justify-between">
@@ -28,11 +40,10 @@ const Navbar: React.FC = () => {
               height={32}
               className="inline-block w-8 mr-2"
             />
-            Data4Decision
+            ECOAGRIS
           </div>
         </Link>
 
-        {/* Hamburger menu for mobile */}
         <button
           className="md:hidden focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -63,9 +74,10 @@ const Navbar: React.FC = () => {
         </button>
       </div>
 
-      {/* Menu Links (visible on md and up OR when toggled on mobile) */}
       <ul
-        className={`mt-4 md:mt-0 md:flex items-center space-y-4 md:space-y-0 md:space-x-6 ${menuOpen ? 'block' : 'hidden'} md:block`}
+        className={`mt-4 md:mt-0 md:flex items-center space-y-4 md:space-y-0 md:space-x-6 ${
+          menuOpen ? 'block' : 'hidden'
+        } md:block`}
       >
         <li>
           <Link
@@ -76,7 +88,7 @@ const Navbar: React.FC = () => {
           </Link>
         </li>
 
-        <li className="relative">
+        <li className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="hover:text-[var(--yellow)] block w-full text-left"
@@ -91,8 +103,9 @@ const Navbar: React.FC = () => {
                   className="border-b last:border-0 hover:bg-gray-100"
                 >
                   <Link
-                    href={`/${code.toLowerCase()}/login`} // Country-specific login URL
+                    href={`/login`}
                     className="flex items-center px-4 py-2"
+                    onClick={() => setDropdownOpen(false)} // Close dropdown on click
                   >
                     <Image
                       src={flag}
