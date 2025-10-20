@@ -10,7 +10,7 @@
   --wine: #7a0917;
 }
 
-/* Correct usage of CSS variable */
+/* Correct usage of CSS variables */
 .bg-\[var\(--medium-green\)\] {
   background-color: var(--medium-green);
 }
