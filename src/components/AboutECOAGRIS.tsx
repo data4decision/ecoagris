@@ -73,7 +73,7 @@ const AboutECOAGRIS: React.FC = () => {
               href="tel:+880123456789"
               className="bg-green-600 text-white px-8 py-4 rounded-lg text-lg hover:bg-green-700 transition duration-300 shadow-lg"
             >
-              Call Us: +880 123 456 789
+              Call Us: +234 704 000 9930
             </a>
             <a
               href="#"
