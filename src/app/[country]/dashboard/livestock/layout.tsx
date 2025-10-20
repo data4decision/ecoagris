@@ -1,13 +1,13 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import Sidebar from "@/components/LivestockSidebar"
+import LivestockSidebar from "@/components/LivestockSidebar"
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaCaretDown, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { db, auth } from '@/firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import LivestockSidebar from '@/components/LivestockSidebar';
+
 
 interface User {
   firstName?: string;
