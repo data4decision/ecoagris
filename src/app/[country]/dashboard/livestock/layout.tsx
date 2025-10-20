@@ -1,13 +1,12 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import LivestockSidebar from "@/components/LivestockSidebar"
+import Sidebar from './Sidebar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaCaretDown, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { db, auth } from '@/firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-
 
 interface User {
   firstName?: string;
@@ -97,7 +96,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen">
-      <LivestockSidebar onCollapseChange={setIsSidebarCollapsed} />
+      <Sidebar onCollapseChange={setIsSidebarCollapsed} />
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ${
           isSideBarCollapsed ? 'lg:ml-13' : 'lg:ml-44'
