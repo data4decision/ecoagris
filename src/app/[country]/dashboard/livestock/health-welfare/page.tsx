@@ -3,6 +3,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import Sidebar from '../Sidebar';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -14,7 +15,7 @@ interface LivestockData {
   veterinary_facilities_count: number;
 }
 
-export default function HealthStats() {
+export default function HealthWelfare() {
   const { country } = useParams();
   const [data, setData] = useState<LivestockData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,15 +33,15 @@ export default function HealthStats() {
           ).sort((a: LivestockData, b: LivestockData) => a.year - b.year)
         );
         setLoading(false);
-      } catch (err) {
-        setError('Error loading health data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading health data');
         setLoading(false);
       }
     }
     fetchData();
   }, [country]);
 
-  if (loading) return <div className="text-[var(--olive-green)]">Loading...</div>;
+  if (loading) return <div className="text-[var(--olive-green)]">Loading Health & Welfare...</div>;
   if (error) return <div className="text-[var(--wine)]">{error}</div>;
 
   const chartData = {
@@ -88,7 +89,7 @@ export default function HealthStats() {
       },
       title: {
         display: true,
-        text: `Animal Health & Welfare in ${country.charAt(0).toUpperCase() + country.slice(1)}`,
+        text: `Animal Health & Welfare in ${(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}`,
         color: 'var(--dark-green)',
       },
     },
@@ -117,11 +118,19 @@ export default function HealthStats() {
   };
 
   return (
-    <div className="bg-[var(--white)] p-4 rounded-lg shadow">
-      <h2 className="text-lg font-semibold text-[var(--dark-green)] mb-4">
-        Animal Health & Welfare in {country.charAt(0).toUpperCase() + country.slice(1)}
-      </h2>
-      <Line data={chartData} options={options} className='text-[var(--dark-green)]' />
+    <div className="flex min-h-screen bg-[var(--white)]">
+      <Sidebar />
+      <div className="flex-1 p-6">
+        <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
+          Health & Welfare for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+        </h1>
+        <div className="bg-[var(--white)] p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold text-[var(--dark-green)] mb-4">
+            Animal Health & Welfare in {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+          </h2>
+          <Line data={chartData} options={options} className="text-[var(--dark-green)]" />
+        </div>
+      </div>
     </div>
   );
 }
