@@ -3,7 +3,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
-import LivestockOverview from '@/app/products/livestock/Overview';
 
 export default function ProductDashboard() {
   const { country, product } = useParams();
@@ -25,24 +24,11 @@ export default function ProductDashboard() {
 
   const productName = (product as string).charAt(0).toUpperCase() + (product as string).slice(1).replace(/-/g, ' ');
 
-  // Define type for overviewComponents
-  interface OverviewComponents {
-    [key: string]: React.ComponentType;
-    livestock: React.ComponentType;
-  }
 
-  const overviewComponents: OverviewComponents = {
-    livestock: LivestockOverview,
-  };
 
-  const OverviewComponent = overviewComponents[product as string] || (() => (
-    <div className="bg-[var(--yellow)]/20 p-4 rounded-lg">
-      <p className="text-[var(--olive-green)]">
-        This is the overview dashboard for {productName} in {country}. Product not supported yet.
-      </p>
-    </div>
-  ));
 
+
+  
   const supportedCountries = [
     'benin',
     'burkina faso',
@@ -77,7 +63,7 @@ export default function ProductDashboard() {
       <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
         {productName} Overview for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
       </h1>
-      <OverviewComponent />
+     
     </div>
   );
 }
