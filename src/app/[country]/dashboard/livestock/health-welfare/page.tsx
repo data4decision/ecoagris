@@ -3,7 +3,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import Sidebar from '../Sidebar';
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -119,7 +119,7 @@ export default function HealthWelfare() {
 
   return (
     <div className="flex min-h-screen bg-[var(--white)]">
-      <Sidebar />
+     
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
           Health & Welfare for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
