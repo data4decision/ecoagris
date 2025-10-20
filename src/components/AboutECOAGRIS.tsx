@@ -6,8 +6,8 @@ import { FaSeedling, FaLeaf } from 'react-icons/fa';
 
 
 const aboutUsContent = {
-  mission: "Our mission is to promote sustainable agriculture and provide chemical-free, nutritious food for all.",
-  vision: "To grow food that heals the earth and nourishes lives, through sustainable organic farming.",
+  mission: "Our Mission is to empower ECOWAS agricultural stakeholders with data-driven insights to enhance productivity, sustainability, and resilience in livestock and crop systems.",
+  vision: "Thriving, data-empowered agricultural landscape across ECOWAS, where innovative analytics drive equitable growth, environmental stewardship, and food sovereignty for all.",
 };
 
 const AboutECOAGRIS: React.FC = () => {
