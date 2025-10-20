@@ -32,8 +32,8 @@ export default function ForecastChart() {
           ).sort((a: LivestockData, b: LivestockData) => a.year - b.year)
         );
         setLoading(false);
-      } catch (err) {
-        setError('Error loading forecast data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading forecast data');
         setLoading(false);
       }
     }
@@ -49,8 +49,10 @@ export default function ForecastChart() {
       {
         label: 'Cattle (Head)',
         data: data.map((item) => item.cattle_head),
-        borderColor: 'var(--green)',
-        backgroundColor: 'var(--green)',
+        borderColor: 'var(--medium-green)',
+        backgroundColor: 'var(--medium-green)',
+        pointBackgroundColor: 'var(--medium-green)',
+        pointBorderColor: 'var(--medium-green)',
         fill: false,
       },
       {
@@ -58,6 +60,8 @@ export default function ForecastChart() {
         data: data.map((item) => item.milk_production_tons),
         borderColor: 'var(--yellow)',
         backgroundColor: 'var(--yellow)',
+        pointBackgroundColor: 'var(--yellow)',
+        pointBorderColor: 'var(--yellow)',
         fill: false,
       },
       {
@@ -65,6 +69,8 @@ export default function ForecastChart() {
         data: data.map((item) => item.meat_production_tons),
         borderColor: 'var(--wine)',
         backgroundColor: 'var(--wine)',
+        pointBackgroundColor: 'var(--wine)',
+        pointBorderColor: 'var(--wine)',
         fill: false,
       },
     ],
@@ -73,19 +79,29 @@ export default function ForecastChart() {
   const options = {
     responsive: true,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: `Forecast & Simulation in ${country.charAt(0).toUpperCase() + country.slice(1)}`, color: 'var(--dark-green)' },
+      legend: { position: 'top' as const, labels: { color: 'var(--dark-green)' } },
+      title: {
+        display: true,
+        text: `Forecast & Simulation in ${(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}`,
+        color: 'var(--dark-green)',
+      },
     },
     scales: {
-      x: { title: { display: true, text: 'Year', color: 'var(--olive-green)' } },
-      y: { title: { display: true, text: 'Value', color: 'var(--olive-green)' } },
+      x: {
+        title: { display: true, text: 'Year', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
+      y: {
+        title: { display: true, text: 'Value', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
     },
   };
 
   return (
     <div className="bg-[var(--white)] p-4 rounded-lg shadow">
       <h2 className="text-lg font-semibold text-[var(--dark-green)] mb-4">
-        Forecast & Simulation in {country.charAt(0).toUpperCase() + country.slice(1)}
+        Forecast & Simulation in {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
       </h2>
       <Line data={chartData} options={options} />
       <p className="text-[var(--olive-green)] mt-4">

@@ -10,7 +10,7 @@ import {
   FaMoneyBillWave, 
   FaHeartbeat, 
   FaMap, 
-  FaGlobe, 
+   
   FaChartLine, 
   FaDatabase, 
   FaChevronCircleRight,
@@ -43,7 +43,7 @@ const LivestockSidebar = ({ onCollapseChange }: LivestockSidebarProps) => {
     { label: 'Economic Indicators', href: `/${country}/dashboard/livestock/economic-indicators`, icon: FaMoneyBillWave },
     { label: 'Health & Welfare', href: `/${country}/dashboard/livestock/health-welfare`, icon: FaHeartbeat },
     { label: 'Grazing & Transhumance', href: `/${country}/dashboard/livestock/grazing-tranhumance`, icon: FaMap },
-    { label: 'Country Comparison', href: `/${country}/dashboard/livestock/country-comparison`, icon: FaGlobe },
+    
     { label: 'Forecast & Simulation', href: `/${country}/dashboard/livestock/forecast-simulation`, icon: FaChartLine },
     { label: 'Data & Methodology', href: `/${country}/dashboard/livestock/data-methodology`, icon: FaDatabase },
   ];

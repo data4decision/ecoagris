@@ -33,8 +33,8 @@ export default function PopulationChart() {
           ).sort((a: LivestockData, b: LivestockData) => a.year - b.year)
         );
         setLoading(false);
-      } catch (err) {
-        setError('Error loading population data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading population data');
         setLoading(false);
       }
     }
@@ -50,8 +50,10 @@ export default function PopulationChart() {
       {
         label: 'Cattle',
         data: data.map((item) => item.cattle_head),
-        borderColor: 'var(--green)',
-        backgroundColor: 'var(--green)',
+        borderColor: 'var(--medium-green)',
+        backgroundColor: 'var(--medium-green)',
+        pointBackgroundColor: 'var(--medium-green)',
+        pointBorderColor: 'var(--medium-green)',
         fill: false,
       },
       {
@@ -59,6 +61,8 @@ export default function PopulationChart() {
         data: data.map((item) => item.small_ruminants_head),
         borderColor: 'var(--yellow)',
         backgroundColor: 'var(--yellow)',
+        pointBackgroundColor: 'var(--yellow)',
+        pointBorderColor: 'var(--yellow)',
         fill: false,
       },
       {
@@ -66,13 +70,17 @@ export default function PopulationChart() {
         data: data.map((item) => item.pigs_head),
         borderColor: 'var(--wine)',
         backgroundColor: 'var(--wine)',
+        pointBackgroundColor: 'var(--wine)',
+        pointBorderColor: 'var(--wine)',
         fill: false,
       },
       {
         label: 'Poultry',
         data: data.map((item) => item.poultry_head),
-        borderColor: 'var(--olive-green)',
-        backgroundColor: 'var(--olive-green)',
+        borderColor: 'var(--dark-green)',
+        backgroundColor: 'var(--dark-green)',
+        pointBackgroundColor: 'var(--dark-green)',
+        pointBorderColor: 'var(--dark-green)',
         fill: false,
       },
     ],
@@ -81,19 +89,29 @@ export default function PopulationChart() {
   const options = {
     responsive: true,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: `Livestock Population Trends in ${country.charAt(0).toUpperCase() + country.slice(1)}`, color: 'var(--dark-green)' },
+      legend: { position: 'top' as const, labels: { color: 'var(--dark-green)' } },
+      title: {
+        display: true,
+        text: `Livestock Population Trends in ${(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}`,
+        color: 'var(--dark-green)',
+      },
     },
     scales: {
-      x: { title: { display: true, text: 'Year', color: 'var(--olive-green)' } },
-      y: { title: { display: true, text: 'Head Count', color: 'var(--olive-green)' } },
+      x: {
+        title: { display: true, text: 'Year', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
+      y: {
+        title: { display: true, text: 'Head Count', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
     },
   };
 
   return (
     <div className="bg-[var(--white)] p-4 rounded-lg shadow">
       <h2 className="text-lg font-semibold text-[var(--dark-green)] mb-4">
-        Livestock Population in {country.charAt(0).toUpperCase() + country.slice(1)}
+        Livestock Population in {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
       </h2>
       <Line data={chartData} options={options} />
     </div>

@@ -9,12 +9,11 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 interface LivestockData {
   country: string;
   year: number;
-  livestock_price_index_2006_base: number;
-  livestock_exports_tons: number;
-  offtake_rate_pct: number;
+  milk_production_tons: number;
+  meat_production_tons: number;
 }
 
-export default function EconomyChart() {
+export default function ProductionChart() {
   const { country } = useParams();
   const [data, setData] = useState<LivestockData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +23,7 @@ export default function EconomyChart() {
     async function fetchData() {
       try {
         const response = await fetch('/data/livestock/APMD_ECOWAS_Livestock_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error('Failed to fetch economy data');
+        if (!response.ok) throw new Error('Failed to fetch production data');
         const jsonData = await response.json();
         setData(
           jsonData.Simulated_Livestock_Data.filter(
@@ -32,8 +31,8 @@ export default function EconomyChart() {
           ).sort((a: LivestockData, b: LivestockData) => a.year - b.year)
         );
         setLoading(false);
-      } catch (err) {
-        setError('Error loading economy data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading production data');
         setLoading(false);
       }
     }
@@ -47,28 +46,22 @@ export default function EconomyChart() {
     labels: data.map((item) => item.year),
     datasets: [
       {
-        label: 'Price Index (2006 Base)',
-        data: data.map((item) => item.livestock_price_index_2006_base),
-        borderColor: 'var(--green)',
-        backgroundColor: 'var(--green)',
+        label: 'Milk Production (tons)',
+        data: data.map((item) => item.milk_production_tons),
+        borderColor: 'var(--medium-green)',
+        backgroundColor: 'var(--medium-green)',
+        pointBackgroundColor: 'var(--medium-green)',
+        pointBorderColor: 'var(--medium-green)',
         fill: false,
-        yAxisID: 'y1',
       },
       {
-        label: 'Exports (tons)',
-        data: data.map((item) => item.livestock_exports_tons),
-        borderColor: 'var(--yellow)',
-        backgroundColor: 'var(--yellow)',
-        fill: false,
-        yAxisID: 'y2',
-      },
-      {
-        label: 'Offtake Rate (%)',
-        data: data.map((item) => item.offtake_rate_pct),
+        label: 'Meat Production (tons)',
+        data: data.map((item) => item.meat_production_tons),
         borderColor: 'var(--wine)',
         backgroundColor: 'var(--wine)',
+        pointBackgroundColor: 'var(--wine)',
+        pointBorderColor: 'var(--wine)',
         fill: false,
-        yAxisID: 'y3',
       },
     ],
   };
@@ -76,21 +69,29 @@ export default function EconomyChart() {
   const options = {
     responsive: true,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: `Economic Indicators in ${country.charAt(0).toUpperCase() + country.slice(1)}`, color: 'var(--dark-green)' },
+      legend: { position: 'top' as const, labels: { color: 'var(--dark-green)' } },
+      title: {
+        display: true,
+        text: `Production Trends in ${(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}`,
+        color: 'var(--dark-green)',
+      },
     },
     scales: {
-      x: { title: { display: true, text: 'Year', color: 'var(--olive-green)' } },
-      y1: { title: { display: true, text: 'Price Index', color: 'var(--olive-green)' }, position: 'left' as const },
-      y2: { title: { display: true, text: 'Exports (tons)', color: 'var(--olive-green)' }, position: 'right' as const },
-      y3: { title: { display: true, text: 'Offtake Rate (%)', color: 'var(--olive-green)' }, position: 'right' as const, grid: { display: false } },
+      x: {
+        title: { display: true, text: 'Year', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
+      y: {
+        title: { display: true, text: 'Tons', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
     },
   };
 
   return (
     <div className="bg-[var(--white)] p-4 rounded-lg shadow">
       <h2 className="text-lg font-semibold text-[var(--dark-green)] mb-4">
-        Economic Indicators in {country.charAt(0).toUpperCase() + country.slice(1)}
+        Production and Output in {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
       </h2>
       <Line data={chartData} options={options} />
     </div>

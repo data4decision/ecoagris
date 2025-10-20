@@ -32,8 +32,8 @@ export default function EconomyChart() {
           ).sort((a: LivestockData, b: LivestockData) => a.year - b.year)
         );
         setLoading(false);
-      } catch (err) {
-        setError('Error loading economy data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading economy data');
         setLoading(false);
       }
     }
@@ -49,8 +49,10 @@ export default function EconomyChart() {
       {
         label: 'Price Index (2006 Base)',
         data: data.map((item) => item.livestock_price_index_2006_base),
-        borderColor: 'var(--green)',
-        backgroundColor: 'var(--green)',
+        borderColor: 'var(--medium-green)',
+        backgroundColor: 'var(--medium-green)',
+        pointBackgroundColor: 'var(--medium-green)',
+        pointBorderColor: 'var(--medium-green)',
         fill: false,
         yAxisID: 'y1',
       },
@@ -59,6 +61,8 @@ export default function EconomyChart() {
         data: data.map((item) => item.livestock_exports_tons),
         borderColor: 'var(--yellow)',
         backgroundColor: 'var(--yellow)',
+        pointBackgroundColor: 'var(--yellow)',
+        pointBorderColor: 'var(--yellow)',
         fill: false,
         yAxisID: 'y2',
       },
@@ -67,6 +71,8 @@ export default function EconomyChart() {
         data: data.map((item) => item.offtake_rate_pct),
         borderColor: 'var(--wine)',
         backgroundColor: 'var(--wine)',
+        pointBackgroundColor: 'var(--wine)',
+        pointBorderColor: 'var(--wine)',
         fill: false,
         yAxisID: 'y3',
       },
@@ -76,21 +82,41 @@ export default function EconomyChart() {
   const options = {
     responsive: true,
     plugins: {
-      legend: { position: 'top' as const },
-      title: { display: true, text: `Economic Indicators in ${country.charAt(0).toUpperCase() + country.slice(1)}`, color: 'var(--dark-green)' },
+      legend: { position: 'top' as const, labels: { color: 'var(--dark-green)' } },
+      title: {
+        display: true,
+        text: `Economic Indicators in ${(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}`,
+        color: 'var(--dark-green)',
+      },
     },
     scales: {
-      x: { title: { display: true, text: 'Year', color: 'var(--olive-green)' } },
-      y1: { title: { display: true, text: 'Price Index', color: 'var(--olive-green)' }, position: 'left' as const },
-      y2: { title: { display: true, text: 'Exports (tons)', color: 'var(--olive-green)' }, position: 'right' as const },
-      y3: { title: { display: true, text: 'Offtake Rate (%)', color: 'var(--olive-green)' }, position: 'right' as const, grid: { display: false } },
+      x: {
+        title: { display: true, text: 'Year', color: 'var(--olive-green)' },
+        ticks: { color: 'var(--olive-green)' },
+      },
+      y1: {
+        title: { display: true, text: 'Price Index', color: 'var(--olive-green)' },
+        position: 'left' as const,
+        ticks: { color: 'var(--olive-green)' },
+      },
+      y2: {
+        title: { display: true, text: 'Exports (tons)', color: 'var(--olive-green)' },
+        position: 'right' as const,
+        ticks: { color: 'var(--olive-green)' },
+      },
+      y3: {
+        title: { display: true, text: 'Offtake Rate (%)', color: 'var(--olive-green)' },
+        position: 'right' as const,
+        grid: { display: false },
+        ticks: { color: 'var(--olive-green)' },
+      },
     },
   };
 
   return (
     <div className="bg-[var(--white)] p-4 rounded-lg shadow">
       <h2 className="text-lg font-semibold text-[var(--dark-green)] mb-4">
-        Economic Indicators in {country.charAt(0).toUpperCase() + country.slice(1)}
+        Economic Indicators in {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
       </h2>
       <Line data={chartData} options={options} />
     </div>
