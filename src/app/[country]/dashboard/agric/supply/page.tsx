@@ -1,4 +1,4 @@
-// src/app/[country]/dashboard/agric/page.tsx
+// src/app/[country]/dashboard/agric/supply/page.tsx
 'use client';
 
 // Import required dependencies
@@ -16,11 +16,10 @@ import {
   Bar,
   ResponsiveContainer,
 } from 'recharts';
-import { FaChartBar, FaDownload } from 'react-icons/fa';
+import { FaTruck, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
 
 // Define TypeScript interface for data structure
 interface InputData {
@@ -41,13 +40,13 @@ interface Dataset {
   Simulated_Input_Data: InputData[];
 }
 
-export default function AgricOverview() {
+export default function SupplyChainPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
   // State for country-specific data, selected metric, selected year, loading, error, and latest year
   const [countryData, setCountryData] = useState<InputData[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<'fertilizer_kg_per_ha' | 'improved_seed_use_pct'>('fertilizer_kg_per_ha');
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const [selectedMetric, setSelectedMetric] = useState<'stockouts_days_per_year' | 'input_subsidy_budget_usd'>('stockouts_days_per_year');
+  const [selectedYear, setSelectedYear] = useState<number>(2025); // Default to latest year
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [latestYear, setLatestYear] = useState(2025);
@@ -63,14 +62,14 @@ export default function AgricOverview() {
     async function fetchData() {
       try {
         const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error('Failed to fetch agricultural input data');
+        if (!response.ok) throw new Error('Failed to fetch supply chain data');
         const jsonData = (await response.json()) as Dataset;
 
         // Calculate the latest year dynamically
         const years = jsonData.Simulated_Input_Data.map((d) => d.year);
         const maxYear = Math.max(...years, 2025);
         setLatestYear(maxYear);
-        setSelectedYear(maxYear);
+        setSelectedYear(maxYear); // Set initial selected year to latest
 
         // Filter data for the selected country
         const filteredCountryData = jsonData.Simulated_Input_Data.filter(
@@ -80,7 +79,7 @@ export default function AgricOverview() {
         setCountryData(filteredCountryData);
         setLoading(false);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Error loading agricultural input data');
+        setError(err instanceof Error ? err.message : 'Error loading supply chain data');
         setLoading(false);
       }
     }
@@ -96,7 +95,7 @@ export default function AgricOverview() {
 
   // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
-  const totalInputUsage = selectedData
+  const totalInputAvailability = selectedData
     ? selectedData.cereal_seeds_tons + selectedData.fertilizer_tons + selectedData.pesticide_liters
     : 0;
 
@@ -104,21 +103,18 @@ export default function AgricOverview() {
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => ({
       Year: data.year,
+      'Stockout Days': data.stockouts_days_per_year,
+      'Subsidy Budget (USD)': data.input_subsidy_budget_usd,
       'Cereal Seeds (tons)': data.cereal_seeds_tons,
       'Fertilizer (tons)': data.fertilizer_tons,
       'Pesticides (liters)': data.pesticide_liters,
-      'Subsidy Budget (USD)': data.input_subsidy_budget_usd,
-      'Credit Access (%)': data.credit_access_pct,
-      'Stockout Days': data.stockouts_days_per_year,
-      'Fertilizer Intensity (kg/ha)': data.fertilizer_kg_per_ha,
-      'Improved Seed Adoption (%)': data.improved_seed_use_pct,
     }));
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${country}_agric_input_data.csv`;
+    link.download = `${country}_supply_chain_data.csv`;
     link.click();
   };
 
@@ -130,20 +126,19 @@ export default function AgricOverview() {
     const canvas = await html2canvas(dashboard, { scale: 2 });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 190;
+    const imgWidth = 190; // A4 width in mm minus margins
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
     pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-    pdf.save(`${country}_agric_input_dashboard.pdf`);
+    pdf.save(`${country}_supply_chain_dashboard.pdf`);
   };
 
   // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Overview...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Supply Chain...</p>
         </div>
       </div>
     );
@@ -153,7 +148,6 @@ export default function AgricOverview() {
   if (error || !selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      
         <div className="flex-1 p-4 sm:p-6 min-w-0">
           <p className="text-[var(--wine)] text-base sm:text-lg">Error: {error || 'No data available for this country'}</p>
         </div>
@@ -163,14 +157,13 @@ export default function AgricOverview() {
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-     
       <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Agricultural Inputs Overview for ${country}`}
+          aria-label={`Supply Chain Overview for ${country}`}
         >
-          <FaChartBar aria-hidden="true" className="text-lg sm:text-xl" /> Agricultural Inputs Overview -{' '}
+          <FaTruck aria-hidden="true" className="text-lg sm:text-xl" /> Supply Chain Overview -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
@@ -182,14 +175,14 @@ export default function AgricOverview() {
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download data as CSV"
+            aria-label="Download supply chain data as CSV"
           >
             <FaDownload /> Download CSV
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download dashboard as PDF"
+            aria-label="Download supply chain dashboard as PDF"
           >
             <FaDownload /> Download PDF
           </button>
@@ -216,40 +209,28 @@ export default function AgricOverview() {
 
         {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 max-w-full">
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Total Input Usage Card for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Total Input Usage ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{totalInputUsage.toLocaleString()} units</p>
+          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Total Input Availability Card for ${selectedYear}`}>
+            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Total Input Availability ({selectedYear})</h3>
+            <p className="text-[var(--wine)] text-base sm:text-lg">{totalInputAvailability.toLocaleString()} units</p>
           </div>
           <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Subsidy Budget Card for ${selectedYear}`}>
             <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Subsidy Budget ({selectedYear})</h3>
             <p className="text-[var(--wine)] text-base sm:text-lg">${selectedData.input_subsidy_budget_usd.toLocaleString()}</p>
           </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Credit Access Card for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Credit Access ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.credit_access_pct.toFixed(1)}%</p>
-          </div>
           <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Stockout Days Card for ${selectedYear}`}>
             <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Stockout Days ({selectedYear})</h3>
             <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.stockouts_days_per_year} days</p>
-          </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Fertilizer Intensity Card for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Fertilizer Intensity ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.fertilizer_kg_per_ha.toFixed(1)} kg/ha</p>
-          </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Improved Seed Adoption Card for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Improved Seed Adoption ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.improved_seed_use_pct.toFixed(1)}%</p>
           </div>
         </div>
 
         {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Input Usage Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Input Usage Trends Chart">
+          {/* Line Chart: Supply Chain Trends */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Supply Chain Trends Chart">
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Input Usage Trends (2006–{latestYear})
+              Supply Chain Trends (2006–{latestYear})
             </h2>
-            <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
+            <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
@@ -271,23 +252,16 @@ export default function AgricOverview() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="cereal_seeds_tons"
+                  dataKey="stockouts_days_per_year"
                   stroke="var(--olive-green)"
-                  name="Cereal Seeds (tons)"
+                  name="Stockout Days"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="fertilizer_tons"
+                  dataKey="input_subsidy_budget_usd"
                   stroke="var(--wine)"
-                  name="Fertilizer (tons)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="pesticide_liters"
-                  stroke="var(--dark-green)"
-                  name="Pesticides (liters)"
+                  name="Subsidy Budget (USD)"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -305,13 +279,13 @@ export default function AgricOverview() {
             <select
               id="metric-select"
               value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value as 'fertilizer_kg_per_ha' | 'improved_seed_use_pct')}
+              onChange={(e) => setSelectedMetric(e.target.value as 'stockouts_days_per_year' | 'input_subsidy_budget_usd')}
               className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
             >
-              <option value="fertilizer_kg_per_ha">Fertilizer Intensity (kg/ha)</option>
-              <option value="improved_seed_use_pct">Improved Seed Adoption (%)</option>
+              <option value="stockouts_days_per_year">Stockout Days</option>
+              <option value="input_subsidy_budget_usd">Subsidy Budget (USD)</option>
             </select>
-            <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
+            <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }} barGap={2} barCategoryGap="10%">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis

@@ -95,10 +95,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen  ">
       <Sidebar onCollapseChange={setIsSidebarCollapsed} />
       <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
+        className={`flex-1 flex flex-col transition-all duration-300 overflow-x-hidden ${
           isSideBarCollapsed ? 'lg:ml-13' : 'lg:ml-44'
         }  text-[var(--white)] min-w-0`}
       >
@@ -155,7 +155,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             )}
           </div>
         </header>
-        <main className="flex-1 ml-10 sm:ml-0 p-6 w-full">{children}</main>
+        <main className="flex-1 ml-10 sm:ml-0 p-6 w-full overflow-x-hidden">{children}</main>
       </div>
     </div>
   );

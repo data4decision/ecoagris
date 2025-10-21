@@ -28,7 +28,7 @@ export default function AgricDashboard() {
   if (error) return <div className="text-[var(--wine)]">{error}</div>;
 
   return (
-    <div className="flex min-h-screen bg-[var(--white)]">
+    <div className="flex min-h-screen bg-[var(--white)] overflow-x-hidden">
       
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
