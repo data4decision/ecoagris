@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, usePathname } from 'next/navigation';
-import { FaChartBar, FaTruck, FaMoneyBillWave, FaChevronCircleRight, FaChevronCircleLeft, FaSignOutAlt, FaSeedling, FaChartLine, FaDatabase } from 'react-icons/fa';
+import { FaChartBar, FaTruck, FaMoneyBillWave, FaChevronCircleRight, FaChartPie, FaChevronCircleLeft, FaSignOutAlt, FaSeedling, FaChartLine, FaDatabase } from 'react-icons/fa';
 // Add the logout function implementation (imported or defined)
 const logout = () => {
   // Implement your logout logic here
@@ -28,6 +28,7 @@ const AgricSidebar = ({ onCollapseChange }: AgricSidebarProps) => {
   { label: 'Economic Indicators', href: `/${country}/dashboard/agric/economic-indicators`, icon: FaMoneyBillWave },
   { label: 'Adoption & Mechanization', href: `/${country}/dashboard/agric/adoption-mechanization`, icon: FaSeedling },
   { label: 'Forecast & Simulation', href: `/${country}/dashboard/agric/forecast-simulation`, icon: FaChartLine },
+  { label: 'Input Metrics', href: `/${country}/dashboard/agric/input-metric`, icon: FaChartPie },
   { label: 'Data & Methodology', href: `/${country}/dashboard/agric/data-methodology`, icon: FaDatabase },
 ];
 

@@ -1,4 +1,3 @@
-// src/app/[country]/dashboard/agric/supply/page.tsx
 'use client';
 
 // Import required dependencies
@@ -25,14 +24,13 @@ import html2canvas from 'html2canvas';
 interface InputData {
   country: string;
   year: number;
-  cereal_seeds_tons: number;
-  fertilizer_tons: number;
-  pesticide_liters: number;
-  input_subsidy_budget_usd: number;
-  credit_access_pct: number;
-  stockouts_days_per_year: number;
-  fertilizer_kg_per_ha: number;
-  improved_seed_use_pct: number;
+  cereal_seeds_tons?: number;
+  fertilizer_tons?: number;
+  pesticide_liters?: number;
+  stockouts_days_per_year?: number;
+  distribution_timeliness_pct?: number;
+  agro_dealer_count?: number;
+  local_production_inputs_tons?: number;
   [key: string]: unknown;
 }
 
@@ -40,16 +38,37 @@ interface Dataset {
   Simulated_Input_Data: InputData[];
 }
 
+// Define available metrics for the bar chart
+type SupplyChainMetric =
+  | 'cereal_seeds_tons'
+  | 'fertilizer_tons'
+  | 'pesticide_liters'
+  | 'stockouts_days_per_year'
+  | 'distribution_timeliness_pct'
+  | 'agro_dealer_count'
+  | 'local_production_inputs_tons';
+
 export default function SupplyChainPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
   // State for country-specific data, selected metric, selected year, loading, error, and latest year
   const [countryData, setCountryData] = useState<InputData[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<'stockouts_days_per_year' | 'input_subsidy_budget_usd'>('stockouts_days_per_year');
+  const [selectedMetric, setSelectedMetric] = useState<SupplyChainMetric>('stockouts_days_per_year');
   const [selectedYear, setSelectedYear] = useState<number>(2025); // Default to latest year
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [latestYear, setLatestYear] = useState(2025);
+
+  // Define field metadata for display and formatting
+  const supplyChainFields = [
+    { key: 'cereal_seeds_tons', label: 'Cereal Seeds (tons)', format: (v: number) => v.toLocaleString() },
+    { key: 'fertilizer_tons', label: 'Fertilizer (tons)', format: (v: number) => v.toLocaleString() },
+    { key: 'pesticide_liters', label: 'Pesticides (liters)', format: (v: number) => v.toLocaleString() },
+    { key: 'stockouts_days_per_year', label: 'Stockout Days', format: (v: number) => v.toLocaleString() },
+    { key: 'distribution_timeliness_pct', label: 'Distribution Timeliness (%)', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'agro_dealer_count', label: 'Agro-Dealer Count', format: (v: number) => v.toLocaleString() },
+    { key: 'local_production_inputs_tons', label: 'Local Production Inputs (tons)', format: (v: number) => v.toLocaleString() },
+  ];
 
   // Fetch data from JSON file
   useEffect(() => {
@@ -76,6 +95,12 @@ export default function SupplyChainPage() {
           (d) => d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
+        if (filteredCountryData.length === 0) {
+          setError(`No data available for ${country}`);
+          setLoading(false);
+          return;
+        }
+
         setCountryData(filteredCountryData);
         setLoading(false);
       } catch (err: unknown) {
@@ -89,26 +114,27 @@ export default function SupplyChainPage() {
 
   // Get unique years for dropdown
   const availableYears = useMemo(() => {
-    const years = Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
-    return years;
+    return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
   }, [countryData]);
 
   // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
   const totalInputAvailability = selectedData
-    ? selectedData.cereal_seeds_tons + selectedData.fertilizer_tons + selectedData.pesticide_liters
+    ? (selectedData.cereal_seeds_tons || 0) +
+      (selectedData.fertilizer_tons || 0) +
+      (selectedData.pesticide_liters || 0) +
+      (selectedData.local_production_inputs_tons || 0)
     : 0;
 
   // Function to handle CSV download
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => ({
-      Year: data.year,
-      'Stockout Days': data.stockouts_days_per_year,
-      'Subsidy Budget (USD)': data.input_subsidy_budget_usd,
-      'Cereal Seeds (tons)': data.cereal_seeds_tons,
-      'Fertilizer (tons)': data.fertilizer_tons,
-      'Pesticides (liters)': data.pesticide_liters,
-    }));
+    const csvData = countryData.map((data) => {
+      const row: { [key: string]: string | number } = { Year: data.year };
+      supplyChainFields.forEach((field) => {
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+      });
+      return row;
+    });
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -163,7 +189,7 @@ export default function SupplyChainPage() {
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
           aria-label={`Supply Chain Overview for ${country}`}
         >
-          <FaTruck aria-hidden="true" className="text-lg sm:text-xl" /> Supply Chain Overview -{' '}
+          <FaTruck aria-hidden="true" className="text-lg sm:text-xl" /> Supply Chain -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
@@ -213,14 +239,18 @@ export default function SupplyChainPage() {
             <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Total Input Availability ({selectedYear})</h3>
             <p className="text-[var(--wine)] text-base sm:text-lg">{totalInputAvailability.toLocaleString()} units</p>
           </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Subsidy Budget Card for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Subsidy Budget ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">${selectedData.input_subsidy_budget_usd.toLocaleString()}</p>
-          </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Stockout Days Card for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Stockout Days ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.stockouts_days_per_year} days</p>
-          </div>
+          {supplyChainFields.map((field) => (
+            <div
+              key={field.key}
+              className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
+              aria-label={`${field.label} Card for ${selectedYear}`}
+            >
+              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
+              <p className="text-[var(--wine)] text-base sm:text-lg">
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+              </p>
+            </div>
+          ))}
         </div>
 
         {/* Visualizations */}
@@ -252,16 +282,51 @@ export default function SupplyChainPage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="stockouts_days_per_year"
+                  dataKey="cereal_seeds_tons"
+                  stroke="var(--medium-green)"
+                  name="Cereal Seeds (tons)"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="fertilizer_tons"
+                  stroke="var(--wine)"
+                  name="Fertilizer (tons)"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="pesticide_liters"
                   stroke="var(--olive-green)"
+                  name="Pesticides (liters)"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="stockouts_days_per_year"
+                  stroke="var(--dark-green)"
                   name="Stockout Days"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="input_subsidy_budget_usd"
-                  stroke="var(--wine)"
-                  name="Subsidy Budget (USD)"
+                  dataKey="distribution_timeliness_pct"
+                  stroke="var(--yellow)"
+                  name="Distribution Timeliness (%)"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="agro_dealer_count"
+                  stroke="#4B0082"
+                  name="Agro-Dealer Count"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="local_production_inputs_tons"
+                  stroke="#FF4500"
+                  name="Local Production Inputs (tons)"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -279,11 +344,14 @@ export default function SupplyChainPage() {
             <select
               id="metric-select"
               value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value as 'stockouts_days_per_year' | 'input_subsidy_budget_usd')}
+              onChange={(e) => setSelectedMetric(e.target.value as SupplyChainMetric)}
               className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
             >
-              <option value="stockouts_days_per_year">Stockout Days</option>
-              <option value="input_subsidy_budget_usd">Subsidy Budget (USD)</option>
+              {supplyChainFields.map((field) => (
+                <option key={field.key} value={field.key}>
+                  {field.label}
+                </option>
+              ))}
             </select>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }} barGap={2} barCategoryGap="10%">
