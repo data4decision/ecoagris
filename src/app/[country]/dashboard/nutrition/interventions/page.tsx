@@ -1,4 +1,4 @@
-// src/app/[country]/dashboard/nutrition/malnutrition/page.tsx
+// src/app/[country]/dashboard/nutrition/malnutrition/interventions/page.tsx
 'use client';
 
 // Import required dependencies
@@ -22,52 +22,59 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 // Define TypeScript interfaces directly in the file
-interface NutritionData {
+interface NutritionInterventionData {
   country: string;
   year: number;
-  prevalence_undernourishment_pct?: number;
-  prevalence_stunting_children_under5_pct?: number;
-  prevalence_wasting_children_under5_pct?: number;
-  prevalence_overweight_children_under5_pct?: number;
-  adult_obesity_prevalence_pct?: number;
-  adult_underweight_prevalence_pct?: number;
-  child_obesity_prevalence_pct?: number;
+  exclusive_breastfeeding_under6months_pct?: number;
+  minimum_dietary_diversity_children_pct?: number;
+  school_meal_coverage_pct?: number;
+  wfp_food_assistance_beneficiaries?: number;
   [key: string]: unknown; // Allow for other fields in the dataset
 }
 
 interface Dataset {
-  Nutrition_Data: NutritionData[];
+  Nutrition_Data: NutritionInterventionData[];
 }
 
 // Define available metrics for the bar chart
-type MalnutritionMetric =
-  | 'prevalence_undernourishment_pct'
-  | 'prevalence_stunting_children_under5_pct'
-  | 'prevalence_wasting_children_under5_pct'
-  | 'prevalence_overweight_children_under5_pct'
-  | 'adult_obesity_prevalence_pct'
-  | 'adult_underweight_prevalence_pct'
-  | 'child_obesity_prevalence_pct';
+type NutritionInterventionMetric =
+  | 'exclusive_breastfeeding_under6months_pct'
+  | 'minimum_dietary_diversity_children_pct'
+  | 'school_meal_coverage_pct'
+  | 'wfp_food_assistance_beneficiaries';
 
-export default function MalnutritionPage() {
+export default function InterventionsPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
   // State for country-specific data, selected metric, selected year, loading, error
-  const [countryData, setCountryData] = useState<NutritionData[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<MalnutritionMetric>('prevalence_undernourishment_pct');
+  const [countryData, setCountryData] = useState<NutritionInterventionData[]>([]);
+  const [selectedMetric, setSelectedMetric] = useState<NutritionInterventionMetric>('exclusive_breastfeeding_under6months_pct');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Define field metadata for display and formatting
-  const malnutritionFields = [
-    { key: 'prevalence_undernourishment_pct', label: 'Prevalence of Undernourishment (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'prevalence_stunting_children_under5_pct', label: 'Child Stunting (Under 5, %)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'prevalence_wasting_children_under5_pct', label: 'Child Wasting (Under 5, %)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'prevalence_overweight_children_under5_pct', label: 'Child Overweight (Under 5, %)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'adult_obesity_prevalence_pct', label: 'Adult Obesity (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'adult_underweight_prevalence_pct', label: 'Adult Underweight (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'child_obesity_prevalence_pct', label: 'Child Obesity (%)', format: (v: number) => `${v.toFixed(1)}%` },
+  const nutritionInterventionFields = [
+    {
+      key: 'exclusive_breastfeeding_under6months_pct',
+      label: 'Exclusive Breastfeeding (Under 6 Months, %)',
+      format: (v: number) => `${v.toFixed(1)}%`,
+    },
+    {
+      key: 'minimum_dietary_diversity_children_pct',
+      label: 'Minimum Dietary Diversity (Children, %)',
+      format: (v: number) => `${v.toFixed(1)}%`,
+    },
+    {
+      key: 'school_meal_coverage_pct',
+      label: 'School Meal Coverage (%)',
+      format: (v: number) => `${v.toFixed(1)}%`,
+    },
+    {
+      key: 'wfp_food_assistance_beneficiaries',
+      label: 'WFP Food Assistance Beneficiaries',
+      format: (v: number) => v.toLocaleString(),
+    },
   ];
 
   // Fetch data from JSON file
@@ -80,11 +87,11 @@ export default function MalnutritionPage() {
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the malnutrition dataset
+        // Data Fetch Location: Load the interventions dataset
         // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch malnutrition data: ${response.status} ${response.statusText}`);
+          throw new Error(`Failed to fetch interventions data: ${response.status} ${response.statusText}`);
         }
         const jsonData = (await response.json()) as Dataset;
 
@@ -119,7 +126,7 @@ export default function MalnutritionPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading malnutrition data: ${(err as Error).message}`);
+        setError(`Error loading interventions data: ${(err as Error).message}`);
         setLoading(false);
       }
     }
@@ -139,7 +146,7 @@ export default function MalnutritionPage() {
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
       const row: { [key: string]: string | number } = { Year: data.year };
-      malnutritionFields.forEach((field) => {
+      nutritionInterventionFields.forEach((field) => {
         row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
       });
       return row;
@@ -149,7 +156,7 @@ export default function MalnutritionPage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${country}_malnutrition_data.csv`;
+    link.download = `${country}_interventions_data.csv`;
     link.click();
   };
 
@@ -169,7 +176,7 @@ export default function MalnutritionPage() {
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      pdf.save(`${country}_malnutrition_dashboard.pdf`);
+      pdf.save(`${country}_interventions_dashboard.pdf`);
     } catch (err) {
       console.error('PDF generation error:', err);
     }
@@ -180,7 +187,7 @@ export default function MalnutritionPage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Malnutrition Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Interventions Data...</p>
         </div>
       </div>
     );
@@ -203,9 +210,9 @@ export default function MalnutritionPage() {
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Malnutrition Overview for ${country}`}
+          aria-label={`Nutrition Interventions Overview for ${country}`}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Malnutrition -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Nutrition Interventions -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
@@ -217,14 +224,14 @@ export default function MalnutritionPage() {
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download malnutrition data as CSV"
+            aria-label="Download interventions data as CSV"
           >
             <FaDownload /> Download CSV
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download malnutrition dashboard as PDF"
+            aria-label="Download interventions dashboard as PDF"
           >
             <FaDownload /> Download PDF
           </button>
@@ -250,8 +257,8 @@ export default function MalnutritionPage() {
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 max-w-full">
-          {malnutritionFields.map((field) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
+          {nutritionInterventionFields.map((field) => (
             <div
               key={field.key}
               className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
@@ -267,10 +274,10 @@ export default function MalnutritionPage() {
 
         {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Malnutrition Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Malnutrition Trends Chart">
+          {/* Line Chart: Nutrition Interventions Trends */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Nutrition Interventions Trends Chart">
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Malnutrition Trends (2006–{selectedYear})
+              Nutrition Interventions Trends (2006–{selectedYear})
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -294,51 +301,30 @@ export default function MalnutritionPage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="prevalence_undernourishment_pct"
+                  dataKey="exclusive_breastfeeding_under6months_pct"
                   stroke="var(--olive-green)"
-                  name="Prevalence of Undernourishment (%)"
+                  name="Exclusive Breastfeeding (Under 6 Months, %)"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="prevalence_stunting_children_under5_pct"
+                  dataKey="minimum_dietary_diversity_children_pct"
                   stroke="var(--wine)"
-                  name="Child Stunting (Under 5, %)"
+                  name="Minimum Dietary Diversity (Children, %)"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="prevalence_wasting_children_under5_pct"
+                  dataKey="school_meal_coverage_pct"
                   stroke="var(--yellow)"
-                  name="Child Wasting (Under 5, %)"
+                  name="School Meal Coverage (%)"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="prevalence_overweight_children_under5_pct"
+                  dataKey="wfp_food_assistance_beneficiaries"
                   stroke="var(--medium-green)"
-                  name="Child Overweight (Under 5, %)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="adult_obesity_prevalence_pct"
-                  stroke="var(--red)"
-                  name="Adult Obesity (%)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="adult_underweight_prevalence_pct"
-                  stroke="var(--green)"
-                  name="Adult Underweight (%)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="child_obesity_prevalence_pct"
-                  stroke="var(--dark-green)"
-                  name="Child Obesity (%)"
+                  name="WFP Food Assistance Beneficiaries"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -356,10 +342,10 @@ export default function MalnutritionPage() {
             <select
               id="metric-select"
               value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value as MalnutritionMetric)}
+              onChange={(e) => setSelectedMetric(e.target.value as NutritionInterventionMetric)}
               className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
             >
-              {malnutritionFields.map((field) => (
+              {nutritionInterventionFields.map((field) => (
                 <option key={field.key} value={field.key}>
                   {field.label}
                 </option>
