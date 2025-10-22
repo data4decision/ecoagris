@@ -1,4 +1,4 @@
-// pages/[country]/nutrition/dietary-nutrient-intake/index.tsx
+// src/app/[country]/dashboard/nutrition/malnutrition/dietary-nutrient-intake/page.tsx
 'use client';
 
 // Import required dependencies
@@ -20,6 +20,24 @@ import { FaChartLine, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+
+// Define TypeScript interfaces directly in the file
+interface DietaryData {
+  country: string;
+  year: number;
+  average_daily_caloric_intake_kcal?: number;
+  protein_intake_g_per_capita_per_day?: number;
+  dietary_energy_supply_kcal_per_capita_per_day?: number;
+  fruit_vegetable_consumption_g_per_day?: number;
+  animal_protein_share_of_total_protein_pct?: number;
+  household_food_expenditure_share_pct?: number;
+  household_food_insecurity_pct?: number;
+  [key: string]: unknown; // Allow for other fields in the dataset
+}
+
+interface Dataset {
+  Nutrition_Data: DietaryData[];
+}
 
 // Define available metrics for the bar chart
 type DietaryMetric =
@@ -62,7 +80,9 @@ export default function DietaryNutrientIntakePage() {
 
     async function fetchData() {
       try {
-        
+        // Data Fetch Location: Load the dietary and nutrient intake dataset
+        // Path: /data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
+        // Ensure the file is in public/data/nutrition or adjust if hosted elsewhere (e.g., API)
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) throw new Error('Failed to fetch dietary and nutrient intake data');
         const jsonData = (await response.json()) as Dataset;
@@ -147,11 +167,11 @@ export default function DietaryNutrientIntakePage() {
   }
 
   // Render error state
-  if (error || !selectedData) {
+  if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">Error: {error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
         </div>
       </div>
     );
