@@ -8,11 +8,16 @@
   --medium-green: #008000;
   --yellow: #ffdc24;
   --wine: #7a0917;
+  --red: #ec0606;
 }
 
 /* Correct usage of CSS variables */
 .bg-\[var\(--medium-green\)\] {
   background-color: var(--medium-green);
+}
+
+.bg-\[var\(--red\)\] {
+  background-color: var(--red);
 }
 
 .bg-\[var\(--yellow\)\] {
@@ -33,6 +38,10 @@
 
 .text-\[var\(--medium-green\)\] {
   color: var(--medium-green);
+}
+
+.text-\[var\(--red\)\] {
+  color: var(--red);
 }
 
 .text-\[var\(--yellow\)\] {
