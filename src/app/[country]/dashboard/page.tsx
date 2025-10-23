@@ -20,6 +20,7 @@ const products = [
   { name: 'Aquaculture', slug: 'aquaculture' },
   { name: 'Agric Research Results', slug: 'agric-research-results' },
   { name: 'Macroeconomics Indices', slug: 'macroeconomics-indices' },
+  { name: 'Rice Production', slug: 'rice'}
 ];
 
 export default function ProductSelection() {
