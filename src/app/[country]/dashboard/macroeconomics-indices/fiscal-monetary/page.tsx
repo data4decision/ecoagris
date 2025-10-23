@@ -1,6 +1,6 @@
-
 'use client';
 
+// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -15,58 +15,65 @@ import {
   Bar,
   ResponsiveContainer,
 } from 'recharts';
-import { FaChartLine, FaDownload } from 'react-icons/fa';
+import { FaDollarSign, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-// Define TypeScript interfaces directly in the file
-interface DietaryData {
+// Define TypeScript interfaces
+interface MacroData {
   country: string;
   year: number;
-  average_daily_caloric_intake_kcal?: number;
-  protein_intake_g_per_capita_per_day?: number;
-  dietary_energy_supply_kcal_per_capita_per_day?: number;
-  fruit_vegetable_consumption_g_per_day?: number;
-  animal_protein_share_of_total_protein_pct?: number;
-  household_food_expenditure_share_pct?: number;
-  household_food_insecurity_pct?: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  cpi_inflation_pct: number;
+  fiscal_deficit_pct_gdp: number;
+  public_debt_pct_gdp: number;
+  exchange_rate_local_per_usd: number;
+  [key: string]: unknown;
 }
 
 interface Dataset {
-  Nutrition_Data: DietaryData[];
+  Simulated_Macro_Data: MacroData[];
 }
 
 // Define available metrics for the bar chart
-type DietaryMetric =
-  | 'average_daily_caloric_intake_kcal'
-  | 'protein_intake_g_per_capita_per_day'
-  | 'dietary_energy_supply_kcal_per_capita_per_day'
-  | 'fruit_vegetable_consumption_g_per_day'
-  | 'animal_protein_share_of_total_protein_pct'
-  | 'household_food_expenditure_share_pct'
-  | 'household_food_insecurity_pct';
+type MacroMetric = 'cpi_inflation_pct' | 'fiscal_deficit_pct_gdp' | 'public_debt_pct_gdp' | 'exchange_rate_local_per_usd';
 
-export default function DietaryNutrientIntakePage() {
+export default function FiscalMonetaryYearTrendPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
   // State for country-specific data, selected metric, selected year, loading, error
-  const [countryData, setCountryData] = useState<DietaryData[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<DietaryMetric>('average_daily_caloric_intake_kcal');
+  const [countryData, setCountryData] = useState<MacroData[]>([]);
+  const [selectedMetric, setSelectedMetric] = useState<MacroMetric>('cpi_inflation_pct');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Define field metadata for display and formatting
-  const dietaryFields = [
-    { key: 'average_daily_caloric_intake_kcal', label: 'Average Daily Caloric Intake (kcal)', format: (v: number) => `${v.toFixed(0)} kcal` },
-    { key: 'protein_intake_g_per_capita_per_day', label: 'Protein Intake (g/capita/day)', format: (v: number) => `${v.toFixed(1)} g` },
-    { key: 'dietary_energy_supply_kcal_per_capita_per_day', label: 'Dietary Energy Supply (kcal/capita/day)', format: (v: number) => `${v.toFixed(0)} kcal` },
-    { key: 'fruit_vegetable_consumption_g_per_day', label: 'Fruit & Vegetable Consumption (g/day)', format: (v: number) => `${v.toFixed(0)} g` },
-    { key: 'animal_protein_share_of_total_protein_pct', label: 'Animal Protein Share (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'household_food_expenditure_share_pct', label: 'Household Food Expenditure Share (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'household_food_insecurity_pct', label: 'Household Food Insecurity (%)', format: (v: number) => `${v.toFixed(1)}%` },
+  const fiscalMonetaryFields = [
+    {
+      key: 'cpi_inflation_pct',
+      label: 'CPI Inflation (%)',
+      format: (v: number) => `${v.toFixed(2)}%`,
+      icon: <FaDollarSign className="text-[var(--dark-green)] text-lg" />,
+    },
+    {
+      key: 'fiscal_deficit_pct_gdp',
+      label: 'Fiscal Deficit (% of GDP)',
+      format: (v: number) => `${v.toFixed(2)}%`,
+      icon: <FaDollarSign className="text-[var(--olive-green)] text-lg" />,
+    },
+    {
+      key: 'public_debt_pct_gdp',
+      label: 'Public Debt (% of GDP)',
+      format: (v: number) => `${v.toFixed(2)}%`,
+      icon: <FaDollarSign className="text-[var(--wine)] text-lg" />,
+    },
+    {
+      key: 'exchange_rate_local_per_usd',
+      label: 'Exchange Rate (Local/USD)',
+      format: (v: number) => v.toFixed(3),
+      icon: <FaDollarSign className="text-[var(--yellow)] text-lg" />,
+    },
   ];
 
   // Fetch data from JSON file
@@ -79,22 +86,23 @@ export default function DietaryNutrientIntakePage() {
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the dietary and nutrient intake dataset
-        // Path: /data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
-        // Ensure the file is in public/data/nutrition or adjust if hosted elsewhere (e.g., API)
-        const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
-        if (!response.ok) throw new Error('Failed to fetch dietary and nutrient intake data');
+        const response = await fetch('/data/macro/WestAfrica_Macro_Simulated_2006_2025.json');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch macro data: ${response.status} ${response.statusText}`);
+        }
         const jsonData = (await response.json()) as Dataset;
 
-        // Calculate the latest year dynamically
-        const years = jsonData.Nutrition_Data.map((d) => d.year);
-        const maxYear = Math.max(...years, 2025);
-        setSelectedYear(maxYear);
+        console.log('Sample dataset record:', jsonData.Simulated_Macro_Data[0]);
 
-        // Filter data for the selected country
-        const filteredCountryData = jsonData.Nutrition_Data.filter(
-          (d) => d.country.toLowerCase() === (country as string).toLowerCase()
+        if (!jsonData.Simulated_Macro_Data || !Array.isArray(jsonData.Simulated_Macro_Data)) {
+          throw new Error('Invalid dataset format: Simulated_Macro_Data is missing or not an array');
+        }
+
+        const filteredCountryData = jsonData.Simulated_Macro_Data.filter(
+          (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
         );
+
+        console.log(`Filtered data for ${country}:`, filteredCountryData);
 
         if (filteredCountryData.length === 0) {
           setError(`No data available for ${country}`);
@@ -102,10 +110,15 @@ export default function DietaryNutrientIntakePage() {
           return;
         }
 
+        const years = filteredCountryData.map((d) => d.year).filter((y) => typeof y === 'number');
+        const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
+        setSelectedYear(maxYear);
+
         setCountryData(filteredCountryData);
         setLoading(false);
-      } catch (error) {
-        setError('Error loading dietary and nutrient intake data');
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError(`Error loading macro data: ${(err as Error).message}`);
         setLoading(false);
       }
     }
@@ -115,7 +128,7 @@ export default function DietaryNutrientIntakePage() {
 
   // Get unique years for dropdown
   const availableYears = useMemo(() => {
-    return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
+    return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
   }, [countryData]);
 
   // Get data for the selected year
@@ -125,7 +138,7 @@ export default function DietaryNutrientIntakePage() {
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
       const row: { [key: string]: string | number } = { Year: data.year };
-      dietaryFields.forEach((field) => {
+      fiscalMonetaryFields.forEach((field) => {
         row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
       });
       return row;
@@ -135,23 +148,30 @@ export default function DietaryNutrientIntakePage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${country}_dietary_nutrient_intake.csv`;
+    link.download = `${country}_fiscal_monetary_year_trend.csv`;
     link.click();
   };
 
   // Function to handle PDF download
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
-    if (!dashboard) return;
+    if (!dashboard) {
+      console.error('Dashboard content not found for PDF generation');
+      return;
+    }
 
-    const canvas = await html2canvas(dashboard, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 190;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    try {
+      const canvas = await html2canvas(dashboard, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-    pdf.save(`${country}_dietary_nutrient_intake_dashboard.pdf`);
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.save(`${country}_fiscal_monetary_year_trend.pdf`);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+    }
   };
 
   // Render loading state
@@ -159,7 +179,7 @@ export default function DietaryNutrientIntakePage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Dietary & Nutrient Intake Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Fiscal and Monetary Policy Year Trend...</p>
         </div>
       </div>
     );
@@ -182,10 +202,10 @@ export default function DietaryNutrientIntakePage() {
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Dietary & Nutrient Intake Overview for ${country}`}
+          aria-label={`Fiscal and Monetary Policy Year Trend for ${country}`}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Dietary & Nutrient Intake -{' '}
-          {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+          <FaDollarSign aria-hidden="true" className="text-lg sm:text-xl" />
+          Fiscal and Monetary Policy Year Trend - {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
           Simulated data for planning purposes. Validate before operational use.
@@ -195,22 +215,22 @@ export default function DietaryNutrientIntakePage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download dietary and nutrient intake data as CSV"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
+            aria-label="Download fiscal and monetary policy year trend data as CSV"
           >
             <FaDownload /> Download CSV
           </button>
           <button
             onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download dietary and nutrient intake dashboard as PDF"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
+            aria-label="Download fiscal and monetary policy year trend dashboard as PDF"
           >
             <FaDownload /> Download PDF
           </button>
         </div>
 
         {/* Year Selection for Cards */}
-        <div className="mb-4 max-w-full">
+        <div className="mb-6 max-w-full">
           <label htmlFor="year-select" className="sr-only">
             Select Year for Metrics
           </label>
@@ -218,7 +238,7 @@ export default function DietaryNutrientIntakePage() {
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
+            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -229,27 +249,31 @@ export default function DietaryNutrientIntakePage() {
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
-          {dietaryFields.map((field) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 max-w-full">
+          {fiscalMonetaryFields.map((field) => (
             <div
               key={field.key}
-              className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
+              className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/70 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
               aria-label={`${field.label} Card for ${selectedYear}`}
             >
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
-              <p className="text-[var(--wine)] text-base sm:text-lg">
+              <div className="flex items-center gap-3 mb-2">
+                {field.icon}
+                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{field.label}</h3>
+              </div>
+              <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
                 {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
               </p>
+              <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Year: {selectedYear}</p>
             </div>
           ))}
         </div>
 
         {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Dietary Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Dietary Trends Chart">
+          {/* Line Chart: Fiscal and Monetary Policy Trends */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Fiscal and Monetary Policy Trends Chart">
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Dietary Trends (2006–{selectedYear})
+              Fiscal and Monetary Policy Trends (2006–{selectedYear})
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -273,51 +297,30 @@ export default function DietaryNutrientIntakePage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="average_daily_caloric_intake_kcal"
+                  dataKey="cpi_inflation_pct"
                   stroke="var(--olive-green)"
-                  name="Average Daily Caloric Intake (kcal)"
+                  name="CPI Inflation (%)"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="protein_intake_g_per_capita_per_day"
+                  dataKey="fiscal_deficit_pct_gdp"
                   stroke="var(--wine)"
-                  name="Protein Intake (g/capita/day)"
+                  name="Fiscal Deficit (% of GDP)"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="dietary_energy_supply_kcal_per_capita_per_day"
+                  dataKey="public_debt_pct_gdp"
                   stroke="var(--yellow)"
-                  name="Dietary Energy Supply (kcal/capita/day)"
+                  name="Public Debt (% of GDP)"
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="fruit_vegetable_consumption_g_per_day"
-                  stroke="var(--medium-green)"
-                  name="Fruit & Vegetable Consumption (g/day)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="animal_protein_share_of_total_protein_pct"
-                  stroke="var(--red)"
-                  name="Animal Protein Share (%)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="household_food_expenditure_share_pct"
+                  dataKey="exchange_rate_local_per_usd"
                   stroke="var(--dark-green)"
-                  name="Household Food Expenditure Share (%)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="household_food_insecurity_pct"
-                  stroke="var(--green)"
-                  name="Household Food Insecurity (%)"
+                  name="Exchange Rate (Local/USD)"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -325,7 +328,7 @@ export default function DietaryNutrientIntakePage() {
           </div>
 
           {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
               Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
             </h2>
@@ -335,10 +338,10 @@ export default function DietaryNutrientIntakePage() {
             <select
               id="metric-select"
               value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value as DietaryMetric)}
-              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
+              onChange={(e) => setSelectedMetric(e.target.value as MacroMetric)}
+              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
             >
-              {dietaryFields.map((field) => (
+              {fiscalMonetaryFields.map((field) => (
                 <option key={field.key} value={field.key}>
                   {field.label}
                 </option>

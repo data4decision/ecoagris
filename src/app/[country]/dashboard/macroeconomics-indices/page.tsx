@@ -1,9 +1,41 @@
-import React from 'react'
+'use client';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Overview from '@/app/[country]/dashboard/macroeconomics-indices/Overview/page';
 
-const page = () => {
+
+export default function RiceDashboard() {
+  const { country } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Simulate data loading for Rice Production
+    const fetchData = async () => {
+      try {
+        // Add actual data fetching logic if needed (e.g., for Macroeconomic Indices data)
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulated delay
+        setLoading(false);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error loading Macroeconomic Indices dashboard');
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [country]);
+
+  if (loading) return <div className="text-[var(--olive-green)]">Loading Macroeconomic Indices Dashboard...</div>;
+  if (error) return <div className="text-[var(--wine)]">{error}</div>;
+
   return (
-    <div>macroeconomics-indices</div>
-  )
+    <div className="flex min-h-screen bg-[var(--white)] overflow-x-hidden">
+      
+      <div className="flex-1 p-6">
+        <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
+          Macroeconomics Indices for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+        </h1>
+        <Overview />
+      </div>
+    </div>
+  );
 }
-
-export default page
