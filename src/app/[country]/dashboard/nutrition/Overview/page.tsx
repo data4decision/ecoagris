@@ -1,14 +1,12 @@
-// src/app/[country]/dashboard/nutrition/overview/page.tsx
 'use client';
 
 // Import required dependencies
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation'; // Added useRouter
 import { useState, useEffect, useMemo } from 'react';
 import { FaChartBar, FaHeartbeat, FaUtensils, FaCapsules, FaChild, FaHandsHelping, FaMoneyBillWave, FaDownload, FaShieldAlt, FaDatabase, FaGlobe, FaCalendarAlt, FaUsers } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import {useRouter} from 'next/navigation'
 
 // Define TypeScript interfaces directly in the file
 interface OverviewData {
@@ -25,6 +23,7 @@ interface Dataset {
 export default function OverviewPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
+  const router = useRouter(); // Initialize router
   // State for overview data, selected year, loading, and error
   const [overviewData, setOverviewData] = useState<OverviewData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
@@ -35,12 +34,12 @@ export default function OverviewPage() {
   const pagePreviews = [
     { title: 'Malnutrition Indicators', icon: FaHeartbeat, path: `/${country}/dashboard/nutrition/malnutrition`, description: 'Prevalence of undernourishment, stunting, and obesity trends.' },
     { title: 'Dietary & Nutrient Intake', icon: FaUtensils, path: `/${country}/dashboard/nutrition/dietary-nutrient-intake`, description: 'Caloric intake, protein, and food consumption patterns.' },
-    { title: 'Micronutrient Deficiencies', icon: FaCapsules, path:  `/${country}/dashboard/nutrition/micronutrient-deficiencies`, description: 'Vitamin A, iron, and anemia rates in women and children.' },
-    { title: 'Health Outcomes', icon: FaChild, path:  `/${country}/dashboard/nutrition/health-outcomes`, description: 'Child mortality, maternal mortality, and birth weight metrics.' },
-    { title: 'Nutrition Interventions', icon: FaHandsHelping, path:  `/${country}/dashboard/nutrition/interventions`, description: 'Breastfeeding, dietary diversity, and school meals coverage.' },
-    { title: 'Policy & Funding', icon: FaMoneyBillWave, path:  `/${country}/dashboard/nutrition/policy-funding`, description: 'Budget spending, policy scores, and donor funding.' },
+    { title: 'Micronutrient Deficiencies', icon: FaCapsules, path: `/${country}/dashboard/nutrition/micronutrient-deficiencies`, description: 'Vitamin A, iron, and anemia rates in women and children.' },
+    { title: 'Health Outcomes', icon: FaChild, path: `/${country}/dashboard/nutrition/health-outcomes`, description: 'Child mortality, maternal mortality, and birth weight metrics.' },
+    { title: 'Nutrition Interventions', icon: FaHandsHelping, path: `/${country}/dashboard/nutrition/interventions`, description: 'Breastfeeding, dietary diversity, and school meals coverage.' },
+    { title: 'Policy & Funding', icon: FaMoneyBillWave, path: `/${country}/dashboard/nutrition/policy-funding`, description: 'Budget spending, policy scores, and donor funding.' },
     { title: 'Program Coverage & Surveillance', icon: FaShieldAlt, path: `/${country}/dashboard/nutrition/program-coverage-surveillance`, description: 'Program coverage, surveillance, deworming, and immunization rates.' },
-    { title: 'Data Quality & Methodology', icon: FaDatabase, path: `/${country}/dashboard/nutrition/data-methodology`, description: 'Data quality index and methodology notes.' },
+    { title: 'Data Quality & Methodology', icon: FaDatabase, path: `/${country}/dashboard/nutrition/data-quality-and-methodology`, description: 'Data quality index and methodology notes.' }, // Fixed path to match file structure
   ];
 
   // Fetch data from JSON file
