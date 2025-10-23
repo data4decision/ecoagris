@@ -145,15 +145,15 @@ export default function TradeInvestmentYearTrendPage() {
           );
           if (wbResponse.ok) {
             const wbData = await wbResponse.json();
-            const wbExports = wbData[1]?.filter((d: any) => d.indicator.id === 'BX.GSR.MRCH.CD') || [];
-            const wbImports = wbData[1]?.filter((d: any) => d.indicator.id === 'BM.GSR.MRCH.CD') || [];
-            const wbCurrentAccount = wbData[1]?.filter((d: any) => d.indicator.id === 'BN.CAB.XOKA.GD.ZS') || [];
+            const wbExports = wbData[1]?.filter((d: unknown) => d.indicator.id === 'BX.GSR.MRCH.CD') || [];
+            const wbImports = wbData[1]?.filter((d: unknown) => d.indicator.id === 'BM.GSR.MRCH.CD') || [];
+            const wbCurrentAccount = wbData[1]?.filter((d: unknown) => d.indicator.id === 'BN.CAB.XOKA.GD.ZS') || [];
             filteredCountryData = filteredCountryData.map((d) => ({
               ...d,
-              exports_usd: wbExports.find((r: any) => r.date == d.year)?.value || d.exports_usd,
-              imports_usd: wbImports.find((r: any) => r.date == d.year)?.value || d.imports_usd,
-              trade_balance_usd: (wbExports.find((r: any) => r.date == d.year)?.value || d.exports_usd) - (wbImports.find((r: any) => r.date == d.year)?.value || d.imports_usd),
-              current_account_pct_gdp: wbCurrentAccount.find((r: any) => r.date == d.year)?.value || d.current_account_pct_gdp,
+              exports_usd: wbExports.find((r: unknown) => r.date == d.year)?.value || d.exports_usd,
+              imports_usd: wbImports.find((r: unknown) => r.date == d.year)?.value || d.imports_usd,
+              trade_balance_usd: (wbExports.find((r: unknown) => r.date == d.year)?.value || d.exports_usd) - (wbImports.find((r: unknown) => r.date == d.year)?.value || d.imports_usd),
+              current_account_pct_gdp: wbCurrentAccount.find((r: unknown) => r.date == d.year)?.value || d.current_account_pct_gdp,
             }));
           }
         } catch (wbErr) {
@@ -170,7 +170,7 @@ export default function TradeInvestmentYearTrendPage() {
             const unctadData = await unctadResponse.json();
             filteredCountryData = filteredCountryData.map((d) => ({
               ...d,
-              fdi_net_inflows_usd_million: unctadData.find((r: any) => r.year == d.year)?.value || d.fdi_net_inflows_usd_million,
+              fdi_net_inflows_usd_million: unctadData.find((r: unknown) => r.year == d.year)?.value || d.fdi_net_inflows_usd_million,
             }));
           }
         } catch (unctadErr) {
@@ -497,3 +497,4 @@ export default function TradeInvestmentYearTrendPage() {
     </div>
   );
 }
+
