@@ -15,7 +15,7 @@ import {
   Bar,
   ResponsiveContainer,
 } from 'recharts';
-import { FaUsers, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
+import { FaSeedling, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -24,9 +24,7 @@ import html2canvas from 'html2canvas';
 interface MacroData {
   country: string;
   year: number;
-  population: number;
-  unemployment_pct: number;
-  poverty_headcount_pct: number;
+  agri_value_added_pct_gdp: number;
   [key: string]: unknown;
 }
 
@@ -36,38 +34,26 @@ interface Dataset {
 }
 
 // Define available metrics for the bar chart
-type MacroMetric = 'population' | 'unemployment_pct' | 'poverty_headcount_pct';
+type MacroMetric = 'agri_value_added_pct_gdp';
 
-export default function LaborPovertyYearTrendPage() {
+export default function AgricultureYearTrendPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
   // State for country-specific data, selected metric, selected year, loading, error, methodology note
   const [countryData, setCountryData] = useState<MacroData[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<MacroMetric>('population');
+  const [selectedMetric, setSelectedMetric] = useState<MacroMetric>('agri_value_added_pct_gdp');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [methodologyNote, setMethodologyNote] = useState<string>('');
 
   // Define field metadata for display and formatting
-  const laborPovertyFields = [
+  const agricultureFields = [
     {
-      key: 'population',
-      label: 'Total Population',
-      format: (v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 0 }),
-      icon: <FaUsers className="text-[var(--dark-green)] text-lg" />,
-    },
-    {
-      key: 'unemployment_pct',
-      label: 'Unemployment Rate (%)',
+      key: 'agri_value_added_pct_gdp',
+      label: 'Agriculture Value Added (% of GDP)',
       format: (v: number) => `${v.toFixed(2)}%`,
-      icon: <FaUsers className="text-[var(--olive-green)] text-lg" />,
-    },
-    {
-      key: 'poverty_headcount_pct',
-      label: 'Poverty Headcount Ratio (%)',
-      format: (v: number) => `${v.toFixed(2)}%`,
-      icon: <FaUsers className="text-[var(--wine)] text-lg" />,
+      icon: <FaSeedling className="text-[var(--dark-green)] text-lg" />,
     },
   ];
 
@@ -135,7 +121,7 @@ export default function LaborPovertyYearTrendPage() {
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
       const row: { [key: string]: string | number } = { Year: data.year };
-      laborPovertyFields.forEach((field) => {
+      agricultureFields.forEach((field) => {
         row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
       });
       return row;
@@ -145,7 +131,7 @@ export default function LaborPovertyYearTrendPage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${country}_labor_poverty_year_trend.csv`;
+    link.download = `${country}_agriculture_year_trend.csv`;
     link.click();
   };
 
@@ -165,7 +151,7 @@ export default function LaborPovertyYearTrendPage() {
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      pdf.save(`${country}_labor_poverty_year_trend.pdf`);
+      pdf.save(`${country}_agriculture_year_trend.pdf`);
     } catch (err) {
       console.error('PDF generation error:', err);
     }
@@ -176,7 +162,7 @@ export default function LaborPovertyYearTrendPage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Labor and Poverty Year Trend...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Agriculture Year Trend...</p>
         </div>
       </div>
     );
@@ -199,10 +185,10 @@ export default function LaborPovertyYearTrendPage() {
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Labor and Poverty Year Trend for ${country}`}
+          aria-label={`Agriculture Year Trend for ${country}`}
         >
-          <FaUsers aria-hidden="true" className="text-lg sm:text-xl" />
-          Labor and Poverty Year Trend - {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+          <FaSeedling aria-hidden="true" className="text-lg sm:text-xl" />
+          Agriculture Year Trend - {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
           Simulated data for planning purposes. Validate before operational use.
@@ -213,14 +199,14 @@ export default function LaborPovertyYearTrendPage() {
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download labor and poverty year trend data as CSV"
+            aria-label="Download agriculture year trend data as CSV"
           >
             <FaDownload /> Download CSV
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download labor and poverty year trend dashboard as PDF"
+            aria-label="Download agriculture year trend dashboard as PDF"
           >
             <FaDownload /> Download PDF
           </button>
@@ -245,9 +231,9 @@ export default function LaborPovertyYearTrendPage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
-          {laborPovertyFields.map((field) => (
+        {/* Metric Card */}
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 mb-8 max-w-full">
+          {agricultureFields.map((field) => (
             <div
               key={field.key}
               className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/70 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
@@ -273,17 +259,17 @@ export default function LaborPovertyYearTrendPage() {
           </div>
           <p className="text-[var(--dark-green)] text-sm sm:text-base max-h-48 overflow-y-auto">
             {methodologyNote}<br />
-            <strong>Warning:</strong> Simulated values may differ significantly from real data (e.g., Benin 2023 Population: 1,102,387 vs. World Bank ~13.35M, Togo 2023 Unemployment: 9.04% vs. ILO ~3.5%).<br />
-            Validate with: <a href="https://data.worldbank.org" className="text-[var(--olive-green)] hover:underline" target="_blank" rel="noopener noreferrer">World Bank</a>, <a href="https://ilostat.ilo.org/data/" className="text-[var(--olive-green)] hover:underline" target="_blank" rel="noopener noreferrer">ILO</a>, or national statistics.
+            <strong>Warning:</strong> Simulated values may differ significantly from real data (e.g., Benin 2023 Agri Value Added: 14.74% vs. World Bank ~25.6%, Togo 2023: 23.72% vs. ~20%).<br />
+            Validate with: <a href="https://data.worldbank.org" className="text-[var(--olive-green)] hover:underline" target="_blank" rel="noopener noreferrer">World Bank</a>, <a href="https://www.fao.org/faostat/en/" className="text-[var(--olive-green)] hover:underline" target="_blank" rel="noopener noreferrer">FAOSTAT</a>, or national statistics.
           </p>
         </div> */}
 
         {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Labor and Poverty Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Labor and Poverty Trends Chart">
+          {/* Line Chart: Agriculture Trends */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Agriculture Trends Chart">
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Labor and Poverty Trends (2006–{selectedYear})
+              Agriculture Trends (2006–{selectedYear})
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -307,23 +293,9 @@ export default function LaborPovertyYearTrendPage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="population"
+                  dataKey="agri_value_added_pct_gdp"
                   stroke="var(--olive-green)"
-                  name="Total Population"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="unemployment_pct"
-                  stroke="var(--wine)"
-                  name="Unemployment Rate (%)"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="poverty_headcount_pct"
-                  stroke="var(--yellow)"
-                  name="Poverty Headcount Ratio (%)"
+                  name="Agriculture Value Added (% of GDP)"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -343,8 +315,9 @@ export default function LaborPovertyYearTrendPage() {
               value={selectedMetric}
               onChange={(e) => setSelectedMetric(e.target.value as MacroMetric)}
               className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+              disabled
             >
-              {laborPovertyFields.map((field) => (
+              {agricultureFields.map((field) => (
                 <option key={field.key} value={field.key}>
                   {field.label}
                 </option>
