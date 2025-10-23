@@ -2,10 +2,11 @@
 
 // Import required dependencies
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { FaChartBar, FaGlobe, FaCalendarAlt, FaUsers, FaChartLine, FaDollarSign, FaHandsHelping, FaSeedling, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
-import html2pdf from 'html2pdf.js';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Define TypeScript interfaces
 interface MacroData {
@@ -24,11 +25,11 @@ export default function MacroOverviewPage() {
   // Get dynamic country parameter from URL
   const { country } = useParams();
   const router = useRouter();
-  // State for overview data, selected year, loading, error
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  // State for overview data, selected year, loading
   const [overviewData, setOverviewData] = useState<MacroData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Page preview data (title, icon, path, description)
   const pagePreviews = [
@@ -64,17 +65,15 @@ export default function MacroOverviewPage() {
     },
   ];
 
-  // Fetch data from JSON file and World Bank API
+  // Fetch data from JSON file only
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Fetch JSON
         const response = await fetch('/data/macro/WestAfrica_Macro_Simulated_2006_2025.json');
         if (!response.ok) {
           throw new Error(`Failed to fetch macro data: ${response.status} ${response.statusText}`);
@@ -87,31 +86,13 @@ export default function MacroOverviewPage() {
           throw new Error('Invalid dataset format: Simulated_Macro_Data is missing or not an array');
         }
 
-        let filteredCountryData = jsonData.Simulated_Macro_Data.filter(
+        const filteredCountryData = jsonData.Simulated_Macro_Data.filter(
           (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
           setLoading(false);
           return;
-        }
-
-        // Fetch real population data from World Bank
-        try {
-          const wbResponse = await fetch(
-            `https://api.worldbank.org/v2/country/${country === 'Benin' ? 'BJ' : 'TG'}/indicator/SP.POP.TOTL?date=2006:2023&format=json`
-          );
-          if (wbResponse.ok) {
-            const wbData = await wbResponse.json();
-            const wbPopulation = wbData[1] || [];
-            filteredCountryData = filteredCountryData.map((d) => ({
-              ...d,
-              population: wbPopulation.find((r: unknown) => r.date == d.year)?.value || d.population,
-            }));
-          }
-        } catch (wbErr) {
-          console.warn('World Bank API fetch failed, using simulated data:', wbErr);
         }
 
         console.log(`Filtered data for ${country}:`, filteredCountryData);
@@ -124,7 +105,6 @@ export default function MacroOverviewPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading macro data: ${(err as Error).message}`);
         setLoading(false);
       }
     }
@@ -156,20 +136,34 @@ export default function MacroOverviewPage() {
     link.click();
   };
 
-  // Function to handle PDF download
- const handlePDFDownload = () => {
-  const element = dashboardRef.current;
-  if (!element) return;
+  // Function to handle PDF download (adapted from exportPDF)
+  const handlePDFDownload = async () => {
+    if (!dashboardRef.current) {
+      console.error('Dashboard element not found for PDF generation');
+      alert('PDF download failed. Please try again.');
+      return;
+    }
 
-  const opt = {
-    margin: 10,
-    filename: `${country}_macro_overview.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    try {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('landscape');
+      pdf.setFontSize(12);
+      pdf.text(`Macroeconomic Report - ${(country as string).toUpperCase()}`, 10, 10);
+      pdf.text(`Metrics: Country, Year, Population`, 10, 18);
+      pdf.text(`Exported on: ${new Date().toLocaleDateString()}`, 10, 26);
+      pdf.addImage(imgData, 'PNG', 10, 35, 270, 120);
+      pdf.save(`${country}_macro_overview.pdf`);
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('PDF download failed. Please check console for details.');
+    }
   };
-  html2pdf().set(opt).from(element).save();
-};
 
   // Render loading state
   if (loading) {
@@ -187,7 +181,7 @@ export default function MacroOverviewPage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">No data available for this country</p>
         </div>
       </div>
     );
@@ -195,7 +189,7 @@ export default function MacroOverviewPage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
+      <div ref={dashboardRef} className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
