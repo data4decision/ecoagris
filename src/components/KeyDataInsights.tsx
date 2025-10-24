@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import Link from "next/link";
 
 interface Insight {
   id: number;
@@ -10,16 +12,8 @@ interface Insight {
   label: string;
 }
 
-const insights: Insight[] = [
-  { id: 1, icon: "🌾", value: "65%", label: "Average Crop Yield Growth" },
-  { id: 2, icon: "💧", value: "42%", label: "Irrigated Land Coverage" },
-  { id: 3, icon: "🚜", value: "28%", label: "Fertilizer Usage Increase" },
-  { id: 4, icon: "🌍", value: "15%", label: "Regional Trade in Crops" },
-  { id: 5, icon: "📊", value: "78%", label: "Data Coverage Across ECOWAS" },
-  { id: 6, icon: "🌱", value: "60%", label: "Adoption of Smart Farming Tools" },
-];
-
 const KeyDataInsight = () => {
+  const { t } = useTranslation("common"); // ✅ Use correct namespace
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -27,19 +21,24 @@ const KeyDataInsight = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const insights: Insight[] = [
+    { id: 1, icon: "🌾", value: "65%", label: t("keyData.insights.cropYield") },
+    { id: 2, icon: "💧", value: "42%", label: t("keyData.insights.irrigation") },
+    { id: 3, icon: "🚜", value: "28%", label: t("keyData.insights.fertilizer") },
+    { id: 4, icon: "🌍", value: "15%", label: t("keyData.insights.trade") },
+    { id: 5, icon: "📊", value: "78%", label: t("keyData.insights.dataCoverage") },
+    { id: 6, icon: "🌱", value: "60%", label: t("keyData.insights.smartFarming") },
+  ];
+
   return (
     <section className="py-20 bg-green-200 relative overflow-hidden">
-      {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-12 px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-[var(--medium-green)] mb-3">
-          Key Data Insights Across ECOWAS
+          {t("keyData.title")}
         </h2>
-        <p className="text-gray-700 text-lg">
-          Discover agricultural trends driving growth, sustainability, and resilience.
-        </p>
+        <p className="text-gray-700 text-lg">{t("keyData.subtitle")}</p>
       </div>
 
-      {/* Insights Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-[90%] mx-auto">
         {insights.map((insight, index) => (
           <motion.div
@@ -60,17 +59,15 @@ const KeyDataInsight = () => {
         ))}
       </div>
 
-      {/* CTA Button */}
       <div className="text-center mt-14">
-        <a
+        <Link
           href="/country-data"
           className="inline-block px-8 py-3 font-semibold text-white bg-[var(--medium-green)] rounded-full shadow-md hover:bg-[var(--olive-green)] hover:scale-105 transform transition-all duration-300"
         >
-          Explore Detailed Statistics by Country
-        </a>
+          {t("keyData.cta")}
+        </Link>
       </div>
 
-      {/* Subtle decorative element */}
       <div className="absolute top-0 left-0 w-full h-2 bg-[var(--yellow)]"></div>
     </section>
   );

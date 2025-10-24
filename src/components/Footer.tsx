@@ -1,61 +1,68 @@
 'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { t } = useTranslation('common'); // ✅ using common.json
 
   return (
     <footer className="bg-[var(--medium-green)] text-[var(--white)] pt-12 pb-6 px-6 md:px-16">
       {/* Top Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 border-b border-[var(--olive-green)] pb-10">
+        
         {/* About Section */}
         <div>
           <h2 className="text-2xl font-bold mb-3 text-[var(--yellow)]">ECOAGRIS</h2>
           <p className="text-sm leading-relaxed">
-            Empowering Agricultural Intelligence Across ECOWAS.
-            <br />
-            ECOAGRIS connects ECOWAS countries through smart agricultural data systems that
-            drive evidence-based decision-making and regional food security.
+            {t('footer.about')}
           </p>
         </div>
 
         {/* Quick Links */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-[var(--yellow)]">Quick Links</h3>
+          <h3 className="text-lg font-semibold mb-3 text-[var(--yellow)]">
+            {t('footer.quickLinks.title')}
+          </h3>
           <ul className="space-y-2 text-sm">
             <li>
               <Link href="/" className="hover:text-[var(--yellow)] transition-colors">
-                Home
+                {t('footer.quickLinks.home')}
               </Link>
             </li>
             <li>
               <Link href="/about" className="hover:text-[var(--yellow)] transition-colors">
-                About
+                {t('footer.quickLinks.about')}
               </Link>
             </li>
             <li>
               <Link href="/data-dashboard" className="hover:text-[var(--yellow)] transition-colors">
-                Data Dashboard
+                {t('footer.quickLinks.dashboard')}
               </Link>
             </li>
             <li>
               <Link href="/news" className="hover:text-[var(--yellow)] transition-colors">
-                News & Updates
+                {t('footer.quickLinks.news')}
               </Link>
             </li>
             <li>
               <Link href="/contact" className="hover:text-[var(--yellow)] transition-colors">
-                Contact
+                {t('footer.quickLinks.contact')}
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Legal & Social */}
+        {/* Social & Legal */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-[var(--yellow)]">Connect With Us</h3>
+          <h3 className="text-lg font-semibold mb-3 text-[var(--yellow)]">
+            {t('footer.connect.title')}
+          </h3>
+
+          {/* Social Icons */}
           <div className="flex space-x-4 mb-4">
             <a
               href="https://facebook.com"
@@ -87,12 +94,13 @@ const Footer: React.FC = () => {
             </a>
           </div>
 
+          {/* Legal Links */}
           <div className="text-sm space-y-1">
             <Link href="/privacy" className="block hover:text-[var(--yellow)]">
-              Privacy Policy
+              {t('footer.legal.privacy')}
             </Link>
             <Link href="/terms" className="block hover:text-[var(--yellow)]">
-              Terms of Use
+              {t('footer.legal.terms')}
             </Link>
           </div>
         </div>
@@ -101,7 +109,7 @@ const Footer: React.FC = () => {
       {/* Bottom Section */}
       <div className="mt-6 text-center text-sm opacity-80">
         <p>
-          © {currentYear} ECOAGRIS. All Rights Reserved. | Powered by{' '}
+          © {currentYear} ECOAGRIS. {t('footer.rights')} | {t('footer.poweredBy')}{' '}
           <span className="text-[var(--yellow)] font-semibold">Data4Decision International</span>
         </p>
       </div>

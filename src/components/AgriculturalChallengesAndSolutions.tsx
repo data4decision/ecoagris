@@ -1,85 +1,61 @@
 'use client';
 
 import React from 'react';
-import { FaRegSun, FaDatabase, FaWrench, FaChartLine } from 'react-icons/fa'; // Importing some sample icons for challenges and solutions
+import { useTranslation } from 'react-i18next';
+import { FaRegSun, FaDatabase, FaWrench, FaChartLine } from 'react-icons/fa';
+
 const AgriculturalChallengesAndSolutions: React.FC = () => {
+  const { t } = useTranslation('common'); // ✅ use "common" namespace
+
   return (
     <section className="py-16 px-4 bg-white" id="challenges-solutions">
       <div className="max-w-6xl mx-auto">
         {/* Section Heading */}
         <h2 className="text-3xl md:text-4xl font-bold text-center text-[var(--medium-green)] mb-8">
-          Addressing Agricultural Challenges in ECOWAS
+          {t('challenges.title')}
         </h2>
 
         {/* Supporting Text */}
         <p className="text-center text-[var(--medium-green)] mb-12">
-          Innovation and data are crucial to overcoming the pressing agricultural challenges faced by ECOWAS countries. At ECOAGRIS, we are committed to delivering practical solutions for a sustainable future.
+          {t('challenges.subtitle')}
         </p>
 
         {/* Split Layout for Challenges and Solutions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
           {/* Challenges */}
           <div className="space-y-6">
-            <div className="bg-[var(--yellow)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaRegSun className="text-4xl text-[var(--dark-green)] mr-4" />
-                <h3 className="text-xl font-semibold text-[var(--dark-green)]">Climate Change</h3>
+            {[
+              { icon: <FaRegSun />, title: t('challenges.list.climateChange.title'), desc: t('challenges.list.climateChange.desc') },
+              { icon: <FaDatabase />, title: t('challenges.list.dataAccess.title'), desc: t('challenges.list.dataAccess.desc') },
+              { icon: <FaWrench />, title: t('challenges.list.infrastructure.title'), desc: t('challenges.list.infrastructure.desc') },
+              { icon: <FaChartLine />, title: t('challenges.list.lowProductivity.title'), desc: t('challenges.list.lowProductivity.desc') },
+            ].map((item, idx) => (
+              <div key={idx} className="bg-[var(--yellow)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                <div className="flex items-center mb-4">
+                  <div className="text-4xl text-[var(--dark-green)] mr-4">{item.icon}</div>
+                  <h3 className="text-xl font-semibold text-[var(--dark-green)]">{item.title}</h3>
+                </div>
+                <p className="text-[var(--dark-green)]">{item.desc}</p>
               </div>
-              <p className="text-[var(--dark-green)]">Climate change affects crop yields, water availability, and farming conditions across the ECOWAS region.</p>
-            </div>
-            <div className="bg-[var(--yellow)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaDatabase className="text-4xl text-[var(--dark-green)] mr-4" />
-                <h3 className="text-xl font-semibold text-[var(--dark-green)]">Limited Access to Data</h3>
-              </div>
-              <p className="text-[var(--dark-green)]">Many farmers lack access to up-to-date agricultural data that could help them make informed decisions.</p>
-            </div>
-            <div className="bg-[var(--yellow)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaWrench className="text-4xl text-[var(--dark-green)] mr-4" />
-                <h3 className="text-xl font-semibold text-[var(--dark-green)]">Poor Infrastructure</h3>
-              </div>
-              <p className="text-[var(--dark-green)]">Inadequate infrastructure hinders efficient transportation and distribution of agricultural products.</p>
-            </div>
-            <div className="bg-[var(--yellow)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaChartLine className="text-4xl text-[var(--dark-green)] mr-4" />
-                <h3 className="text-xl font-semibold text-[var(--dark-green)]">Low Productivity</h3>
-              </div>
-              <p className="text-[var(--dark-green)]">Many regions face stagnant or low agricultural productivity due to outdated farming practices and lack of innovation.</p>
-            </div>
+            ))}
           </div>
 
           {/* Solutions */}
           <div className="space-y-6">
-            <div className="bg-[var(--medium-green)] text-[var(--white)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaRegSun className="text-4xl text-[var(--white)] mr-4" />
-                <h3 className="text-xl font-semibold">Climate-Smart Agriculture</h3>
+            {[
+              { icon: <FaRegSun />, title: t('solutions.list.climateSmart.title'), desc: t('solutions.list.climateSmart.desc') },
+              { icon: <FaDatabase />, title: t('solutions.list.dataTransparency.title'), desc: t('solutions.list.dataTransparency.desc') },
+              { icon: <FaWrench />, title: t('solutions.list.resourceOptimization.title'), desc: t('solutions.list.resourceOptimization.desc') },
+              { icon: <FaChartLine />, title: t('solutions.list.regionalCollaboration.title'), desc: t('solutions.list.regionalCollaboration.desc') },
+            ].map((item, idx) => (
+              <div key={idx} className="bg-[var(--medium-green)] text-[var(--white)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                <div className="flex items-center mb-4">
+                  <div className="text-4xl text-[var(--white)] mr-4">{item.icon}</div>
+                  <h3 className="text-xl font-semibold">{item.title}</h3>
+                </div>
+                <p>{item.desc}</p>
               </div>
-              <p>Implementing climate-smart agriculture practices that improve resilience to climate change and boost productivity.</p>
-            </div>
-            <div className="bg-[var(--medium-green)] text-[var(--white)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaDatabase className="text-4xl text-[var(--white)] mr-4" />
-                <h3 className="text-xl font-semibold">Data Transparency</h3>
-              </div>
-              <p>Providing farmers with transparent, accurate, and timely data to make better decisions about crops, weather, and resources.</p>
-            </div>
-            <div className="bg-[var(--medium-green)] text-[var(--white)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaWrench className="text-4xl text-[var(--white)] mr-4" />
-                <h3 className="text-xl font-semibold">Resource Optimization</h3>
-              </div>
-              <p>Optimizing the use of resources such as water, fertilizers, and land to improve yield efficiency and sustainability.</p>
-            </div>
-            <div className="bg-[var(--medium-green)] text-[var(--white)] p-6 rounded-lg shadow-lg hover:scale-105 transition-transform">
-              <div className="flex items-center mb-4">
-                <FaChartLine className="text-4xl text-[var(--white)] mr-4" />
-                <h3 className="text-xl font-semibold">Regional Collaboration</h3>
-              </div>
-              <p>Promoting regional collaboration for shared agricultural knowledge, infrastructure, and policy development to enhance productivity.</p>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -89,7 +65,7 @@ const AgriculturalChallengesAndSolutions: React.FC = () => {
             href="#impact"
             className="bg-[var(--medium-green)] text-[var(--white)] px-6 py-3 rounded-lg hover:bg-[var(--dark-green)] transition-all"
           >
-            Learn More About Our Impact
+            {t('challenges.cta')}
           </a>
         </div>
       </div>

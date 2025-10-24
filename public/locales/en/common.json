@@ -69,33 +69,123 @@
     "readMore": "Read More"
   },
   "keyData": {
-    "header": "Key Data Insights Across ECOWAS",
-    "description": "Discover agricultural trends driving growth, sustainability, and resilience.",
-    "cta": "Explore Detailed Statistics by Country",
+    "title": "Key Data Insights Across ECOWAS",
+    "subtitle": "Discover agricultural trends driving growth, sustainability, and resilience.",
     "insights": {
-      "cropYield": "Crop Yield Increase",
-      "irrigation": "Irrigation Coverage",
-      "fertilizer": "Fertilizer Adoption",
-      "trade": "Agricultural Trade Growth",
-      "dataCoverage": "Data Coverage",
-      "smartFarming": "Smart Farming Adoption"
+      "cropYield": "Average Crop Yield Growth",
+      "irrigation": "Irrigated Land Coverage",
+      "fertilizer": "Fertilizer Usage Increase",
+      "trade": "Regional Trade in Crops",
+      "dataCoverage": "Data Coverage Across ECOWAS",
+      "smartFarming": "Adoption of Smart Farming Tools"
+    },
+    "cta": "Explore Detailed Statistics by Country"
+  },
+  "flagGrid": {
+    "title": "Explore ECOWAS Member Countries",
+    "description": "Select a country to explore agricultural data and insights."
+  },
+  
+  "challenges": {
+    "title": "Addressing Agricultural Challenges in ECOWAS",
+    "subtitle": "Innovation and data are crucial to overcoming the pressing agricultural challenges faced by ECOWAS countries. At ECOAGRIS, we are committed to delivering practical solutions for a sustainable future.",
+    "list": {
+      "climateChange": {
+        "title": "Climate Change",
+        "desc": "Climate change affects crop yields, water availability, and farming conditions across the ECOWAS region."
+      },
+      "dataAccess": {
+        "title": "Limited Access to Data",
+        "desc": "Many farmers lack access to up-to-date agricultural data that could help them make informed decisions."
+      },
+      "infrastructure": {
+        "title": "Poor Infrastructure",
+        "desc": "Inadequate infrastructure hinders efficient transportation and distribution of agricultural products."
+      },
+      "lowProductivity": {
+        "title": "Low Productivity",
+        "desc": "Many regions face stagnant or low agricultural productivity due to outdated farming practices and lack of innovation."
+      }
+    },
+    "cta": "Learn More About Our Impact"
+  },
+  "solutions": {
+    "list": {
+      "climateSmart": {
+        "title": "Climate-Smart Agriculture",
+        "desc": "Implementing climate-smart agriculture practices that improve resilience to climate change and boost productivity."
+      },
+      "dataTransparency": {
+        "title": "Data Transparency",
+        "desc": "Providing farmers with transparent, accurate, and timely data to make better decisions about crops, weather, and resources."
+      },
+      "resourceOptimization": {
+        "title": "Resource Optimization",
+        "desc": "Optimizing the use of resources such as water, fertilizers, and land to improve yield efficiency and sustainability."
+      },
+      "regionalCollaboration": {
+        "title": "Regional Collaboration",
+        "desc": "Promoting regional collaboration for shared agricultural knowledge, infrastructure, and policy development to enhance productivity."
+      }
     }
   },
-  "countryData": {
-    "header": "Country Data",
-    "description": "Explore detailed agricultural data by country."
+  "collaborators": {
+  "title": "Our Partners and Collaborators",
+  "description": "ECOAGRIS thrives on collaboration. Our partners — from ECOWAS institutions to international organizations — work together to strengthen food systems, enhance data reliability, and promote sustainable agricultural development across West Africa.",
+  "roles": {
+    "ecowas": "Regional Coordination",
+    "fao": "Food Security & Data Systems",
+    "ifad": "Agricultural Innovation",
+    "worldBank": "Sustainable Development",
+    "afdb": "Investment & Capacity Building"
   },
-  "select_product_for": "Select a Product for",
-  "agric": "Agric Input",
-  "agro-hydro-meteorology": "Agro-hydro-meteorology",
-  "agricultural-production": "Agricultural Production",
-  "agricultural-market": "Agricultural Market",
-  "food-stocks": "Food Stocks",
-  "nutrition": "Nutrition",
-  "livestock": "Livestock",
-  "fishery": "Fishery",
-  "aquaculture": "Aquaculture",
-  "agric-research-results": "Agric Research Results",
-  "macroeconomics-indices": "Macroeconomics Indices",
-  "rice": "Rice Production"
+  "ctaText": "Interested in partnering with",
+  "ctaButton": "Become a Partner"
+},
+"contact": {
+  "title": "Get Involved with ECOAGRIS",
+  "subtitle": "Join our growing network of agricultural innovators, policymakers, and researchers working to strengthen food security across ECOWAS.",
+  "form": {
+    "name": "Your Name",
+    "email": "Your Email",
+    "message": "Your Message",
+    "submit": "Contact Us"
+  },
+  "success": "Message sent successfully! We’ll get back to you soon.",
+  "joinTitle": "Join the Movement",
+  "joinDesc": "Stay connected with ECOAGRIS for insights, updates, and opportunities across ECOWAS.",
+  "info": {
+    "address": "Data4Decision International, Ilorin, Nigeria",
+    "email": "info@data4decision.org",
+    "phone": "+234 704 000 9930"
+  }
+},
+
+  "footer": {
+    "about": "Empowering Agricultural Intelligence Across ECOWAS. ECOAGRIS connects ECOWAS countries through smart agricultural data systems that drive evidence-based decision-making and regional food security.",
+    "quickLinks": {
+      "title": "Quick Links",
+      "home": "Home",
+      "about": "About",
+      "dashboard": "Data Dashboard",
+      "news": "News & Updates",
+      "contact": "Contact"
+    },
+    "connect": {
+      "title": "Connect With Us"
+    },
+    "legal": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use"
+    },
+    "rights": "All Rights Reserved.",
+    "poweredBy": "Powered by"
+  }
 }
+
+
+
+  
+
+
+

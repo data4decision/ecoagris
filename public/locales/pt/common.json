@@ -69,33 +69,122 @@
     "readMore": "Leia Mais"
   },
   "keyData": {
-    "header": "Insights Chave de Dados na CEDEAO",
-    "description": "Descubra tendências agrícolas que impulsionam crescimento, sustentabilidade e resiliência.",
-    "cta": "Explorar Estatísticas Detalhadas por País",
+    "title": "Principais Informações de Dados na CEDEAO",
+    "subtitle": "Descubra as tendências agrícolas que impulsionam o crescimento, a sustentabilidade e a resiliência.",
     "insights": {
-      "cropYield": "Aumento da Produtividade Agrícola",
-      "irrigation": "Cobertura de Irrigação",
-      "fertilizer": "Adoção de Fertilizantes",
-      "trade": "Crescimento do Comércio Agrícola",
-      "dataCoverage": "Cobertura de Dados",
-      "smartFarming": "Adoção de Agricultura Inteligente"
+      "cropYield": "Crescimento médio do rendimento das colheitas",
+      "irrigation": "Cobertura de terras irrigadas",
+      "fertilizer": "Aumento do uso de fertilizantes",
+      "trade": "Comércio regional de culturas",
+      "dataCoverage": "Cobertura de dados em toda a CEDEAO",
+      "smartFarming": "Adoção de ferramentas de agricultura inteligente"
+    },
+    "cta": "Explorar estatísticas detalhadas por país"
+  },
+  "flagGrid": {
+    "title": "Explorar os países membros da CEDEAO",
+    "description": "Selecione um país para explorar dados e informações agrícolas."
+  },
+  
+  "challenges": {
+    "title": "Enfrentando os desafios agrícolas na CEDEAO",
+    "subtitle": "A inovação e os dados são essenciais para superar os desafios agrícolas enfrentados pelos países da CEDEAO. A ECOAGRIS está comprometida em oferecer soluções práticas para um futuro sustentável.",
+    "list": {
+      "climateChange": {
+        "title": "Mudança climática",
+        "desc": "A mudança climática afeta os rendimentos das colheitas, a disponibilidade de água e as condições agrícolas em toda a região da CEDEAO."
+      },
+      "dataAccess": {
+        "title": "Acesso limitado a dados",
+        "desc": "Muitos agricultores não têm acesso a dados agrícolas atualizados que possam ajudá-los a tomar decisões informadas."
+      },
+      "infrastructure": {
+        "title": "Infraestrutura deficiente",
+        "desc": "A infraestrutura inadequada impede o transporte e a distribuição eficientes de produtos agrícolas."
+      },
+      "lowProductivity": {
+        "title": "Baixa produtividade",
+        "desc": "Muitas regiões enfrentam produtividade agrícola estagnada ou baixa devido a práticas agrícolas ultrapassadas e falta de inovação."
+      }
+    },
+    "cta": "Saiba mais sobre o nosso impacto"
+  },
+  "solutions": {
+    "list": {
+      "climateSmart": {
+        "title": "Agricultura inteligente para o clima",
+        "desc": "Implementar práticas agrícolas inteligentes que aumentem a resiliência às mudanças climáticas e melhorem a produtividade."
+      },
+      "dataTransparency": {
+        "title": "Transparência de dados",
+        "desc": "Fornecer aos agricultores dados transparentes, precisos e oportunos para melhorar a tomada de decisões."
+      },
+      "resourceOptimization": {
+        "title": "Otimização de recursos",
+        "desc": "Otimizar o uso de recursos como água, fertilizantes e terras para melhorar a eficiência e a sustentabilidade da produção."
+      },
+      "regionalCollaboration": {
+        "title": "Colaboração regional",
+        "desc": "Promover a colaboração regional para compartilhar conhecimento agrícola, infraestrutura e políticas para aumentar a produtividade."
+      }
     }
   },
-  "countryData": {
-    "header": "Dados por País",
-    "description": "Explore dados agrícolas detalhados por país."
+  "collaborators": {
+  "title": "Nossos Parceiros e Colaboradores",
+  "description": "O ECOAGRIS prospera por meio da colaboração. Nossos parceiros — desde instituições da CEDEAO até organizações internacionais — trabalham juntos para fortalecer os sistemas alimentares, melhorar a confiabilidade dos dados e promover o desenvolvimento agrícola sustentável na África Ocidental.",
+  "roles": {
+    "ecowas": "Coordenação Regional",
+    "fao": "Segurança Alimentar e Sistemas de Dados",
+    "ifad": "Inovação Agrícola",
+    "worldBank": "Desenvolvimento Sustentável",
+    "afdb": "Investimento e Fortalecimento de Capacidades"
   },
-  "select_product_for": "Selecionar um produto para",
-  "agric": "Insumos Agrícolas",
-  "agro-hydro-meteorology": "Agro-hidro-meteorologia",
-  "agricultural-production": "Produção Agrícola",
-  "agricultural-market": "Mercado Agrícola",
-  "food-stocks": "Estoques Alimentares",
-  "nutrition": "Nutrição",
-  "livestock": "Pecuária",
-  "fishery": "Pesca",
-  "aquaculture": "Aquicultura",
-  "agric-research-results": "Resultados de Pesquisa Agrícola",
-  "macroeconomics-indices": "Índices Macroeconômicos",
-  "rice": "Produção de Arroz"
+  "ctaText": "Interessado em colaborar com",
+  "ctaButton": "Torne-se um Parceiro"
+},
+"contact": {
+  "title": "Envolva-se com o ECOAGRIS",
+  "subtitle": "Junte-se à nossa rede crescente de inovadores agrícolas, formuladores de políticas e pesquisadores que trabalham para fortalecer a segurança alimentar em toda a CEDEAO.",
+  "form": {
+    "name": "Seu nome",
+    "email": "Seu e-mail",
+    "message": "Sua mensagem",
+    "submit": "Contacte-nos"
+  },
+  "success": "Mensagem enviada com sucesso! Entraremos em contato em breve.",
+  "joinTitle": "Junte-se ao movimento",
+  "joinDesc": "Mantenha-se conectado com o ECOAGRIS para obter informações, atualizações e oportunidades em toda a CEDEAO.",
+  "info": {
+    "address": "Data4Decision International, Ilorin, Nigéria",
+    "email": "info@data4decision.org",
+    "phone": "+234 704 000 9930"
+  }
+},
+
+  "footer": {
+    "about": "Fortalecendo a inteligência agrícola em toda a CEDEAO. O ECOAGRIS conecta os países da CEDEAO por meio de sistemas inteligentes de dados agrícolas que promovem a tomada de decisões baseadas em evidências e a segurança alimentar regional.",
+    "quickLinks": {
+      "title": "Links rápidos",
+      "home": "Início",
+      "about": "Sobre",
+      "dashboard": "Painel de Dados",
+      "news": "Notícias e Atualizações",
+      "contact": "Contato"
+    },
+    "connect": {
+      "title": "Conecte-se Conosco"
+    },
+    "legal": {
+      "privacy": "Política de Privacidade",
+      "terms": "Termos de Uso"
+    },
+    "rights": "Todos os direitos reservados.",
+    "poweredBy": "Desenvolvido por"
+  }
 }
+
+
+
+
+
+

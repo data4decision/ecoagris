@@ -68,34 +68,125 @@
     "callUs": "Appelez-nous : +234 704 000 9930",
     "readMore": "En savoir plus"
   },
+  
   "keyData": {
-    "header": "Perspectives clés des données à travers la CEDEAO",
-    "description": "Découvrez les tendances agricoles favorisant la croissance, la durabilité et la résilience.",
-    "cta": "Explorer les statistiques détaillées par pays",
+    "title": "Aperçus clés des données à travers la CEDEAO",
+    "subtitle": "Découvrez les tendances agricoles qui stimulent la croissance, la durabilité et la résilience.",
     "insights": {
-      "cropYield": "Augmentation du rendement des cultures",
-      "irrigation": "Couverture d'irrigation",
-      "fertilizer": "Adoption d'engrais",
-      "trade": "Croissance du commerce agricole",
-      "dataCoverage": "Couverture des données",
-      "smartFarming": "Adoption de l'agriculture intelligente"
+      "cropYield": "Croissance moyenne du rendement des cultures",
+      "irrigation": "Superficie des terres irriguées",
+      "fertilizer": "Augmentation de l'utilisation des engrais",
+      "trade": "Commerce régional des cultures",
+      "dataCoverage": "Couverture des données à travers la CEDEAO",
+      "smartFarming": "Adoption des outils d'agriculture intelligente"
+    },
+    "cta": "Explorer les statistiques détaillées par pays"
+  },
+  "flagGrid": {
+    "title": "Explorer les pays membres de la CEDEAO",
+    "description": "Sélectionnez un pays pour explorer les données et informations agricoles."
+  },
+  
+  "challenges": {
+    "title": "Relever les défis agricoles dans la CEDEAO",
+    "subtitle": "L’innovation et les données sont essentielles pour surmonter les défis agricoles auxquels sont confrontés les pays de la CEDEAO. ECOAGRIS s’engage à fournir des solutions pratiques pour un avenir durable.",
+    "list": {
+      "climateChange": {
+        "title": "Changement climatique",
+        "desc": "Le changement climatique affecte les rendements des cultures, la disponibilité de l’eau et les conditions agricoles dans la région de la CEDEAO."
+      },
+      "dataAccess": {
+        "title": "Accès limité aux données",
+        "desc": "De nombreux agriculteurs n’ont pas accès à des données agricoles à jour qui pourraient les aider à prendre des décisions éclairées."
+      },
+      "infrastructure": {
+        "title": "Infrastructure insuffisante",
+        "desc": "Une infrastructure inadéquate empêche le transport et la distribution efficaces des produits agricoles."
+      },
+      "lowProductivity": {
+        "title": "Faible productivité",
+        "desc": "De nombreuses régions connaissent une productivité agricole stagnante ou faible en raison de pratiques agricoles obsolètes et d’un manque d’innovation."
+      }
+    },
+    "cta": "En savoir plus sur notre impact"
+  },
+  "solutions": {
+    "list": {
+      "climateSmart": {
+        "title": "Agriculture intelligente face au climat",
+        "desc": "Mettre en œuvre des pratiques agricoles intelligentes qui améliorent la résilience face au changement climatique et augmentent la productivité."
+      },
+      "dataTransparency": {
+        "title": "Transparence des données",
+        "desc": "Fournir aux agriculteurs des données transparentes, précises et opportunes pour une meilleure prise de décision."
+      },
+      "resourceOptimization": {
+        "title": "Optimisation des ressources",
+        "desc": "Optimiser l’utilisation des ressources telles que l’eau, les engrais et les terres pour améliorer le rendement et la durabilité."
+      },
+      "regionalCollaboration": {
+        "title": "Collaboration régionale",
+        "desc": "Promouvoir la collaboration régionale pour le partage des connaissances, des infrastructures et des politiques agricoles."
+      }
     }
   },
-  "countryData": {
-    "header": "Données par pays",
-    "description": "Explorez des données agricoles détaillées par pays."
+  "collaborators": {
+  "title": "Nos partenaires et collaborateurs",
+  "description": "ECOAGRIS prospère grâce à la collaboration. Nos partenaires — des institutions de la CEDEAO aux organisations internationales — unissent leurs forces pour renforcer les systèmes alimentaires, améliorer la fiabilité des données et promouvoir un développement agricole durable en Afrique de l’Ouest.",
+  "roles": {
+    "ecowas": "Coordination régionale",
+    "fao": "Sécurité alimentaire et systèmes de données",
+    "ifad": "Innovation agricole",
+    "worldBank": "Développement durable",
+    "afdb": "Investissement et renforcement des capacités"
   },
-  "select_product_for": "Sélectionner un produit pour",
-  "agric": "Intrants agricoles",
-  "agro-hydro-meteorology": "Agro-hydro-météorologie",
-  "agricultural-production": "Production agricole",
-  "agricultural-market": "Marché agricole",
-  "food-stocks": "Stocks alimentaires",
-  "nutrition": "Nutrition",
-  "livestock": "Élevage",
-  "fishery": "Pêche",
-  "aquaculture": "Aquaculture",
-  "agric-research-results": "Résultats de recherche agricole",
-  "macroeconomics-indices": "Indices macroéconomiques",
-  "rice": "Production de riz"
+  "ctaText": "Intéressé à collaborer avec",
+  "ctaButton": "Devenir partenaire"
+},
+"contact": {
+  "title": "Participez avec ECOAGRIS",
+  "subtitle": "Rejoignez notre réseau croissant d’innovateurs agricoles, de décideurs politiques et de chercheurs travaillant pour renforcer la sécurité alimentaire à travers la CEDEAO.",
+  "form": {
+    "name": "Votre nom",
+    "email": "Votre e-mail",
+    "message": "Votre message",
+    "submit": "Nous contacter"
+  },
+  "success": "Message envoyé avec succès ! Nous vous répondrons bientôt.",
+  "joinTitle": "Rejoignez le mouvement",
+  "joinDesc": "Restez connecté avec ECOAGRIS pour des informations, des mises à jour et des opportunités à travers la CEDEAO.",
+  "info": {
+    "address": "Data4Decision International, Ilorin, Nigéria",
+    "email": "info@data4decision.org",
+    "phone": "+234 704 000 9930"
+  }
+},
+  "footer": {
+    "about": "Renforcer l’intelligence agricole à travers la CEDEAO. ECOAGRIS relie les pays de la CEDEAO grâce à des systèmes de données agricoles intelligents qui favorisent la prise de décision fondée sur des preuves et la sécurité alimentaire régionale.",
+    "quickLinks": {
+      "title": "Liens rapides",
+      "home": "Accueil",
+      "about": "À propos",
+      "dashboard": "Tableau de bord des données",
+      "news": "Actualités et mises à jour",
+      "contact": "Contact"
+    },
+    "connect": {
+      "title": "Restez connectés"
+    },
+    "legal": {
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions d’utilisation"
+    },
+    "rights": "Tous droits réservés.",
+    "poweredBy": "Propulsé par"
+  }
 }
+
+
+
+
+
+
+
+
