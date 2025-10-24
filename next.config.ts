@@ -4,7 +4,15 @@ const nextConfig = {
     domains: [
       'images.theconversation.com',
       'global.ariseplay.com',
-      'newmail-ng.com', // Add the new hostname
+      'newmail-ng.com',
+    ],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/**',
+      },
     ],
   },
 };

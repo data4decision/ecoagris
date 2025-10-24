@@ -1,12 +1,101 @@
 {
   "navbar": {
-    "company_name": "Data4Decision International",
     "about": "About",
     "countries": "Countries",
-    "admin_login": "Admin Login",
-    "get_started": "Get Started",
-     "welcome": "Welcome {{name}}",
-  "profile": "Profile",
-  "logout": "Logout"
-  }
+    "adminLogin": "Admin Login",
+    "getStarted": "Get Started",
+    "ecoagris": "ECOAGRIS"
+  },
+  "hero": {
+    "headline": "Empowering Sustainable Agriculture Across ECOWAS",
+    "subheadline": "Connecting ECOWAS countries with agricultural insights for growth and resilience.",
+    "cta": "Explore Data",
+    "slides": {
+      "agricInput": {
+        "title": "Agric Input",
+        "desc": "Explore data on fertilizers, seeds, and pesticides to optimize agricultural productivity across ECOWAS."
+      },
+      "agroHydro": {
+        "title": "Agro-hydro-meteorology",
+        "desc": "Access weather and hydrological insights to support climate-smart farming practices."
+      },
+      "agricProduction": {
+        "title": "Agricultural Production",
+        "desc": "Analyze crop yields and production trends to enhance food security in the region."
+      },
+      "agricMarket": {
+        "title": "Agricultural Market",
+        "desc": "Track market prices and trade data to empower farmers and stakeholders."
+      },
+      "foodStocks": {
+        "title": "Food Stocks",
+        "desc": "Monitor food reserves to ensure stability and preparedness for shortages."
+      },
+      "nutrition": {
+        "title": "Nutrition",
+        "desc": "Understand nutritional outcomes to promote healthier diets and food systems."
+      },
+      "livestock": {
+        "title": "Livestock",
+        "desc": "Dive into livestock production and health data to boost animal husbandry."
+      },
+      "fishery": {
+        "title": "Fishery",
+        "desc": "Discover fishery production and sustainability metrics for coastal communities."
+      },
+      "aquaculture": {
+        "title": "Aquaculture",
+        "desc": "Learn about aquaculture practices to enhance fish farming and food supply."
+      },
+      "research": {
+        "title": "Agric Research Results",
+        "desc": "Access cutting-edge research to drive innovation in agriculture."
+      },
+      "macro": {
+        "title": "Macroeconomics Indices",
+        "desc": "Examine economic indicators impacting agriculture for informed policy-making."
+      }
+    }
+  },
+  "about": {
+    "experience": "25+ Years Experience",
+    "title": "Naturally grown food by passionate farmers.",
+    "description": "ECOAGRIS connects ECOWAS countries through agricultural data, empowering stakeholders with insights for better decision-making.",
+    "missionTitle": "Our Mission",
+    "mission": "Our Mission is to empower ECOWAS agricultural stakeholders with data-driven insights to enhance productivity, sustainability, and resilience in livestock and crop systems.",
+    "visionTitle": "Our Vision",
+    "vision": "Thriving, data-empowered agricultural landscape across ECOWAS, where innovative analytics drive equitable growth, environmental stewardship, and food sovereignty for all.",
+    "callUs": "Call Us: +234 704 000 9930",
+    "readMore": "Read More"
+  },
+  "keyData": {
+    "header": "Key Data Insights Across ECOWAS",
+    "description": "Discover agricultural trends driving growth, sustainability, and resilience.",
+    "cta": "Explore Detailed Statistics by Country",
+    "insights": {
+      "cropYield": "Crop Yield Increase",
+      "irrigation": "Irrigation Coverage",
+      "fertilizer": "Fertilizer Adoption",
+      "trade": "Agricultural Trade Growth",
+      "dataCoverage": "Data Coverage",
+      "smartFarming": "Smart Farming Adoption"
+    }
+  },
+  "countryData": {
+    "header": "Country Data",
+    "description": "Explore detailed agricultural data by country."
+  },
+  "select_product_for": "Select a Product for",
+  "agric": "Agric Input",
+  "agro-hydro-meteorology": "Agro-hydro-meteorology",
+  "agricultural-production": "Agricultural Production",
+  "agricultural-market": "Agricultural Market",
+  "food-stocks": "Food Stocks",
+  "nutrition": "Nutrition",
+  "livestock": "Livestock",
+  "fishery": "Fishery",
+  "aquaculture": "Aquaculture",
+  "agric-research-results": "Agric Research Results",
+  "macroeconomics-indices": "Macroeconomics Indices",
+  "rice": "Rice Production"
 }

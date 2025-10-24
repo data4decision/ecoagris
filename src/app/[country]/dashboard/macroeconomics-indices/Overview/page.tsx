@@ -7,6 +7,7 @@ import { FaChartBar, FaGlobe, FaCalendarAlt, FaUsers, FaChartLine, FaDollarSign,
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import '@/styles/pdf-styles.css';
 
 // Define TypeScript interfaces
 interface MacroData {
@@ -22,16 +23,14 @@ interface Dataset {
 }
 
 export default function MacroOverviewPage() {
-  // Get dynamic country parameter from URL
   const { country } = useParams();
   const router = useRouter();
   const dashboardRef = useRef<HTMLDivElement>(null);
-  // State for overview data, selected year, loading
   const [overviewData, setOverviewData] = useState<MacroData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
 
-  // Page preview data (title, icon, path, description)
+  // Page preview data
   const pagePreviews = [
     {
       title: 'Economic Output',
@@ -65,7 +64,7 @@ export default function MacroOverviewPage() {
     },
   ];
 
-  // Fetch data from JSON file only
+  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
       setLoading(false);
@@ -120,7 +119,7 @@ export default function MacroOverviewPage() {
   // Get data for the selected year
   const selectedData = overviewData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
+  // CSV download
   const handleCSVDownload = () => {
     const csvData = overviewData.map((data) => ({
       Country: data.country,
@@ -136,29 +135,60 @@ export default function MacroOverviewPage() {
     link.click();
   };
 
-  // Function to handle PDF download (adapted from exportPDF)
+  // PDF download
   const handlePDFDownload = async () => {
     if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PDF generation');
-      alert('PDF download failed. Please try again.');
+      console.error('Dashboard element not found: dashboardRef.current is null');
+      alert('PDF download failed: Dashboard content not found.');
       return;
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      const images = dashboardRef.current.querySelectorAll('img');
+      images.forEach((img) => {
+        if (img.src.includes('/_next/image')) {
+          img.src = img.src.replace('/_next/image?url=%2F', '/');
+        }
+      });
+
+      dashboardRef.current.classList.add('pdf-snapshot');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      console.log('Capturing dashboard with html2canvas...');
       const canvas = await html2canvas(dashboardRef.current, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
+        logging: true,
+        width: dashboardRef.current.scrollWidth,
+        height: dashboardRef.current.scrollHeight,
       });
+      dashboardRef.current.classList.remove('pdf-snapshot');
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        throw new Error('Canvas is empty or invalid');
+      }
+
+      console.log('Converting canvas to image data...');
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('landscape');
+      if (!imgData || imgData === 'data:,') {
+        throw new Error('Failed to generate image data from canvas');
+      }
+
+      console.log('Creating PDF with jsPDF...');
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const pageWidth = 297;
+      const pageHeight = 210;
+      const margin = 10;
+      const imgWidth = pageWidth - 2 * margin;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
       pdf.setFontSize(12);
-      pdf.text(`Macroeconomic Report - ${(country as string).toUpperCase()}`, 10, 10);
-      pdf.text(`Metrics: Country, Year, Population`, 10, 18);
-      pdf.text(`Exported on: ${new Date().toLocaleDateString()}`, 10, 26);
-      pdf.addImage(imgData, 'PNG', 10, 35, 270, 120);
+      pdf.text(`Macroeconomic Report - ${(country as string).toUpperCase()}`, margin, 10);
+      pdf.text(`Metrics: Country, Year, Population`, margin, 18);
+      pdf.text(`Exported on: ${new Date().toLocaleDateString()}`, margin, 26);
+      pdf.addImage(imgData, 'PNG', margin, 35, imgWidth, imgHeight);
       pdf.save(`${country}_macro_overview.pdf`);
+      console.log('PDF saved successfully');
     } catch (err) {
       console.error('PDF generation error:', err);
       alert('PDF download failed. Please check console for details.');
@@ -190,7 +220,6 @@ export default function MacroOverviewPage() {
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
       <div ref={dashboardRef} className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
-        {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
           aria-label={`Macroeconomic Indices Overview for ${country}`}
@@ -202,7 +231,6 @@ export default function MacroOverviewPage() {
           Simulated data for planning purposes. Explore categories for detailed trends.
         </p>
 
-        {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
@@ -220,7 +248,6 @@ export default function MacroOverviewPage() {
           </button>
         </div>
 
-        {/* Year Selection */}
         <div className="mb-6 max-w-full">
           <label htmlFor="year-select" className="sr-only">
             Select Year for Metrics
@@ -239,9 +266,7 @@ export default function MacroOverviewPage() {
           </select>
         </div>
 
-        {/* Overview Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
-          {/* Country Card */}
           <div
             className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
             aria-label={`Country Card for ${selectedYear}`}
@@ -256,7 +281,6 @@ export default function MacroOverviewPage() {
             <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Current: {selectedYear}</p>
           </div>
 
-          {/* Year Card */}
           <div
             className="bg-gradient-to-br from-[var(--white)] to-[var(--green)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
             aria-label={`Year Card for ${selectedYear}`}
@@ -271,7 +295,6 @@ export default function MacroOverviewPage() {
             <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Selected</p>
           </div>
 
-          {/* Population Card */}
           <div
             className="bg-gradient-to-br from-[var(--white)] to-[var(--wine)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
             aria-label={`Population Card for ${selectedYear}`}
@@ -287,7 +310,6 @@ export default function MacroOverviewPage() {
           </div>
         </div>
 
-        {/* Page Previews Grid */}
         <div className="mb-8">
           <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">Explore Macroeconomic Categories</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

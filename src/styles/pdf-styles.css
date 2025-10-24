@@ -1,0 +1,10 @@
+/* Fallback for unsupported gradients */
+.pdf-snapshot .bg-gradient-to-br {
+  background: #ffffff !important;
+}
+
+/* Ensure images load correctly */
+.pdf-snapshot img {
+  max-width: 100%;
+  height: auto;
+}

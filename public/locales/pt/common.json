@@ -1,9 +1,101 @@
 {
   "navbar": {
-    "company_name": "Data4Decision",
-    "about": "Sobre nós",
+    "about": "Sobre",
     "countries": "Países",
-    "admin_login": "Login de Admin",
-    "get_started": "Começar"
-  }
+    "adminLogin": "Login de Administrador",
+    "getStarted": "Começar",
+    "ecoagris": "ECOAGRIS"
+  },
+  "hero": {
+    "headline": "Fortalecendo a Agricultura Sustentável na CEDEAO",
+    "subheadline": "Conectando países da CEDEAO com insights agrícolas para crescimento e resiliência.",
+    "cta": "Explorar Dados",
+    "slides": {
+      "agricInput": {
+        "title": "Insumos Agrícolas",
+        "desc": "Explore dados sobre fertilizantes, sementes e pesticidas para otimizar a produtividade agrícola na CEDEAO."
+      },
+      "agroHydro": {
+        "title": "Agro-hidro-meteorologia",
+        "desc": "Acesse insights meteorológicos e hidrológicos para apoiar práticas agrícolas inteligentes em relação ao clima."
+      },
+      "agricProduction": {
+        "title": "Produção Agrícola",
+        "desc": "Analise os rendimentos das culturas e tendências de produção para melhorar a segurança alimentar na região."
+      },
+      "agricMarket": {
+        "title": "Mercado Agrícola",
+        "desc": "Acompanhe preços de mercado e dados comerciais para empoderar agricultores e partes interessadas."
+      },
+      "foodStocks": {
+        "title": "Estoques Alimentares",
+        "desc": "Monitore reservas de alimentos para garantir estabilidade e preparação para escassez."
+      },
+      "nutrition": {
+        "title": "Nutrição",
+        "desc": "Entenda os resultados nutricionais para promover dietas e sistemas alimentares mais saudáveis."
+      },
+      "livestock": {
+        "title": "Pecuária",
+        "desc": "Mergulhe nos dados de produção e saúde do gado para impulsionar a pecuária."
+      },
+      "fishery": {
+        "title": "Pesca",
+        "desc": "Descubra métricas de produção e sustentabilidade da pesca para comunidades costeiras."
+      },
+      "aquaculture": {
+        "title": "Aquicultura",
+        "desc": "Saiba mais sobre práticas de aquicultura para melhorar a criação de peixes e o abastecimento alimentar."
+      },
+      "research": {
+        "title": "Resultados de Pesquisa Agrícola",
+        "desc": "Acesse pesquisas de ponta para impulsionar a inovação na agricultura."
+      },
+      "macro": {
+        "title": "Índices Macroeconômicos",
+        "desc": "Examine indicadores econômicos que impactam a agricultura para uma formulação de políticas informada."
+      }
+    }
+  },
+  "about": {
+    "experience": "Mais de 25 anos de experiência",
+    "title": "Alimentos cultivados naturalmente por agricultores apaixonados.",
+    "description": "ECOAGRIS conecta países da CEDEAO por meio de dados agrícolas, empoderando as partes interessadas com insights para uma melhor tomada de decisão.",
+    "missionTitle": "Nossa Missão",
+    "mission": "Nossa missão é empoderar as partes interessadas agrícolas da CEDEAO com insights baseados em dados para melhorar a produtividade, sustentabilidade e resiliência em sistemas de pecuária e culturas.",
+    "visionTitle": "Nossa Visão",
+    "vision": "Um cenário agrícola próspero e orientado por dados na CEDEAO, onde análises inovadoras impulsionam crescimento equitativo, gestão ambiental e soberania alimentar para todos.",
+    "callUs": "Ligue para nós: +234 704 000 9930",
+    "readMore": "Leia Mais"
+  },
+  "keyData": {
+    "header": "Insights Chave de Dados na CEDEAO",
+    "description": "Descubra tendências agrícolas que impulsionam crescimento, sustentabilidade e resiliência.",
+    "cta": "Explorar Estatísticas Detalhadas por País",
+    "insights": {
+      "cropYield": "Aumento da Produtividade Agrícola",
+      "irrigation": "Cobertura de Irrigação",
+      "fertilizer": "Adoção de Fertilizantes",
+      "trade": "Crescimento do Comércio Agrícola",
+      "dataCoverage": "Cobertura de Dados",
+      "smartFarming": "Adoção de Agricultura Inteligente"
+    }
+  },
+  "countryData": {
+    "header": "Dados por País",
+    "description": "Explore dados agrícolas detalhados por país."
+  },
+  "select_product_for": "Selecionar um produto para",
+  "agric": "Insumos Agrícolas",
+  "agro-hydro-meteorology": "Agro-hidro-meteorologia",
+  "agricultural-production": "Produção Agrícola",
+  "agricultural-market": "Mercado Agrícola",
+  "food-stocks": "Estoques Alimentares",
+  "nutrition": "Nutrição",
+  "livestock": "Pecuária",
+  "fishery": "Pesca",
+  "aquaculture": "Aquicultura",
+  "agric-research-results": "Resultados de Pesquisa Agrícola",
+  "macroeconomics-indices": "Índices Macroeconômicos",
+  "rice": "Produção de Arroz"
 }

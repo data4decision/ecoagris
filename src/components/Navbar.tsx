@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import countryCode from '@/app/flags/countryCode.json';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 interface Country {
   name: string;
@@ -16,6 +18,7 @@ const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLLIElement>(null);
+  const { t } = useTranslation('common'); // ✅ initialize translations
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,7 +32,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="bg-[var(--medium-green)] text-white shadow-md px-6 py-4 md:flex justify-between">
+    <nav className="bg-[var(--medium-green)] text-white shadow-md px-6 py-4 md:flex justify-between items-center">
       <div className="flex items-center justify-between">
         <Link href="https://www.data4decision.org/" passHref>
           <div className="text-xl font-bold flex items-center">
@@ -40,7 +43,7 @@ const Navbar: React.FC = () => {
               height={32}
               className="inline-block w-8 mr-2"
             />
-            ECOAGRIS
+            {t('navbar.ecoagris')}
           </div>
         </Link>
 
@@ -84,7 +87,7 @@ const Navbar: React.FC = () => {
             href="https://www.data4decision.org/about"
             className="hover:text-[var(--yellow)] block"
           >
-            About
+            {t('navbar.about')}
           </Link>
         </li>
 
@@ -93,7 +96,7 @@ const Navbar: React.FC = () => {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="hover:text-[var(--yellow)] block w-full text-left"
           >
-            Countries ▾
+            {t('navbar.countries')} ▾
           </button>
           {dropdownOpen && (
             <ul className="absolute z-50 bg-[var(--white)] text-[var(--medium-green)] shadow-lg rounded-md w-52 mt-2">
@@ -127,7 +130,7 @@ const Navbar: React.FC = () => {
             href="/admin/login"
             className="hover:text-[var(--yellow)] block"
           >
-            Admin Login
+            {t('navbar.adminLogin')}
           </Link>
         </li>
 
@@ -136,10 +139,12 @@ const Navbar: React.FC = () => {
             href="/signup"
             className="bg-[var(--yellow)] text-[var(--medium-green)] px-4 py-2 rounded hover:bg-opacity-90 transition block text-center"
           >
-            Get Started
+            {t('navbar.getStarted')}
           </Link>
         </li>
       </ul>
+
+      <LanguageSwitcher />
     </nav>
   );
 };
