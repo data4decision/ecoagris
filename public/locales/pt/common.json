@@ -180,8 +180,84 @@
     },
     "rights": "Todos os direitos reservados.",
     "poweredBy": "Desenvolvido por"
+  },
+  
+  "signup": {
+    "hello": "Olá,",
+    "welcome": "Bem-vindo!",
+    "welcome_text": "Bem-vindo ao Sistema de Informação Agrícola da CEDEAO (ECOAGRIS). Cadastre-se inserindo seus dados e selecionando seu país.",
+    "first_name": "Nome",
+    "last_name": "Sobrenome",
+    "occupation": "Profissão",
+    "gender": "Gênero",
+    "select_gender": "Selecione o gênero",
+    "male": "Masculino",
+    "female": "Feminino",
+    "other": "Outro",
+    "phone_number": "Número de telefone (ex.: +22912345678)",
+    "select_country": "Selecione seu país",
+    "email": "E-mail",
+    "password": "Senha",
+    "signup_button": "Cadastrar-se",
+    "already_account": "Já tem uma conta?",
+    "login_link": "Entrar",
+    "errors": {
+      "invalid_country": "País selecionado inválido.",
+      "country_code_mismatch": "O código do país do número de telefone não corresponde ao país selecionado.",
+      "invalid_phone": "Insira um número de telefone válido com o código do país correto.",
+      "email_in_use": "Este e-mail já está associado a uma conta existente. Faça login ou use outro e-mail.",
+      "unknown": "Erro ao cadastrar: {{message}}"
+    }
+  },
+  
+  "login": {
+    "hello": "Olá,",
+    "welcome": "Bem-vindo!",
+    "welcome_text": "Faça login para acessar seu painel personalizado. Assim que você fizer login com suas credenciais registradas, será automaticamente direcionado ao painel específico do seu país, onde poderá visualizar dados, recursos e informações agrícolas relevantes para a sua região da CEDEAO.",
+    "email_placeholder": "Insira seu e-mail",
+    "password_placeholder": "Insira sua senha",
+    "login_button": "Entrar",
+    "not_registered": "Ainda não registrado?",
+    "signup_link": "Inscrever-se",
+    "loading": "Carregando...",
+    "errors": {
+      "missing_country": "Erro: Informações do país ausentes.",
+      "no_user_data": "Erro: Dados do usuário não encontrados.",
+      "invalid_credentials": "Erro ao entrar: E-mail ou senha inválidos."
+    }
+  },
+  
+  "productDashboard": {
+    "title": "Visão geral de {{productName}} para {{countryName}}",
+    "data_not_available": "Dados não disponíveis para {{countryName}}. Selecione um país suportado (por exemplo: Benim, Nigéria)."
+  },
+  
+  "productSelection": {
+    "title": "Selecione um produto para {{countryName}}",
+    "items": {
+      "agric_input": "Insumos agrícolas",
+      "agro_hydro_meteorology": "Agro-hidro-meteorologia",
+      "agricultural_production": "Produção agrícola",
+      "agricultural_market": "Mercado agrícola",
+      "food_stocks": "Estoques de alimentos",
+      "nutrition": "Nutrição",
+      "livestock": "Pecuária",
+      "fishery": "Pesca",
+      "aquaculture": "Aquacultura",
+      "agric_research_results": "Resultados de pesquisa agrícola",
+      "macroeconomics_indices": "Índices macroeconômicos",
+      "rice_production": "Produção de arroz"
+    }
   }
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -180,8 +180,84 @@
     },
     "rights": "All Rights Reserved.",
     "poweredBy": "Powered by"
+  },
+  
+  "signup": {
+    "hello": "Hello,",
+    "welcome": "Welcome!",
+    "welcome_text": "Welcome to ECOWAS Agricultural Information System (ECOAGRIS). Sign up by entering your details and selecting your country.",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "occupation": "Occupation",
+    "gender": "Gender",
+    "select_gender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "phone_number": "Phone Number (e.g., +22912345678)",
+    "select_country": "Select Your Country",
+    "email": "Email",
+    "password": "Password",
+    "signup_button": "Sign Up",
+    "already_account": "Already have an account?",
+    "login_link": "Log In",
+    "errors": {
+      "invalid_country": "Invalid country selected.",
+      "country_code_mismatch": "The phone number country code does not match the selected country.",
+      "invalid_phone": "Please enter a valid phone number with the correct country code.",
+      "email_in_use": "This email is already associated with an existing account. Please log in or use a different email.",
+      "unknown": "Error signing up: {{message}}"
+    }
+  },
+  
+  "login": {
+    "hello": "Hello,",
+    "welcome": "Welcome!",
+    "welcome_text": "Please log in to access your personalized dashboard. Once you log in with your registered credentials, you'll be automatically directed to your country's specific dashboard, where you can view relevant agricultural data, resources, and insights for your ECOWAS region.",
+    "email_placeholder": "Enter Your Email",
+    "password_placeholder": "Enter Your Password",
+    "login_button": "Login",
+    "not_registered": "Not registered yet?",
+    "signup_link": "Sign Up",
+    "loading": "Loading...",
+    "errors": {
+      "missing_country": "Error: Country information is missing.",
+      "no_user_data": "Error: User data not found.",
+      "invalid_credentials": "Error signing in: Invalid email or password."
+    }
+  },
+  
+  "productDashboard": {
+    "title": "{{productName}} Overview for {{countryName}}",
+    "data_not_available": "Data not available for {{countryName}}. Please select a supported country (e.g., Benin, Nigeria)."
+  },
+  
+  "productSelection": {
+    "title": "Select a Product for {{countryName}}",
+    "items": {
+      "agric_input": "Agric Input",
+      "agro_hydro_meteorology": "Agro-hydro-meteorology",
+      "agricultural_production": "Agricultural Production",
+      "agricultural_market": "Agricultural Market",
+      "food_stocks": "Food Stocks",
+      "nutrition": "Nutrition",
+      "livestock": "Livestock",
+      "fishery": "Fishery",
+      "aquaculture": "Aquaculture",
+      "agric_research_results": "Agric Research Results",
+      "macroeconomics_indices": "Macroeconomics Indices",
+      "rice_production": "Rice Production"
+    }
   }
 }
+
+
+
+
+
+
+
+
 
 
 

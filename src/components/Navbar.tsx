@@ -18,7 +18,7 @@ const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLLIElement>(null);
-  const { t } = useTranslation('common'); // ✅ initialize translations
+  const { t } = useTranslation('common'); 
 
   // Close dropdown when clicking outside
   useEffect(() => {

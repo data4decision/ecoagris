@@ -180,8 +180,84 @@
     },
     "rights": "Tous droits réservés.",
     "poweredBy": "Propulsé par"
+  },
+  
+  "signup": {
+    "hello": "Bonjour,",
+    "welcome": "Bienvenue !",
+    "welcome_text": "Bienvenue sur le Système d’Information Agricole de la CEDEAO (ECOAGRIS). Inscrivez-vous en saisissant vos informations et en sélectionnant votre pays.",
+    "first_name": "Prénom",
+    "last_name": "Nom de famille",
+    "occupation": "Profession",
+    "gender": "Genre",
+    "select_gender": "Sélectionnez le genre",
+    "male": "Homme",
+    "female": "Femme",
+    "other": "Autre",
+    "phone_number": "Numéro de téléphone (ex. : +22912345678)",
+    "select_country": "Sélectionnez votre pays",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "signup_button": "S'inscrire",
+    "already_account": "Vous avez déjà un compte ?",
+    "login_link": "Se connecter",
+    "errors": {
+      "invalid_country": "Pays sélectionné invalide.",
+      "country_code_mismatch": "L'indicatif téléphonique ne correspond pas au pays sélectionné.",
+      "invalid_phone": "Veuillez entrer un numéro de téléphone valide avec l'indicatif correct.",
+      "email_in_use": "Cet e-mail est déjà associé à un compte existant. Veuillez vous connecter ou utiliser un autre e-mail.",
+      "unknown": "Erreur lors de l'inscription : {{message}}"
+    }
+  },
+  
+  "login": {
+    "hello": "Bonjour,",
+    "welcome": "Bienvenue !",
+    "welcome_text": "Veuillez vous connecter pour accéder à votre tableau de bord personnalisé. Une fois connecté avec vos identifiants, vous serez automatiquement dirigé vers le tableau de bord de votre pays, où vous pourrez consulter les données, ressources et informations agricoles pertinentes pour votre région de la CEDEAO.",
+    "email_placeholder": "Entrez votre adresse e-mail",
+    "password_placeholder": "Entrez votre mot de passe",
+    "login_button": "Se connecter",
+    "not_registered": "Pas encore inscrit ?",
+    "signup_link": "S'inscrire",
+    "loading": "Chargement...",
+    "errors": {
+      "missing_country": "Erreur : Les informations sur le pays sont manquantes.",
+      "no_user_data": "Erreur : Données utilisateur introuvables.",
+      "invalid_credentials": "Erreur de connexion : e-mail ou mot de passe invalide."
+    }
+  },
+  
+  "productDashboard": {
+    "title": "Aperçu de {{productName}} pour {{countryName}}",
+    "data_not_available": "Données non disponibles pour {{countryName}}. Veuillez sélectionner un pays pris en charge (par exemple : Bénin, Nigeria)."
+  },
+  
+  "productSelection": {
+    "title": "Sélectionnez un produit pour {{countryName}}",
+    "items": {
+      "agric_input": "Intrants agricoles",
+      "agro_hydro_meteorology": "Agro-hydro-météorologie",
+      "agricultural_production": "Production agricole",
+      "agricultural_market": "Marché agricole",
+      "food_stocks": "Stocks alimentaires",
+      "nutrition": "Nutrition",
+      "livestock": "Élevage",
+      "fishery": "Pêche",
+      "aquaculture": "Aquaculture",
+      "agric_research_results": "Résultats de la recherche agricole",
+      "macroeconomics_indices": "Indices macroéconomiques",
+      "rice_production": "Production de riz"
+    }
   }
 }
+
+
+
+
+
+
+
+
 
 
 

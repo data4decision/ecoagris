@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import Link from "next/link"
 
 const HeroSection: React.FC = () => {
   const { t } = useTranslation('common');
@@ -58,11 +59,11 @@ const HeroSection: React.FC = () => {
 
         {/* CTA Button */}
         <div className="text-center mb-12">
-          <button
+          <Link href="/login"
             className="bg-[var(--yellow)] text-[var(--dark-green)] px-8 py-4 rounded-lg text-xl hover:bg-[var(--yellow)] transition focus:outline-none focus:ring-2 focus:ring-[var(--white)]"
           >
             {t('hero.cta')}
-          </button>
+          </Link>
         </div>
 
         {/* Carousel */}
