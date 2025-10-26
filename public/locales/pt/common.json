@@ -248,19 +248,55 @@
       "macroeconomics_indices": "Índices macroeconômicos",
       "rice_production": "Produção de arroz"
     }
+  },
+  "overview": {
+    "title": "Visão Geral - {{countryName}}",
+    "loading": "Carregando Visão Geral...",
+    "downloadCSV": "Baixar CSV",
+    "simulatedDataNote": "Dados simulados para fins de planejamento (2006–2025). Valide antes do uso operacional.",
+    "na": "N/D",
+    "errors": {
+      "invalidCountry": "Parâmetro de país inválido",
+      "fetchFailed": "Falha ao buscar dados",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "loadingError": "Erro ao carregar dados"
+    },
+    "supplyChain": {
+      "title": "Cadeia de Suprimentos",
+      "cerealSeeds": "Sementes de Cereais (toneladas)",
+      "fertilizer": "Fertilizante (toneladas)",
+      "pesticides": "Pesticidas (litros)",
+      "stockoutDays": "Dias de Ruptura de Estoque",
+      "distributionTimeliness": "Pontualidade de Distribuição (%)",
+      "agroDealerCount": "Contagem de Agro-Revendedores",
+      "localProductionInputs": "Insumos de Produção Local (toneladas)"
+    },
+    "economicIndicator": {
+      "title": "Indicador Econômico",
+      "subsidyBudget": "Orçamento de Subsídios (USD)",
+      "creditAccess": "Acesso ao Crédito (%)",
+      "inputPriceIndex": "Índice de Preços de Insumos (Base 2006)",
+      "inputImportValue": "Valor de Importação de Insumos (USD)"
+    },
+    "adoptionMechanisation": {
+      "title": "Adoção e Mecanização",
+      "fertilizerIntensity": "Intensidade de Fertilizante (kg/ha)",
+      "improvedSeedAdoption": "Adoção de Sementes Melhoradas (%)",
+      "mechanization": "Mecanização (Unidades/1.000 Fazendas)"
+    },
+    "forecastSimulation": {
+      "title": "Previsão e Simulação",
+      "description": "O conjunto de dados fornece tendências simuladas para insumos agrícolas de 2006 a 2025. Para previsões e simulações detalhadas, visite a",
+      "link": "página de Previsão e Simulação"
+    },
+    "inputMetric": {
+      "title": "Métricas de Insumos",
+      "description": "Resumo de todas as métricas de insumos para {{year}}. Para tendências detalhadas, visite a",
+      "link": "página de Métricas de Insumos",
+      "table": {
+        "metric": "Métrica",
+        "value": "Valor"
+      }
+    }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

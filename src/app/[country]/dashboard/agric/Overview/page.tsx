@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { GiWheat } from 'react-icons/gi';
 import { FaDownload, FaChevronDown, FaChevronUp, FaChartLine, FaTruck } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
+import { useTranslation } from 'react-i18next';
 
 interface InputData {
   country: string;
@@ -38,6 +39,7 @@ interface Dataset {
 export default function OverviewPage() {
   const { country } = useParams();
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [countryData, setCountryData] = useState<InputData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
@@ -49,25 +51,25 @@ export default function OverviewPage() {
   const [showInputMetric, setShowInputMetric] = useState(true);
 
   const dataFields = [
-    { key: 'cereal_seeds_tons', label: 'Cereal Seeds (tons)', menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
-    { key: 'fertilizer_tons', label: 'Fertilizer (tons)', menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
-    { key: 'pesticide_liters', label: 'Pesticides (liters)', menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
-    { key: 'input_subsidy_budget_usd', label: 'Subsidy Budget (USD)', menu: 'Economic Indicator', format: (v: number) => `$${v.toLocaleString()}` },
-    { key: 'credit_access_pct', label: 'Credit Access (%)', menu: 'Economic Indicator', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'stockouts_days_per_year', label: 'Stockout Days', menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
-    { key: 'fertilizer_kg_per_ha', label: 'Fertilizer Intensity (kg/ha)', menu: 'Adoption & Mechanisation', format: (v: number) => v.toFixed(1) },
-    { key: 'improved_seed_use_pct', label: 'Improved Seed Adoption (%)', menu: 'Adoption & Mechanisation', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'mechanization_units_per_1000_farms', label: 'Mechanization (Units/1,000 Farms)', menu: 'Adoption & Mechanisation', format: (v: number) => v.toFixed(1) },
-    { key: 'distribution_timeliness_pct', label: 'Distribution Timeliness (%)', menu: 'Supply Chain', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'input_price_index_2006_base', label: 'Input Price Index (2006 Base)', menu: 'Economic Indicator', format: (v: number) => v.toFixed(2) },
-    { key: 'agro_dealer_count', label: 'Agro-Dealer Count', menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
-    { key: 'input_import_value_usd', label: 'Input Import Value (USD)', menu: 'Economic Indicator', format: (v: number) => `$${v.toLocaleString()}` },
-    { key: 'local_production_inputs_tons', label: 'Local Production Inputs (tons)', menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
+    { key: 'cereal_seeds_tons', label: t('overview.supplyChain.cerealSeeds'), menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
+    { key: 'fertilizer_tons', label: t('overview.supplyChain.fertilizer'), menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
+    { key: 'pesticide_liters', label: t('overview.supplyChain.pesticides'), menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
+    { key: 'input_subsidy_budget_usd', label: t('overview.economicIndicator.subsidyBudget'), menu: 'Economic Indicator', format: (v: number) => `$${v.toLocaleString()}` },
+    { key: 'credit_access_pct', label: t('overview.economicIndicator.creditAccess'), menu: 'Economic Indicator', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'stockouts_days_per_year', label: t('overview.supplyChain.stockoutDays'), menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
+    { key: 'fertilizer_kg_per_ha', label: t('overview.adoptionMechanisation.fertilizerIntensity'), menu: 'Adoption & Mechanisation', format: (v: number) => v.toFixed(1) },
+    { key: 'improved_seed_use_pct', label: t('overview.adoptionMechanisation.improvedSeedAdoption'), menu: 'Adoption & Mechanisation', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'mechanization_units_per_1000_farms', label: t('overview.adoptionMechanisation.mechanization'), menu: 'Adoption & Mechanisation', format: (v: number) => v.toFixed(1) },
+    { key: 'distribution_timeliness_pct', label: t('overview.supplyChain.distributionTimeliness'), menu: 'Supply Chain', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'input_price_index_2006_base', label: t('overview.economicIndicator.inputPriceIndex'), menu: 'Economic Indicator', format: (v: number) => v.toFixed(2) },
+    { key: 'agro_dealer_count', label: t('overview.supplyChain.agroDealerCount'), menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
+    { key: 'input_import_value_usd', label: t('overview.economicIndicator.inputImportValue'), menu: 'Economic Indicator', format: (v: number) => `$${v.toLocaleString()}` },
+    { key: 'local_production_inputs_tons', label: t('overview.supplyChain.localProductionInputs'), menu: 'Supply Chain', format: (v: number) => v.toLocaleString() },
   ];
 
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('overview.errors.invalidCountry'));
       setLoading(false);
       return;
     }
@@ -75,7 +77,7 @@ export default function OverviewPage() {
     async function fetchData() {
       try {
         const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        if (!response.ok) throw new Error(t('overview.errors.fetchFailed'));
         const jsonData = (await response.json()) as Dataset;
 
         const years = jsonData.Simulated_Input_Data.map((d) => d.year);
@@ -87,7 +89,7 @@ export default function OverviewPage() {
         );
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('overview.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -95,13 +97,13 @@ export default function OverviewPage() {
         setCountryData(filteredCountryData);
         setLoading(false);
       } catch (error) {
-        setError('Error loading data');
+        setError(t('overview.errors.loadingError'));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
@@ -113,7 +115,7 @@ export default function OverviewPage() {
     const csvData = countryData.map((data) => {
       const row: { [key: string]: string | number } = { Year: data.year };
       dataFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('overview.na');
       });
       return row;
     });
@@ -129,7 +131,7 @@ export default function OverviewPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
-        <p className="text-[var(--dark-green)] text-lg font-medium">Loading Overview...</p>
+        <p className="text-[var(--dark-green)] text-lg font-medium">{t('overview.loading')}</p>
       </div>
     );
   }
@@ -137,10 +139,13 @@ export default function OverviewPage() {
   if (error || !selectedData) {
     return (
       <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
-        <p className="text-[var(--wine)] text-lg font-medium">Error: {error || 'No data available for this country'}</p>
+        <p className="text-[var(--wine)] text-lg font-medium">{error || t('overview.errors.noData', { country })}</p>
       </div>
     );
   }
+
+  const countryName =
+    (country as string).charAt(0).toUpperCase() + (country as string).slice(1);
 
   return (
     <div className="min-h-screen bg-[var(--white)] font-sans">
@@ -148,7 +153,7 @@ export default function OverviewPage() {
       <header className="bg-[var(--medium-green)] text-[var(--white)] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center gap-2">
           <GiWheat className="text-2xl sm:text-3xl" />
-          <h1 className="text-xl sm:text-2xl font-bold">Overview - {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{t('overview.title', { countryName })}</h1>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <select
@@ -166,7 +171,7 @@ export default function OverviewPage() {
             onClick={handleCSVDownload}
             className="flex items-center gap-2 bg-[var(--yellow)] text-[var(--dark-green)] px-4 py-2 rounded hover:bg-opacity-90 transition-colors"
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('overview.downloadCSV')}
           </button>
         </div>
       </header>
@@ -174,7 +179,7 @@ export default function OverviewPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto p-4 sm:p-6">
         <p className="text-[var(--olive-green)] mb-6 text-sm sm:text-base italic">
-          Simulated data for planning purposes (2006–2025). Validate before operational use.
+          {t('overview.simulatedDataNote')}
         </p>
 
         {/* Supply Chain Section */}
@@ -184,7 +189,7 @@ export default function OverviewPage() {
             className="w-full flex justify-between items-center p-4 bg-[var(--medium-green)] text-[var(--white)] rounded-t-lg font-semibold text-lg sm:text-xl hover:bg-opacity-90 transition-colors"
           >
             <span className="flex items-center gap-2">
-              <FaTruck className="text-white" /> Supply Chain
+              <FaTruck className="text-white" /> {t('overview.supplyChain.title')}
             </span>
             {showSupplyChain ? <FaChevronUp /> : <FaChevronDown />}
           </button>
@@ -199,7 +204,7 @@ export default function OverviewPage() {
                   >
                     <h3 className="text-[var(--dark-green)] font-medium text-sm sm:text-base">{field.label}</h3>
                     <p className="text-[var(--wine)] text-xl sm:text-2xl font-bold">
-                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('overview.na')}
                     </p>
                   </div>
                 ))}
@@ -214,7 +219,7 @@ export default function OverviewPage() {
             className="w-full flex justify-between items-center p-4 bg-[var(--medium-green)] text-[var(--white)] rounded-t-lg font-semibold text-lg sm:text-xl hover:bg-opacity-90 transition-colors"
           >
             <span className="flex items-center gap-2">
-              <FaChartLine className="text-white" /> Economic Indicator
+              <FaChartLine className="text-white" /> {t('overview.economicIndicator.title')}
             </span>
             {showEconomicIndicator ? <FaChevronUp /> : <FaChevronDown />}
           </button>
@@ -229,7 +234,7 @@ export default function OverviewPage() {
                   >
                     <h3 className="text-[var(--dark-green)] font-medium text-sm sm:text-base">{field.label}</h3>
                     <p className="text-[var(--wine)] text-xl sm:text-2xl font-bold">
-                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('overview.na')}
                     </p>
                   </div>
                 ))}
@@ -244,7 +249,7 @@ export default function OverviewPage() {
             className="w-full flex justify-between items-center p-4 bg-[var(--medium-green)] text-[var(--white)] rounded-t-lg font-semibold text-lg sm:text-xl hover:bg-opacity-90 transition-colors"
           >
             <span className="flex items-center gap-2">
-              <FaChartLine className="text-white" /> Adoption & Mechanisation
+              <FaChartLine className="text-white" /> {t('overview.adoptionMechanisation.title')}
             </span>
             {showAdoptionMechanisation ? <FaChevronUp /> : <FaChevronDown />}
           </button>
@@ -259,7 +264,7 @@ export default function OverviewPage() {
                   >
                     <h3 className="text-[var(--dark-green)] font-medium text-sm sm:text-base">{field.label}</h3>
                     <p className="text-[var(--wine)] text-xl sm:text-2xl font-bold">
-                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('overview.na')}
                     </p>
                   </div>
                 ))}
@@ -274,20 +279,19 @@ export default function OverviewPage() {
             className="w-full flex justify-between items-center p-4 bg-[var(--medium-green)] text-[var(--white)] rounded-t-lg font-semibold text-lg sm:text-xl hover:bg-opacity-90 transition-colors"
           >
             <span className="flex items-center gap-2">
-              <FaChartLine className="text-white" /> Forecast and Simulation
+              <FaChartLine className="text-white" /> {t('overview.forecastSimulation.title')}
             </span>
             {showForecastSimulation ? <FaChevronUp /> : <FaChevronDown />}
           </button>
           {showForecastSimulation && (
             <div className="p-4 bg-[var(--white)] rounded-b-lg shadow-md">
               <p className="text-[var(--wine)] text-sm sm:text-base">
-                The dataset provides simulated trends for agricultural inputs from 2006 to 2025. For detailed forecasts and
-                simulations, visit the{' '}
+                {t('overview.forecastSimulation.description')}{' '}
                 <button
                   onClick={() => router.push(`/${country}/dashboard/agric/forecast-simulation`)}
                   className="text-[var(--medium-green)] hover:text-[var(--yellow)] underline"
                 >
-                  Forecast and Simulation page
+                  {t('overview.forecastSimulation.link')}
                 </button>.
               </p>
             </div>
@@ -301,27 +305,27 @@ export default function OverviewPage() {
             className="w-full flex justify-between items-center p-4 bg-[var(--medium-green)] text-[var(--white)] rounded-t-lg font-semibold text-lg sm:text-xl hover:bg-opacity-90 transition-colors"
           >
             <span className="flex items-center gap-2">
-              <FaChartLine className="text-white" /> Input Metric
+              <FaChartLine className="text-white" /> {t('overview.inputMetric.title')}
             </span>
             {showInputMetric ? <FaChevronUp /> : <FaChevronDown />}
           </button>
           {showInputMetric && (
             <div className="p-4 bg-[var(--white)] rounded-b-lg shadow-md">
               <p className="text-[var(--wine)] text-sm sm:text-base mb-4">
-                Summary of all input metrics for {selectedYear}. For detailed trends, visit the{' '}
+                {t('overview.inputMetric.description', { year: selectedYear })}{' '}
                 <button
                   onClick={() => router.push(`/${country}/dashboard/agric/input-metric`)}
                   className="text-[var(--medium-green)] hover:text-[var(--yellow)] underline"
                 >
-                  Input Metrics page
+                  {t('overview.inputMetric.link')}
                 </button>.
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm sm:text-base text-[var(--wine)] border-collapse">
                   <thead>
                     <tr className="bg-[var(--medium-green)] text-[var(--white)]">
-                      <th className="p-2 text-left border-b border-[var(--yellow)]">Metric</th>
-                      <th className="p-2 text-left border-b border-[var(--yellow)]">Value</th>
+                      <th className="p-2 text-left border-b border-[var(--yellow)]">{t('overview.inputMetric.table.metric')}</th>
+                      <th className="p-2 text-left border-b border-[var(--yellow)]">{t('overview.inputMetric.table.value')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -329,7 +333,7 @@ export default function OverviewPage() {
                       <tr key={field.key} className="hover:bg-[var(--yellow)]/20 transition-colors">
                         <td className="p-2 border-b border-[var(--yellow)]">{field.label}</td>
                         <td className="p-2 border-b border-[var(--yellow)]">
-                          {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                          {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('overview.na')}
                         </td>
                       </tr>
                     ))}

@@ -248,20 +248,57 @@
       "macroeconomics_indices": "Macroeconomics Indices",
       "rice_production": "Rice Production"
     }
+  },
+  
+  
+  "overview": {
+    "title": "Overview - {{countryName}}",
+    "loading": "Loading Overview...",
+    "downloadCSV": "Download CSV",
+    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
+    "na": "N/A",
+    "errors": {
+      "invalidCountry": "Invalid country parameter",
+      "fetchFailed": "Failed to fetch data",
+      "noData": "No data available for {{country}}",
+      "loadingError": "Error loading data"
+    },
+    "supplyChain": {
+      "title": "Supply Chain",
+      "cerealSeeds": "Cereal Seeds (tons)",
+      "fertilizer": "Fertilizer (tons)",
+      "pesticides": "Pesticides (liters)",
+      "stockoutDays": "Stockout Days",
+      "distributionTimeliness": "Distribution Timeliness (%)",
+      "agroDealerCount": "Agro-Dealer Count",
+      "localProductionInputs": "Local Production Inputs (tons)"
+    },
+    "economicIndicator": {
+      "title": "Economic Indicator",
+      "subsidyBudget": "Subsidy Budget (USD)",
+      "creditAccess": "Credit Access (%)",
+      "inputPriceIndex": "Input Price Index (2006 Base)",
+      "inputImportValue": "Input Import Value (USD)"
+    },
+    "adoptionMechanisation": {
+      "title": "Adoption & Mechanisation",
+      "fertilizerIntensity": "Fertilizer Intensity (kg/ha)",
+      "improvedSeedAdoption": "Improved Seed Adoption (%)",
+      "mechanization": "Mechanization (Units/1,000 Farms)"
+    },
+    "forecastSimulation": {
+      "title": "Forecast and Simulation",
+      "description": "The dataset provides simulated trends for agricultural inputs from 2006 to 2025. For detailed forecasts and simulations, visit the",
+      "link": "Forecast and Simulation page"
+    },
+    "inputMetric": {
+      "title": "Input Metric",
+      "description": "Summary of all input metrics for {{year}}. For detailed trends, visit the",
+      "link": "Input Metrics page",
+      "table": {
+        "metric": "Metric",
+        "value": "Value"
+      }
+    }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-

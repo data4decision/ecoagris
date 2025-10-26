@@ -248,21 +248,55 @@
       "macroeconomics_indices": "Indices macroéconomiques",
       "rice_production": "Production de riz"
     }
+  },
+  "overview": {
+    "title": "Aperçu - {{countryName}}",
+    "loading": "Chargement de l'Aperçu...",
+    "downloadCSV": "Télécharger CSV",
+    "simulatedDataNote": "Données simulées à des fins de planification (2006–2025). Validez avant une utilisation opérationnelle.",
+    "na": "N/D",
+    "errors": {
+      "invalidCountry": "Paramètre de pays invalide",
+      "fetchFailed": "Échec de la récupération des données",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "loadingError": "Erreur lors du chargement des données"
+    },
+    "supplyChain": {
+      "title": "Chaîne d'Approvisionnement",
+      "cerealSeeds": "Graines de Céréales (tonnes)",
+      "fertilizer": "Engrais (tonnes)",
+      "pesticides": "Pesticides (litres)",
+      "stockoutDays": "Jours de rupture de stock",
+      "distributionTimeliness": "Ponctualité de la Distribution (%)",
+      "agroDealerCount": "Nombre de Revendeurs Agricoles",
+      "localProductionInputs": "Insumes de Production Locale (tonnes)"
+    },
+    "economicIndicator": {
+      "title": "Indicateur Économique",
+      "subsidyBudget": "Budget de Subventions (USD)",
+      "creditAccess": "Accès au Crédit (%)",
+      "inputPriceIndex": "Indice des Prix des Intrants (Base 2006)",
+      "inputImportValue": "Valeur des Importations d'Intrants (USD)"
+    },
+    "adoptionMechanisation": {
+      "title": "Adoption et Mécanisation",
+      "fertilizerIntensity": "Intensité des Engrais (kg/ha)",
+      "improvedSeedAdoption": "Adoption de Graines Améliorées (%)",
+      "mechanization": "Mécanisation (Unités/1 000 Fermes)"
+    },
+    "forecastSimulation": {
+      "title": "Prévision et Simulation",
+      "description": "L'ensemble de données fournit des tendances simulées pour les intrants agricoles de 2006 à 2025. Pour des prévisions et simulations détaillées, visitez la",
+      "link": "page de Prévision et Simulation"
+    },
+    "inputMetric": {
+      "title": "Métriques des Intrants",
+      "description": "Résumé de toutes les métriques des intrants pour {{year}}. Pour des tendances détaillées, visitez la",
+      "link": "page des Métriques des Intrants",
+      "table": {
+        "metric": "Métrique",
+        "value": "Valeur"
+      }
+    }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

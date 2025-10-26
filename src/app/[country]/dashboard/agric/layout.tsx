@@ -7,6 +7,7 @@ import { FaCaretDown, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { db, auth } from '@/firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface User {
   firstName?: string;
@@ -106,7 +107,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <h1 className="text-lg font-semibold sm:ml-0 ml-10 sticky">
             {isLoading ? 'Loading...' : user?.firstName || 'User'}
           </h1>
+           <LanguageSwitcher/>
           <div className="relative" ref={dropdownRef}>
+            
             <button
               className="flex items-center gap-2 hover:bg-[var(--wine)]/90 p-2 rounded-md transition-colors"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -122,9 +125,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
               <FaCaretDown className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
+             
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-[var(--white)] text-[var(--medium-green)] rounded-md shadow-lg z-50">
                 <div className="p-3 border-b">
+                  
                   <p className="font-semibold">{isLoading ? 'Loading...' : user?.firstName || 'User'}</p>
                   <p className="text-sm text-[var(--green)]">{isLoading ? 'Loading...' : user?.email || 'No email'}</p>
                 </div>
@@ -150,10 +155,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                       Logout
                     </button>
                   </li>
+                  
                 </ul>
               </div>
             )}
           </div>
+          
         </header>
         <main className="flex-1 ml-10 sm:ml-0 p-6 w-full overflow-x-hidden">{children}</main>
       </div>
