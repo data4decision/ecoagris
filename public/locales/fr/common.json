@@ -360,8 +360,86 @@
     "agroDealerCount": "Nombre d'Agro-Revendeurs",
     "inputImportValue": "Valeur des Importations d'Intrants (USD)",
     "localProductionInputs": "Intrants de Production Locale (tonnes)"
+  },
+  "supplyChain": {
+    "title": "Chaîne d'Approvisionnement - {{countryName}}",
+    "ariaTitle": "Aperçu de la Chaîne d'Approvisionnement pour {{country}}",
+    "loading": "Chargement de la Chaîne d'Approvisionnement...",
+    "simulatedDataNote": "Données simulées à des fins de planification. Validez avant utilisation opérationnelle.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données de la chaîne d'approvisionnement en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord de la chaîne d'approvisionnement en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord de la chaîne d'approvisionnement en PDF",
+    "yearSelectLabel": "Sélectionner l'Année pour les Métriques",
+    "metricSelectLabel": "Sélectionner la Métrique pour la Comparaison Annuelle",
+    "report_exported": "Exporté le : {{date}}",
+    "metrics": "Métriques : Graines de Céréales, Engrais, Pesticides, Jours de Rupture de Stock, Ponctualité de la Distribution, Nombre d'Agro-Revendeurs, Intrants de Production Locale",
+    "errors": {
+      "fetchFailed": "Échec de la récupération des données de la chaîne d'approvisionnement",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "invalidCountry": "Paramètre de pays invalide",
+      "pngFailed": "Échec du téléchargement du PNG. Vérifiez la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement du PDF. Vérifiez la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
+    },
+    "totalInput": "Disponibilité Totale des Intrants ({{year}})",
+    "totalInputCard": "Carte de Disponibilité Totale des Intrants pour {{year}}",
+    "metricCard": "Carte de {{label}} pour {{year}}",
+    "trendsTitle": "Tendances de la Chaîne d'Approvisionnement (2006–{{year}})",
+    "trendsChart": "Graphique des Tendances de la Chaîne d'Approvisionnement",
+    "comparisonTitle": "Comparaison Annuelle ({{country}})",
+    "comparisonChart": "Graphique de Comparaison Annuelle",
+    "cerealSeeds": "Graines de Céréales (tonnes)",
+    "fertilizer": "Engrais (tonnes)",
+    "pesticides": "Pesticides (litres)",
+    "stockoutDays": "Jours de Rupture de Stock",
+    "distributionTimeliness": "Ponctualité de la Distribution (%)",
+    "agroDealerCount": "Nombre d'Agro-Revendeurs",
+    "localProductionInputs": "Intrants de Production Locale (tonnes)",
+    "units": "unités"
+  },
+  "economicIndicators": {
+    "title": "Indicateurs Économiques - {{countryName}}",
+    "ariaTitle": "Aperçu des Indicateurs Économiques pour {{country}}",
+    "loading": "Chargement des Indicateurs Économiques...",
+    "simulatedDataNote": "Données simulées à des fins de planification. Validez avant utilisation opérationnelle.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données des indicateurs économiques en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord des indicateurs économiques en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord des indicateurs économiques en PDF",
+    "yearSelectLabel": "Sélectionner l'Année pour les Métriques",
+    "metricSelectLabel": "Sélectionner la Métrique pour la Comparaison Annuelle",
+    "report_exported": "Exporté le : {{date}}",
+    "metrics": "Métriques : Budget de Subventions, Accès au Crédit, Indice des Prix des Intrants, Valeur des Importations d'Intrants",
+    "errors": {
+      "fetchFailed": "Échec de la récupération des données des indicateurs économiques",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "invalidCountry": "Paramètre de pays invalide",
+      "pngFailed": "Échec du téléchargement du PNG. Vérifiez la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement du PDF. Vérifiez la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
+    },
+    "metricCard": "Carte de {{label}} pour {{year}}",
+    "trendsTitle": "Tendances Économiques (2006–{{year}})",
+    "trendsChart": "Graphique des Tendances Économiques",
+    "comparisonTitle": "Comparaison Annuelle ({{country}})",
+    "comparisonChart": "Graphique de Comparaison Annuelle",
+    "subsidyBudget": "Budget de Subventions (USD)",
+    "creditAccess": "Accès au Crédit (%)",
+    "inputPriceIndex": "Indice des Prix des Intrants (Base 2006)",
+    "inputImportValue": "Valeur des Importations d'Intrants (USD)"
   }
 }
+
+
 
 
 

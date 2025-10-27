@@ -359,8 +359,86 @@
     "agroDealerCount": "Contagem de Agro-Revendedores",
     "inputImportValue": "Valor de Importação de Insumos (USD)",
     "localProductionInputs": "Insumos de Produção Local (toneladas)"
+  },
+  "supplyChain": {
+    "title": "Cadeia de Suprimentos - {{countryName}}",
+    "ariaTitle": "Visão Geral da Cadeia de Suprimentos para {{country}}",
+    "loading": "Carregando Cadeia de Suprimentos...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento. Valide antes do uso operacional.",
+    "na": "N/D",
+    "downloadCSV": "Baixar CSV",
+    "downloadCSVLabel": "Baixar dados da cadeia de suprimentos como CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPNGLabel": "Baixar painel da cadeia de suprimentos como PNG",
+    "downloadPDF": "Baixar PDF",
+    "downloadPDFLabel": "Baixar painel da cadeia de suprimentos como PDF",
+    "yearSelectLabel": "Selecionar Ano para Métricas",
+    "metricSelectLabel": "Selecionar Métrica para Comparação Anual",
+    "report_exported": "Exportado em: {{date}}",
+    "metrics": "Métricas: Sementes de Cereais, Fertilizantes, Pesticidas, Dias de Falta de Estoque, Tempestividade de Distribuição, Contagem de Agro-Revendedores, Insumos de Produção Local",
+    "errors": {
+      "fetchFailed": "Falha ao buscar dados da cadeia de suprimentos",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "invalidCountry": "Parâmetro de país inválido",
+      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
+      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
+      "invalidCanvas": "Canvas está vazio ou inválido",
+      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
+    },
+    "totalInput": "Disponibilidade Total de Insumos ({{year}})",
+    "totalInputCard": "Cartão de Disponibilidade Total de Insumos para {{year}}",
+    "metricCard": "Cartão de {{label}} para {{year}}",
+    "trendsTitle": "Tendências da Cadeia de Suprimentos (2006–{{year}})",
+    "trendsChart": "Gráfico de Tendências da Cadeia de Suprimentos",
+    "comparisonTitle": "Comparação Anual ({{country}})",
+    "comparisonChart": "Gráfico de Comparação Anual",
+    "cerealSeeds": "Sementes de Cereais (toneladas)",
+    "fertilizer": "Fertilizantes (toneladas)",
+    "pesticides": "Pesticidas (litros)",
+    "stockoutDays": "Dias de Falta de Estoque",
+    "distributionTimeliness": "Tempestividade de Distribuição (%)",
+    "agroDealerCount": "Contagem de Agro-Revendedores",
+    "localProductionInputs": "Insumos de Produção Local (toneladas)",
+    "units": "unidades"
+  },
+  "economicIndicators": {
+    "title": "Indicadores Econômicos - {{countryName}}",
+    "ariaTitle": "Visão Geral dos Indicadores Econômicos para {{country}}",
+    "loading": "Carregando Indicadores Econômicos...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento. Valide antes do uso operacional.",
+    "na": "N/D",
+    "downloadCSV": "Baixar CSV",
+    "downloadCSVLabel": "Baixar dados dos indicadores econômicos como CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPNGLabel": "Baixar painel dos indicadores econômicos como PNG",
+    "downloadPDF": "Baixar PDF",
+    "downloadPDFLabel": "Baixar painel dos indicadores econômicos como PDF",
+    "yearSelectLabel": "Selecionar Ano para Métricas",
+    "metricSelectLabel": "Selecionar Métrica para Comparação Anual",
+    "report_exported": "Exportado em: {{date}}",
+    "metrics": "Métricas: Orçamento de Subsídios, Acesso ao Crédito, Índice de Preço de Insumos, Valor de Importação de Insumos",
+    "errors": {
+      "fetchFailed": "Falha ao buscar dados dos indicadores econômicos",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "invalidCountry": "Parâmetro de país inválido",
+      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
+      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
+      "invalidCanvas": "Canvas está vazio ou inválido",
+      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
+    },
+    "metricCard": "Cartão de {{label}} para {{year}}",
+    "trendsTitle": "Tendências Econômicas (2006–{{year}})",
+    "trendsChart": "Gráfico de Tendências Econômicas",
+    "comparisonTitle": "Comparação Anual ({{country}})",
+    "comparisonChart": "Gráfico de Comparação Anual",
+    "subsidyBudget": "Orçamento de Subsídios (USD)",
+    "creditAccess": "Acesso ao Crédito (%)",
+    "inputPriceIndex": "Índice de Preço de Insumos (Base 2006)",
+    "inputImportValue": "Valor de Importação de Insumos (USD)"
   }
 }
+
+
 
 
 

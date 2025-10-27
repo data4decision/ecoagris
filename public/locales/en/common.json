@@ -361,9 +361,89 @@
     "agroDealerCount": "Agro-Dealer Count",
     "inputImportValue": "Input Import Value (USD)",
     "localProductionInputs": "Local Production Inputs (tons)"
+  },
+  
+  "supplyChain": {
+    "title": "Supply Chain - {{countryName}}",
+    "ariaTitle": "Supply Chain Overview for {{country}}",
+    "loading": "Loading Supply Chain...",
+    "simulatedDataNote": "Simulated data for planning purposes. Validate before operational use.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download supply chain data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download supply chain dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download supply chain dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "metricSelectLabel": "Select Metric for Year Comparison",
+    "report_exported": "Exported on: {{date}}",
+    "metrics": "Metrics: Cereal Seeds, Fertilizer, Pesticides, Stockout Days, Distribution Timeliness, Agro-Dealer Count, Local Production Inputs",
+    "errors": {
+      "fetchFailed": "Failed to fetch supply chain data",
+      "noData": "No data available for {{country}}",
+      "invalidCountry": "Invalid country parameter",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
+    },
+    "totalInput": "Total Input Availability ({{year}})",
+    "totalInputCard": "Total Input Availability Card for {{year}}",
+    "metricCard": "{{label}} Card for {{year}}",
+    "trendsTitle": "Supply Chain Trends (2006–{{year}})",
+    "trendsChart": "Supply Chain Trends Chart",
+    "comparisonTitle": "Year Comparison ({{country}})",
+    "comparisonChart": "Year Comparison Chart",
+    "cerealSeeds": "Cereal Seeds (tons)",
+    "fertilizer": "Fertilizer (tons)",
+    "pesticides": "Pesticides (liters)",
+    "stockoutDays": "Stockout Days",
+    "distributionTimeliness": "Distribution Timeliness (%)",
+    "agroDealerCount": "Agro-Dealer Count",
+    "localProductionInputs": "Local Production Inputs (tons)",
+    "units": "units"
+  },
+    "economicIndicators": {
+    "title": "Economic Indicators - {{countryName}}",
+    "ariaTitle": "Economic Indicators Overview for {{country}}",
+    "loading": "Loading Economic Indicators...",
+    "simulatedDataNote": "Simulated data for planning purposes. Validate before operational use.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download economic indicators data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download economic indicators dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download economic indicators dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "metricSelectLabel": "Select Metric for Year Comparison",
+    "report_exported": "Exported on: {{date}}",
+    "metrics": "Metrics: Subsidy Budget, Credit Access, Input Price Index, Input Import Value",
+    "errors": {
+      "fetchFailed": "Failed to fetch economic indicators data",
+      "noData": "No data available for {{country}}",
+      "invalidCountry": "Invalid country parameter",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
+    },
+    "metricCard": "{{label}} Card for {{year}}",
+    "trendsTitle": "Economic Trends (2006–{{year}})",
+    "trendsChart": "Economic Trends Chart",
+    "comparisonTitle": "Year Comparison ({{country}})",
+    "comparisonChart": "Year Comparison Chart",
+    "subsidyBudget": "Subsidy Budget (USD)",
+    "creditAccess": "Credit Access (%)",
+    "inputPriceIndex": "Input Price Index (2006 Base)",
+    "inputImportValue": "Input Import Value (USD)"
   }
 }
-}
+
+  
+
+
 
 
 
