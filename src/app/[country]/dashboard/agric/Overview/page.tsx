@@ -26,7 +26,7 @@ interface Dataset {
 export default function AgricOverviewPage() {
   const { country } = useParams<{ country: string }>();
   const router = useRouter();
- const { t } = useTranslation('common');
+  const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [overviewData, setOverviewData] = useState<MacroData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
@@ -121,7 +121,7 @@ export default function AgricOverviewPage() {
 
   // Unified download function for CSV and PDF
   const handleDownload = async (format: 'csv' | 'pdf') => {
-    if (!dashboardRef.current && format === 'pdf') {
+    if (format === 'pdf' && !dashboardRef.current) {
       console.error('Dashboard element not found');
       alert(t(`errors.${format}Failed`));
       return;
@@ -145,7 +145,11 @@ export default function AgricOverviewPage() {
         console.log('CSV downloaded successfully');
       } else {
         // PDF download
-        // Removed forceRender since it's flagged as unused and may not be necessary
+        // Null check for dashboardRef.current
+        if (!dashboardRef.current) {
+          throw new Error('Dashboard reference is null');
+        }
+
         // Apply snapshot styles
         dashboardRef.current.classList.add('snapshot');
         await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for styles
