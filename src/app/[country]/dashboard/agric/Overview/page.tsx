@@ -1,11 +1,12 @@
 'use client';
 
 // Import required dependencies
-import { useParams, useRouter, useTranslations } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { FaChartBar, FaGlobe, FaCalendarAlt, FaUsers, FaChartLine, FaDollarSign, FaHandsHelping, FaSeedling, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
-import jsPDF from 'jspdf'; // Ensure jsPDF is imported
+import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import '@/styles/dashboard-styles.css'; // Import CSS for snapshot styling
 
@@ -25,13 +26,12 @@ interface Dataset {
 export default function AgricOverviewPage() {
   const { country } = useParams<{ country: string }>();
   const router = useRouter();
-  const t = useTranslations('client_trends');
+ const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [overviewData, setOverviewData] = useState<MacroData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [forceRender, setForceRender] = useState(false); // For forcing re-render
 
   // Page preview data (adjusted for agriculture context)
   const pagePreviews = [
@@ -77,7 +77,7 @@ export default function AgricOverviewPage() {
 
     async function fetchData() {
       try {
-        const response = await fetch('/data/macro/WestAfrica_Agric_Simulated_2006_2025.json'); // Adjusted file path for agriculture
+        const response = await fetch('/data/macro/WestAfrica_Agric_Simulated_2006_2025.json');
         if (!response.ok) throw new Error(t('errors.fetchFailed'));
         const jsonData = (await response.json()) as Dataset;
 
@@ -145,9 +145,7 @@ export default function AgricOverviewPage() {
         console.log('CSV downloaded successfully');
       } else {
         // PDF download
-        setForceRender(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for render
-
+        // Removed forceRender since it's flagged as unused and may not be necessary
         // Apply snapshot styles
         dashboardRef.current.classList.add('snapshot');
         await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for styles
@@ -176,7 +174,6 @@ export default function AgricOverviewPage() {
 
         // Cleanup
         dashboardRef.current.classList.remove('snapshot');
-        setForceRender(false);
         window.scrollTo(originalScrollPosition.x, originalScrollPosition.y);
 
         // Validate canvas
