@@ -14,7 +14,7 @@ interface MacroData {
   country: string;
   year: number;
   population: number;
-  [key: string]: unknown;
+  [key: string]: unknown; // Replaced 'any' with 'unknown' for dynamic keys
 }
 
 interface Dataset {
@@ -23,7 +23,7 @@ interface Dataset {
 }
 
 export default function MacroOverviewPage() {
-  const { country } = useParams();
+  const { country } = useParams<{ country: string }>(); // Explicitly type useParams
   const router = useRouter();
   const t = useTranslations('client_trends');
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -67,7 +67,7 @@ export default function MacroOverviewPage() {
     },
   ];
 
-  // Fetch data
+  // Fetch data (backend only, no World Bank API as per instruction)
   useEffect(() => {
     if (!country || typeof country !== 'string') {
       setError(t('errors.invalidCountry'));
@@ -85,31 +85,14 @@ export default function MacroOverviewPage() {
           throw new Error(t('errors.invalidDataFormat'));
         }
 
-        let filteredCountryData = jsonData.Simulated_Macro_Data.filter(
-          (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
+        const filteredCountryData = jsonData.Simulated_Macro_Data.filter(
+          (d) => d.country && d.country.toLowerCase() === country.toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
           setError(t('errors.noData', { country }));
           setLoading(false);
           return;
-        }
-
-        // Fetch World Bank population data
-        try {
-          const wbResponse = await fetch(
-            `https://api.worldbank.org/v2/country/${country === 'Benin' ? 'BJ' : 'TG'}/indicator/SP.POP.TOTL?date=2006:2023&format=json`
-          );
-          if (wbResponse.ok) {
-            const wbData = await wbResponse.json();
-            const wbPopulation = wbData[1] || [];
-            filteredCountryData = filteredCountryData.map((d) => ({
-              ...d,
-              population: wbPopulation.find((r: any) => r.date == d.year)?.value || d.population,
-            }));
-          }
-        } catch (wbErr) {
-          console.warn('World Bank API fetch failed, using simulated data:', wbErr);
         }
 
         const years = filteredCountryData.map((d) => d.year).filter((y) => typeof y === 'number');
@@ -230,7 +213,7 @@ export default function MacroOverviewPage() {
         }
 
         pdf.setFontSize(12);
-        pdf.text(t('title', { countryName: (country as string).toUpperCase() }), 10, 10);
+        pdf.text(t('title', { countryName: country.toUpperCase() }), 10, 10);
         pdf.text(t('metrics'), 10, 18);
         pdf.text(t('report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
         pdf.save(`${country}_macro_overview.pdf`);
@@ -264,7 +247,7 @@ export default function MacroOverviewPage() {
     );
   }
 
-  const countryName = (country as string).charAt(0).toUpperCase() + (country as string).slice(1);
+  const countryName = country.charAt(0).toUpperCase() + country.slice(1);
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
