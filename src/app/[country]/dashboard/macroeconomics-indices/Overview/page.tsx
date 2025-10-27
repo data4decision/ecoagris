@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import '@/styles/pdf-styles.css';
 
+
 // Define TypeScript interfaces
 interface MacroData {
   country: string;
@@ -330,6 +331,7 @@ export default function MacroOverviewPage() {
           </div>
         </div>
       </div>
+      
     </div>
   );
 }

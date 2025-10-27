@@ -249,54 +249,119 @@
       "rice_production": "Production de riz"
     }
   },
-  "overview": {
-    "title": "Aperçu - {{countryName}}",
-    "loading": "Chargement de l'Aperçu...",
-    "downloadCSV": "Télécharger CSV",
-    "simulatedDataNote": "Données simulées à des fins de planification (2006–2025). Validez avant une utilisation opérationnelle.",
-    "na": "N/D",
+  "agricDashboard": {
+    "title": "Aperçu des Intrants Agricoles pour {{countryName}}",
+    "loading": "Chargement du Tableau de Bord des Intrants Agricoles...",
     "errors": {
-      "invalidCountry": "Paramètre de pays invalide",
+      "loadingError": "Erreur lors du chargement du tableau de bord des intrants agricoles"
+    }
+  },
+  "agricSidebar": {
+    "ariaLabel": "Navigation de l'Utilisateur",
+    "logoAlt": "Logo ECOAGRIS",
+    "brand": "ECOAGRIS",
+    "logout": "Déconnexion",
+    "nav": {
+      "overview": "Aperçu",
+      "supplyChain": "Chaîne d'Approvisionnement",
+      "economicIndicators": "Indicateurs Économiques",
+      "adoptionMechanization": "Adoption et Mécanisation",
+      "forecastSimulation": "Prévision et Simulation",
+      "inputMetrics": "Métriques des Intrants",
+      "dataMethodology": "Données et Méthodologie"
+    }
+  },
+  
+  "overview": {
+    "title": "Aperçu des Intrants Agricoles - {{countryName}}",
+    "ariaTitle": "Aperçu des Intrants Agricoles pour {{country}}",
+    "loading": "Chargement de l'Aperçu des Intrants Agricoles...",
+    "simulatedDataNote": "Données simulées à des fins de planification. Explorez les catégories pour des tendances détaillées.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données de l'aperçu des intrants agricoles en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord de l'aperçu des intrants agricoles en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord de l'aperçu des intrants agricoles en PDF",
+    "yearSelectLabel": "Sélectionner l'Année pour les Métriques",
+    "report_exported": "Exporté le : {{date}}",
+    "errors": {
       "fetchFailed": "Échec de la récupération des données",
       "noData": "Aucune donnée disponible pour {{country}}",
-      "loadingError": "Erreur lors du chargement des données"
+      "invalidDataset": "Format de l'ensemble de données invalide",
+      "pngFailed": "Échec du téléchargement du PNG. Vérifiez la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement du PDF. Vérifiez la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
     },
-    "supplyChain": {
-      "title": "Chaîne d'Approvisionnement",
+    "cards": {
+      "country": "Pays",
+      "year": "Année",
       "cerealSeeds": "Graines de Céréales (tonnes)",
-      "fertilizer": "Engrais (tonnes)",
-      "pesticides": "Pesticides (litres)",
-      "stockoutDays": "Jours de rupture de stock",
-      "distributionTimeliness": "Ponctualité de la Distribution (%)",
-      "agroDealerCount": "Nombre de Revendeurs Agricoles",
-      "localProductionInputs": "Insumes de Production Locale (tonnes)"
+      "currentYear": "Actuel : {{year}}",
+      "selected": "Sélectionné",
+      "yearLabel": "Année : {{year}}",
+      "countryCardAria": "Carte de Pays pour {{year}}",
+      "yearCardAria": "Carte d'Année pour {{year}}",
+      "cerealSeedsCardAria": "Carte de Graines de Céréales pour {{year}}"
     },
-    "economicIndicator": {
-      "title": "Indicateur Économique",
-      "subsidyBudget": "Budget de Subventions (USD)",
-      "creditAccess": "Accès au Crédit (%)",
-      "inputPriceIndex": "Indice des Prix des Intrants (Base 2006)",
-      "inputImportValue": "Valeur des Importations d'Intrants (USD)"
+    "exploreCategories": "Explorer les Catégories Agricoles",
+    "nav": {
+      "supplyChain": "Chaîne d'Approvisionnement",
+      "economicIndicators": "Indicateurs Économiques",
+      "adoptionMechanization": "Adoption et Mécanisation",
+      "forecastSimulation": "Prévision et Simulation",
+      "inputMetrics": "Métriques des Intrants",
+      "dataMethodology": "Données et Méthodologie"
     },
-    "adoptionMechanisation": {
-      "title": "Adoption et Mécanisation",
-      "fertilizerIntensity": "Intensité des Engrais (kg/ha)",
-      "improvedSeedAdoption": "Adoption de Graines Améliorées (%)",
-      "mechanization": "Mécanisation (Unités/1 000 Fermes)"
+    "navDescriptions": {
+      "supplyChain": "Graines de céréales, engrais, pesticides et métriques de distribution.",
+      "economicIndicators": "Subventions, accès au crédit et tendances des prix des intrants.",
+      "adoptionMechanization": "Intensité des engrais, adoption de graines et taux de mécanisation.",
+      "forecastSimulation": "Tendances simulées pour les intrants agricoles de 2006 à 2025.",
+      "inputMetrics": "Métricas detalhadas sobre o uso de insumos agrícolas.",
+      "dataMethodology": "Sources de données et méthodologie pour les intrants agricoles."
     },
-    "forecastSimulation": {
-      "title": "Prévision et Simulation",
-      "description": "L'ensemble de données fournit des tendances simulées pour les intrants agricoles de 2006 à 2025. Pour des prévisions et simulations détaillées, visitez la",
-      "link": "page de Prévision et Simulation"
+    "navAria": "Naviguer vers {{title}}"
+  },
+  "inputMetrics": {
+    "title": "Métriques des Intrants - {{countryName}}",
+    "ariaTitle": "Métriques des Intrants pour {{country}}",
+    "loading": "Chargement des Métriques des Intrants...",
+    "simulatedDataNote": "Données simulées à des fins de planification (2006–2025). Validez avant utilisation opérationnelle.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données des métriques des intrants en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord des métriques des intrants en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord des métriques des intrants en PDF",
+    "yearSelectLabel": "Sélectionner l'Année pour les Métriques",
+    "report_exported": "Exporté le : {{date}}",
+    "metrics": "Métriques : Ponctualité de la Distribution, Indice des Prix des Intrants, Nombre d'Agro-Revendeurs, Valeur des Importations d'Intrants, Intrants de Production Locale",
+    "errors": {
+      "fetchFailed": "Échec de la récupération des données des métriques des intrants",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "invalidCountry": "Paramètre de pays invalide",
+      "pngFailed": "Échec du téléchargement du PNG. Vérifiez la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement du PDF. Vérifiez la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
     },
-    "inputMetric": {
-      "title": "Métriques des Intrants",
-      "description": "Résumé de toutes les métriques des intrants pour {{year}}. Pour des tendances détaillées, visitez la",
-      "link": "page des Métriques des Intrants",
-      "table": {
-        "metric": "Métrique",
-        "value": "Valeur"
-      }
-    }
+    "percentageChartTitle": "Tendances des Métriques Basées sur le Pourcentage (2006–{{year}})",
+    "valueChartTitle": "Tendances des Métriques Basées sur la Valeur (2006–{{year}})",
+    "summaryTitle": "Résumé des Données pour {{year}}",
+    "summaryTooltip": "Métriques clés des intrants pour l'année sélectionnée",
+    "metric": "Métrique",
+    "value": "Valeur",
+    "distributionTimeliness": "Ponctualité de la Distribution (%)",
+    "inputPriceIndex": "Indice des Prix des Intrants (Base 2006)",
+    "agroDealerCount": "Nombre d'Agro-Revendeurs",
+    "inputImportValue": "Valeur des Importations d'Intrants (USD)",
+    "localProductionInputs": "Intrants de Production Locale (tonnes)"
   }
 }
+
+
+

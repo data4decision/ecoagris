@@ -74,7 +74,7 @@ export default function LanguageSwitcher() {
         id="language"
         value={selectedLang}
         onChange={handleLanguageChange}
-        className="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="bg-[var(--wine)]/90 text-white rounded px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base focus:ring-2 focus:ring-[var(--yellow)]"
       >
         {languages.map((lang) => (
           <option key={lang.code} value={lang.code}>

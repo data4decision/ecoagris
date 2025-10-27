@@ -1,10 +1,53 @@
-/* Fallback for unsupported gradients */
-.pdf-snapshot .bg-gradient-to-br {
+.pdf-snapshot {
   background: #ffffff !important;
+  width: 100% !important;
+  max-width: 1200px !important; /* Constrain width for PDF */
+  height: auto !important;
+  overflow: visible !important;
+  position: relative !important;
+  padding: 20px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+  -moz-transform: none !important;
 }
 
-/* Ensure images load correctly */
-.pdf-snapshot img {
-  max-width: 100%;
-  height: auto;
+.pdf-snapshot * {
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  position: static !important;
+  color: #000000 !important; /* Ensure text is black for PDF clarity */
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/* Ensure grid layout is consistent */
+.pdf-snapshot .grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important; /* Force 3-column layout */
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+/* Ensure text and cards are fully visible */
+.pdf-snapshot h1, .pdf-snapshot h2, .pdf-snapshot h3, .pdf-snapshot p {
+  color: #000000 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remove hover effects */
+.pdf-snapshot .hover\:shadow-lg:hover,
+.pdf-snapshot .hover\:scale-105:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Ensure buttons and select are rendered as static text */
+.pdf-snapshot button, .pdf-snapshot select {
+  display: none !important; /* Hide interactive elements */
 }

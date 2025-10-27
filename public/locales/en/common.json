@@ -250,55 +250,120 @@
     }
   },
   
-  
-  "overview": {
-    "title": "Overview - {{countryName}}",
-    "loading": "Loading Overview...",
-    "downloadCSV": "Download CSV",
-    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
-    "na": "N/A",
+  "agricDashboard": {
+    "title": "Agric Input Overview for {{countryName}}",
+    "loading": "Loading Agric Input Dashboard...",
     "errors": {
-      "invalidCountry": "Invalid country parameter",
+      "loadingError": "Error loading Agric-Input dashboard"
+    }
+  },
+  "agricSidebar": {
+    "ariaLabel": "User Navigation",
+    "logoAlt": "ECOAGRIS LOGO",
+    "brand": "ECOAGRIS",
+    "logout": "Logout",
+    "nav": {
+      "overview": "Overview",
+      "supplyChain": "Supply Chain",
+      "economicIndicators": "Economic Indicators",
+      "adoptionMechanization": "Adoption & Mechanization",
+      "forecastSimulation": "Forecast & Simulation",
+      "inputMetrics": "Input Metrics",
+      "dataMethodology": "Data & Methodology"
+    }
+  },
+  "overview": {
+    "title": "Agricultural Inputs Overview - {{countryName}}",
+    "ariaTitle": "Agricultural Inputs Overview for {{country}}",
+    "loading": "Loading Agricultural Inputs Overview...",
+    "simulatedDataNote": "Simulated data for planning purposes. Explore categories for detailed trends.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download agricultural inputs overview data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download agricultural inputs overview dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download agricultural inputs overview dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "report_exported": "Exported on: {{date}}",
+    "errors": {
       "fetchFailed": "Failed to fetch data",
       "noData": "No data available for {{country}}",
-      "loadingError": "Error loading data"
+      "invalidDataset": "Invalid dataset format",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
     },
-    "supplyChain": {
-      "title": "Supply Chain",
+    "cards": {
+      "country": "Country",
+      "year": "Year",
       "cerealSeeds": "Cereal Seeds (tons)",
-      "fertilizer": "Fertilizer (tons)",
-      "pesticides": "Pesticides (liters)",
-      "stockoutDays": "Stockout Days",
-      "distributionTimeliness": "Distribution Timeliness (%)",
-      "agroDealerCount": "Agro-Dealer Count",
-      "localProductionInputs": "Local Production Inputs (tons)"
+      "currentYear": "Current: {{year}}",
+      "selected": "Selected",
+      "yearLabel": "Year: {{year}}",
+      "countryCardAria": "Country Card for {{year}}",
+      "yearCardAria": "Year Card for {{year}}",
+      "cerealSeedsCardAria": "Cereal Seeds Card for {{year}}"
     },
-    "economicIndicator": {
-      "title": "Economic Indicator",
-      "subsidyBudget": "Subsidy Budget (USD)",
-      "creditAccess": "Credit Access (%)",
-      "inputPriceIndex": "Input Price Index (2006 Base)",
-      "inputImportValue": "Input Import Value (USD)"
+    "exploreCategories": "Explore Agricultural Categories",
+    "nav": {
+      "supplyChain": "Supply Chain",
+      "economicIndicators": "Economic Indicators",
+      "adoptionMechanization": "Adoption & Mechanization",
+      "forecastSimulation": "Forecast & Simulation",
+      "inputMetrics": "Input Metrics",
+      "dataMethodology": "Data & Methodology"
     },
-    "adoptionMechanisation": {
-      "title": "Adoption & Mechanisation",
-      "fertilizerIntensity": "Fertilizer Intensity (kg/ha)",
-      "improvedSeedAdoption": "Improved Seed Adoption (%)",
-      "mechanization": "Mechanization (Units/1,000 Farms)"
+    "navDescriptions": {
+      "supplyChain": "Cereal seeds, fertilizer, pesticides, and distribution metrics.",
+      "economicIndicators": "Subsidies, credit access, and input price trends.",
+      "adoptionMechanization": "Fertilizer intensity, seed adoption, and mechanization rates.",
+      "forecastSimulation": "Simulated trends for agricultural inputs from 2006 to 2025.",
+      "inputMetrics": "Detailed metrics on agricultural input usage.",
+      "dataMethodology": "Data sources and methodology for agricultural inputs."
     },
-    "forecastSimulation": {
-      "title": "Forecast and Simulation",
-      "description": "The dataset provides simulated trends for agricultural inputs from 2006 to 2025. For detailed forecasts and simulations, visit the",
-      "link": "Forecast and Simulation page"
+    "navAria": "Navigate to {{title}}"
+  },
+  
+  "inputMetrics": {
+    "title": "Input Metrics - {{countryName}}",
+    "ariaTitle": "Input Metrics for {{country}}",
+    "loading": "Loading Input Metrics...",
+    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download input metrics data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download input metrics dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download input metrics dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "report_exported": "Exported on: {{date}}",
+    "metrics": "Metrics: Distribution Timeliness, Input Price Index, Agro-Dealer Count, Input Import Value, Local Production Inputs",
+    "errors": {
+      "fetchFailed": "Failed to fetch input metrics data",
+      "noData": "No data available for {{country}}",
+      "invalidCountry": "Invalid country parameter",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
     },
-    "inputMetric": {
-      "title": "Input Metric",
-      "description": "Summary of all input metrics for {{year}}. For detailed trends, visit the",
-      "link": "Input Metrics page",
-      "table": {
-        "metric": "Metric",
-        "value": "Value"
-      }
-    }
+    "percentageChartTitle": "Percentage-Based Metrics Trends (2006–{{year}})",
+    "valueChartTitle": "Value-Based Metrics Trends (2006–{{year}})",
+    "summaryTitle": "Data Summary for {{year}}",
+    "summaryTooltip": "Key input metrics for the selected year",
+    "metric": "Metric",
+    "value": "Value",
+    "distributionTimeliness": "Distribution Timeliness (%)",
+    "inputPriceIndex": "Input Price Index (2006 Base)",
+    "agroDealerCount": "Agro-Dealer Count",
+    "inputImportValue": "Input Import Value (USD)",
+    "localProductionInputs": "Local Production Inputs (tons)"
   }
 }
+}
+
+
+

@@ -3,7 +3,9 @@ import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, usePathname } from 'next/navigation';
-import { FaChartBar, FaTruck, FaMoneyBillWave, FaChevronCircleRight, FaChartPie, FaChevronCircleLeft, FaSignOutAlt, FaSeedling, FaChartLine, FaDatabase } from 'react-icons/fa';
+import { FaChartBar, FaTruck, FaMoneyBillWave, FaChevronCircleRight, FaChevronCircleLeft, FaSignOutAlt, FaSeedling, FaChartLine, FaChartPie, FaDatabase } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+
 // Add the logout function implementation (imported or defined)
 const logout = () => {
   // Implement your logout logic here
@@ -17,20 +19,21 @@ interface AgricSidebarProps {
 }
 
 const AgricSidebar = ({ onCollapseChange }: AgricSidebarProps) => {
+  const { t } = useTranslation('common');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const { country } = useParams();
   const pathname = usePathname();
 
   const nav = [
-  { label: 'Overview', href: `/${country}/dashboard/agric`, icon: FaChartBar },
-  { label: 'Supply Chain', href: `/${country}/dashboard/agric/supply`, icon: FaTruck },
-  { label: 'Economic Indicators', href: `/${country}/dashboard/agric/economic-indicators`, icon: FaMoneyBillWave },
-  { label: 'Adoption & Mechanization', href: `/${country}/dashboard/agric/adoption-mechanization`, icon: FaSeedling },
-  { label: 'Forecast & Simulation', href: `/${country}/dashboard/agric/forecast-simulation`, icon: FaChartLine },
-  { label: 'Input Metrics', href: `/${country}/dashboard/agric/input-metric`, icon: FaChartPie },
-  { label: 'Data & Methodology', href: `/${country}/dashboard/agric/data-methodology`, icon: FaDatabase },
-];
+    { label: t('agricSidebar.nav.overview'), href: `/${country}/dashboard/agric`, icon: FaChartBar },
+    { label: t('agricSidebar.nav.supplyChain'), href: `/${country}/dashboard/agric/supply`, icon: FaTruck },
+    { label: t('agricSidebar.nav.economicIndicators'), href: `/${country}/dashboard/agric/economic-indicators`, icon: FaMoneyBillWave },
+    { label: t('agricSidebar.nav.adoptionMechanization'), href: `/${country}/dashboard/agric/adoption-mechanization`, icon: FaSeedling },
+    { label: t('agricSidebar.nav.forecastSimulation'), href: `/${country}/dashboard/agric/forecast-simulation`, icon: FaChartLine },
+    { label: t('agricSidebar.nav.inputMetrics'), href: `/${country}/dashboard/agric/input-metric`, icon: FaChartPie },
+    { label: t('agricSidebar.nav.dataMethodology'), href: `/${country}/dashboard/agric/data-methodology`, icon: FaDatabase },
+  ];
 
   // Detect active path
   const isActive = (href: string) => pathname === href;
@@ -62,13 +65,13 @@ const AgricSidebar = ({ onCollapseChange }: AgricSidebarProps) => {
   return (
     <aside 
       className={`fixed top-0 left-0 h-screen bg-[var(--dark-green)] text-[var(--white)] flex flex-col z-40 transition-all duration-300 ${isCollapsed ? 'w-13' : 'w-44'}`} 
-      aria-label="User Navigation"
+      aria-label={t('agricSidebar.ariaLabel')}
     >
       <div className="px-4 h-16 flex items-center gap-2 font-semibold border-b border-[var(--wine)]">
         <div className="h-9 w-9 grid place-items-center rounded-full font-bold bg-[var(--white)]">
-          <Image src="/logo.png" width={30} height={30} alt="ECOAGRIS LOGO" />
+          <Image src="/logo.png" width={30} height={30} alt={t('agricSidebar.logoAlt')} />
         </div>
-        {!isCollapsed && <span>ECOAGRIS</span>}
+        {!isCollapsed && <span>{t('agricSidebar.brand')}</span>}
       </div>
 
       <nav className="flex-1">
@@ -80,8 +83,8 @@ const AgricSidebar = ({ onCollapseChange }: AgricSidebarProps) => {
                 className={`flex items-center gap-3 px-4 py-3 transition-colors ${isActive(href) ? ' text-sm sm:text-[15px] bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow' : 'hover:bg-[var(--yellow)]/90 '}`}
                 aria-current={isActive(href) ? 'page' : undefined}
               >
-                <Icon className="shrink-0" />
-                {!isCollapsed && <span className=" text-sm sm:text-[12px]">{label}</span>}
+                <Icon className="shrink-0 text-[var(--white)]" />
+                {!isCollapsed && <span className="text-sm sm:text-[12px]">{label}</span>}
               </Link>
             </li>
           ))}
@@ -94,7 +97,7 @@ const AgricSidebar = ({ onCollapseChange }: AgricSidebarProps) => {
         className="flex items-center gap-3 px-4 py-3 text-left text-[var(--white)] hover:text-[var(--yellow)] hover:bg-[var(--wine)]/90 transition-colors"
       >
         <FaSignOutAlt />
-        {!isCollapsed && <span>Logout</span>}
+        {!isCollapsed && <span>{t('agricSidebar.logout')}</span>}
       </button>
 
       {/* Toggle Collapse Button */}

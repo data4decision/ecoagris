@@ -1,0 +1,73 @@
+/* styles/dashboard-styles.css */
+
+/* Existing CSS variables from your project */
+:root {
+  --white: #ffffff;
+  --green: #008100;
+  --dark-green: #007d00;
+  --olive-green: #007c00;
+  --medium-green: #008000;
+  --yellow: #ffdc24;
+  --wine: #7a0917;
+  --red: #ec0606;
+}
+
+/* Snapshot styles for PNG and PDF capture */
+.snapshot {
+  background: var(--white) !important;
+  width: 100% !important;
+  max-width: 896px !important; /* Matches max-w-4xl (896px) */
+  height: auto !important;
+  overflow: visible !important;
+  position: relative !important;
+  padding: 24px !important; /* Matches p-4 sm:p-6 */
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+.snapshot header {
+  display: none !important; /* Hide header with buttons/select in snapshots */
+}
+
+.snapshot section {
+  background: var(--white) !important;
+  border-left: 4px solid var(--medium-green) !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+}
+
+.snapshot table {
+  border: 1px solid var(--yellow) !important;
+  border-collapse: collapse !important;
+}
+
+.snapshot th {
+  background: var(--medium-green) !important;
+  color: var(--white) !important;
+  border: 1px solid var(--yellow) !important;
+}
+
+.snapshot td {
+  border: 1px solid var(--yellow) !important;
+  color: var(--wine) !important;
+}
+
+.snapshot h1, .snapshot h2 {
+  color: var(--dark-green) !important;
+}
+
+.snapshot p {
+  color: var(--olive-green) !important;
+}
+
+.snapshot svg {
+  color: var(--dark-green) !important;
+}
+
+.snapshot button, .snapshot select {
+  display: none !important; /* Hide buttons and select in snapshots */
+}
+
+.snapshot .recharts-wrapper {
+  background: var(--white) !important;
+}
