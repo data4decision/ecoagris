@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { FaChartBar, FaGlobe, FaCalendarAlt, FaSeedling, FaDownload, FaTruck, FaMoneyBillWave, FaChartLine, FaChartPie, FaDatabase } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+// import jsPDF from 'jspdf'; // Commented out unless PDF is needed
 import { useTranslation } from 'react-i18next';
 import '@/styles/dashboard-styles.css';
 
@@ -156,28 +156,108 @@ export default function OverviewPage() {
     link.click();
   };
 
-  // Unified download logic for PNG and PDF
-  const handleDownload = async (format: 'png' | 'pdf') => {
+  // PNG download
+  const handlePNGDownload = async () => {
     if (!dashboardRef.current) {
-      console.error('Dashboard element not found');
-      alert(t(`overview.errors.${format}Failed`));
+      console.error('Dashboard element not found: dashboardRef.current is null');
+      alert(t('overview.errors.pngFailed'));
       return;
     }
 
     try {
-      // Wait for DOM to render
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Validate dashboard visibility and dimensions
+      const rect = dashboardRef.current.getBoundingClientRect();
+      console.log('Dashboard dimensions:', { width: rect.width, height: rect.height });
+      if (rect.width === 0 || rect.height === 0) {
+        console.error('Dashboard has zero dimensions:', rect);
+        throw new Error(t('overview.errors.invalidDimensions'));
+      }
+
+      const computedStyle = window.getComputedStyle(dashboardRef.current);
+      if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+        console.error('Dashboard is not visible:', { display: computedStyle.display, visibility: computedStyle.visibility });
+        throw new Error(t('overview.errors.notVisible'));
+      }
+
+      // Handle images (if any)
+      const images = dashboardRef.current.querySelectorAll('img');
+      if (images.length > 0) {
+        console.log(`Found ${images.length} images, ensuring they are loaded...`);
+        await Promise.all(
+          Array.from(images).map((img) => {
+            if (img.src.includes('/_next/image')) {
+              const url = new URL(img.src).searchParams.get('url');
+              img.src = url ? decodeURIComponent(url) : img.src;
+            }
+            img.crossOrigin = 'anonymous';
+            return new Promise((resolve) => {
+              if (img.complete && img.naturalWidth !== 0) {
+                console.log(`Image loaded: ${img.src}`);
+                resolve(true);
+              } else {
+                img.onload = () => {
+                  console.log(`Image loaded: ${img.src}`);
+                  resolve(true);
+                };
+                img.onerror = () => {
+                  console.warn(`Failed to load image: ${img.src}`);
+                  resolve(false);
+                };
+              }
+            });
+          })
+        );
+      } else {
+        console.log('No images found in dashboard, skipping image processing.');
+      }
 
       // Apply snapshot styles
+      console.log('Applying snapshot styles...');
       dashboardRef.current.classList.add('snapshot');
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Additional wait for styles
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // Wait for rendering
+
+      // Force scroll to top
+      window.scrollTo(0, 0);
+      dashboardRef.current.scrollTop = 0;
 
       // Capture canvas
+      console.log('Capturing dashboard with html2canvas...');
       const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
+        scale: window.devicePixelRatio || 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: true,
+        width: dashboardRef.current.scrollWidth,
+        height: dashboardRef.current.scrollHeight,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          const clonedDashboard = clonedDoc.getElementById('dashboard-content');
+          if (clonedDashboard) {
+            clonedDashboard.style.width = `${dashboardRef.current!.scrollWidth}px`;
+            clonedDashboard.style.height = `${dashboardRef.current!.scrollHeight}px`;
+            clonedDashboard.style.overflow = 'visible';
+            clonedDashboard.style.background = '#ffffff';
+            clonedDashboard.style.padding = '20px';
+            const styles = document.styleSheets;
+            for (let i = 0; i < styles.length; i++) {
+              try {
+                const rules = styles[i].cssRules;
+                for (let j = 0; j < rules.length; j++) {
+                  const rule = rules[j] as CSSStyleRule;
+                  if (rule.selectorText && rule.selectorText.includes('.snapshot')) {
+                    clonedDashboard.style.cssText += rule.style.cssText;
+                    console.log('Applied rule:', rule.cssText);
+                  }
+                }
+              } catch (e) {
+                console.warn('Unable to access stylesheet:', e);
+              }
+            }
+          }
+        },
       });
 
       dashboardRef.current.classList.remove('snapshot');
@@ -188,40 +268,98 @@ export default function OverviewPage() {
         throw new Error(t('overview.errors.invalidCanvas'));
       }
 
+      // Download PNG
+      console.log('Downloading PNG...');
       const imgData = canvas.toDataURL('image/png', 1.0);
       if (!imgData || imgData === 'data:,') {
         console.error('Invalid image data generated from canvas');
         throw new Error(t('overview.errors.invalidImageData'));
       }
 
-      if (format === 'png') {
-        // PNG download
-        const link = document.createElement('a');
-        link.href = imgData;
-        link.download = `${country}_agric_overview.png`;
-        link.click();
-        console.log('PNG downloaded successfully');
-      } else {
-        // PDF download
-        const pdf = new jsPDF({
-          orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-          unit: 'px',
-          format: [canvas.width / 2, canvas.height / 2], // Scale down for PDF
-        });
-
-        pdf.setFontSize(12);
-        pdf.text(t('overview.title', { countryName: (country as string).toUpperCase() }), 10, 10);
-        pdf.text(t('overview.cards.cerealSeeds'), 10, 18);
-        pdf.text(t('overview.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-        pdf.addImage(imgData, 'PNG', 10, 35, canvas.width / 2 - 20, canvas.height / 2 - 20);
-        pdf.save(`${country}_agric_overview.pdf`);
-        console.log('PDF downloaded successfully');
-      }
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `${country}_agric_overview.png`;
+      link.click();
+      console.log('PNG downloaded successfully');
     } catch (err) {
-      console.error(`${format.toUpperCase()} generation error:`, err);
-      alert(t(`overview.errors.${format}Failed`));
+      console.error('PNG generation error:', err);
+      alert(t('overview.errors.pngFailed'));
     }
   };
+
+  // PDF download (commented out unless needed)
+  
+  const handlePDFDownload = async () => {
+    if (!dashboardRef.current) {
+      console.error('Dashboard element not found: dashboardRef.current is null');
+      alert(t('overview.errors.pdfFailed'));
+      return;
+    }
+
+    try {
+      const rect = dashboardRef.current.getBoundingClientRect();
+      console.log('Dashboard dimensions:', { width: rect.width, height: rect.height });
+      if (rect.width === 0 || rect.height === 0) {
+        console.error('Dashboard has zero dimensions:', rect);
+        throw new Error(t('overview.errors.invalidDimensions'));
+      }
+
+      const computedStyle = window.getComputedStyle(dashboardRef.current);
+      if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+        console.error('Dashboard is not visible:', { display: computedStyle.display, visibility: computedStyle.visibility });
+        throw new Error(t('overview.errors.notVisible'));
+      }
+
+      console.log('Applying snapshot styles for PDF...');
+      dashboardRef.current.classList.add('snapshot');
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      window.scrollTo(0, 0);
+      dashboardRef.current.scrollTop = 0;
+
+      console.log('Capturing dashboard with html2canvas for PDF...');
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: true,
+        width: dashboardRef.current.scrollWidth,
+        height: dashboardRef.current.scrollHeight,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+        scrollX: 0,
+        scrollY: 0,
+      });
+
+      dashboardRef.current.classList.remove('snapshot');
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
+        throw new Error(t('overview.errors.invalidCanvas'));
+      }
+
+      console.log('Generating PDF...');
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      if (!imgData || imgData === 'data:,') {
+        console.error('Invalid image data generated from canvas');
+        throw new Error(t('overview.errors.invalidImageData'));
+      }
+
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`${country}_agric_overview.pdf`);
+      console.log('PDF downloaded successfully');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert(t('overview.errors.pdfFailed'));
+    }
+  };
+  
 
   // Render loading state
   if (loading) {
@@ -262,25 +400,27 @@ export default function OverviewPage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded text-sm sm:text-base w-full sm:w-auto"
             aria-label={t('overview.downloadCSVLabel')}
           >
             <FaDownload /> {t('overview.downloadCSV')}
           </button>
           <button
-            onClick={() => handleDownload('png')}
-            className="flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+            onClick={handlePNGDownload}
+            className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded text-sm sm:text-base w-full sm:w-auto"
             aria-label={t('overview.downloadPNGLabel')}
           >
             <FaDownload /> {t('overview.downloadPNG')}
           </button>
+          
           <button
-            onClick={() => handleDownload('pdf')}
-            className="flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+            onClick={handlePDFDownload}
+            className="flex items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded text-sm sm:text-base w-full sm:w-auto"
             aria-label={t('overview.downloadPDFLabel')}
           >
             <FaDownload /> {t('overview.downloadPDF')}
           </button>
+         
         </div>
 
         <div className="mb-6 max-w-full">
@@ -289,7 +429,7 @@ export default function OverviewPage() {
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="text-sm sm:text-base w-full sm:w-auto"
+            className="p-2 rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>{year}</option>
@@ -299,7 +439,7 @@ export default function OverviewPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
           <div
-            className="card min-w-0"
+            className="card p-4 sm:p-6 min-w-0"
             aria-label={t('overview.countryCardAria', { year: selectedYear })}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -311,7 +451,7 @@ export default function OverviewPage() {
           </div>
 
           <div
-            className="card min-w-0"
+            className="card p-4 sm:p-6 min-w-0"
             aria-label={t('overview.yearCardAria', { year: selectedYear })}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -323,7 +463,7 @@ export default function OverviewPage() {
           </div>
 
           <div
-            className="card min-w-0"
+            className="card p-4 sm:p-6 min-w-0"
             aria-label={t('overview.cerealSeedsCardAria', { year: selectedYear })}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -341,7 +481,7 @@ export default function OverviewPage() {
             {pagePreviews.map((preview) => (
               <div
                 key={preview.title}
-                className="card cursor-pointer"
+                className="card p-6 cursor-pointer"
                 onClick={() => router.push(preview.path)}
                 aria-label={t('overview.navAria', { title: preview.title })}
               >

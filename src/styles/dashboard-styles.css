@@ -1,6 +1,6 @@
 /* styles/dashboard-styles.css */
 
-/* Existing CSS variables from your project */
+/* CSS variables */
 :root {
   --white: #ffffff;
   --green: #008100;
@@ -12,47 +12,20 @@
   --red: #ec0606;
 }
 
-/* Snapshot styles for PNG and PDF capture */
+/* Snapshot styles for PDF capture */
 .snapshot {
   background: var(--white) !important;
-  width: 100% !important;
-  max-width: 896px !important; /* Matches max-w-4xl (896px) */
-  height: auto !important;
-  overflow: visible !important;
+  width: 794px !important; /* A4 width at 96 DPI (210mm * 3.78) */
+  height: auto !important; /* Allow height to expand for all content */
+  overflow: visible !important; /* Prevent cropping */
   position: relative !important;
   padding: 24px !important; /* Matches p-4 sm:p-6 */
-  margin: 0 auto !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
+  transform: scale(1) !important; /* Prevent scaling issues */
 }
 
-.snapshot header {
-  display: none !important; /* Hide header with buttons/select in snapshots */
-}
-
-.snapshot section {
-  background: var(--white) !important;
-  border-left: 4px solid var(--medium-green) !important;
-  border-radius: 8px !important;
-  padding: 16px !important;
-}
-
-.snapshot table {
-  border: 1px solid var(--yellow) !important;
-  border-collapse: collapse !important;
-}
-
-.snapshot th {
-  background: var(--medium-green) !important;
-  color: var(--white) !important;
-  border: 1px solid var(--yellow) !important;
-}
-
-.snapshot td {
-  border: 1px solid var(--yellow) !important;
-  color: var(--wine) !important;
-}
-
-.snapshot h1, .snapshot h2 {
+.snapshot h1, .snapshot h2, .snapshot h3 {
   color: var(--dark-green) !important;
 }
 
@@ -60,14 +33,44 @@
   color: var(--olive-green) !important;
 }
 
-.snapshot svg {
-  color: var(--dark-green) !important;
+.snapshot .card {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  padding: 24px !important; /* Matches p-4 sm:p-6 */
+  margin-bottom: 24px !important;
+  overflow: visible !important;
+}
+
+/* Preserve gradients for cards */
+.snapshot .card:nth-child(1) {
+  background: linear-gradient(to bottom right, var(--white), rgba(255, 220, 36, 0.3)) !important;
+  border: 1px solid rgba(0, 128, 0, 0.2) !important;
+}
+
+.snapshot .card:nth-child(2) {
+  background: linear-gradient(to bottom right, var(--white), rgba(0, 129, 0, 0.3)) !important;
+  border: 1px solid rgba(0, 128, 0, 0.2) !important;
+}
+
+.snapshot .card:nth-child(3) {
+  background: linear-gradient(to bottom right, var(--white), rgba(122, 9, 23, 0.3)) !important;
+  border: 1px solid rgba(0, 128, 0, 0.2) !important;
+}
+
+.snapshot .card:nth-child(4),
+.snapshot .card:nth-child(5),
+.snapshot .card:nth-child(6),
+.snapshot .card:nth-child(7),
+.snapshot .card:nth-child(8) {
+  background: linear-gradient(to bottom right, var(--white), rgba(0, 124, 0, 0.2)) !important;
+  border: 1px solid rgba(0, 128, 0, 0.2) !important;
 }
 
 .snapshot button, .snapshot select {
-  display: none !important; /* Hide buttons and select in snapshots */
+  display: none !important; /* Hide buttons and selects in snapshots */
 }
 
-.snapshot .recharts-wrapper {
-  background: var(--white) !important;
+.snapshot svg {
+  color: var(--dark-green) !important;
+  overflow: visible !important;
 }
