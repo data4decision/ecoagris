@@ -423,8 +423,87 @@
     "cerealSeeds": "Sementes de Cereais (toneladas)",
     "fertilizer": "Fertilizantes (toneladas)",
     "pesticides": "Pesticidas (litros)"
+  },
+  
+  "forecastSimulation": {
+    "title": "Previsão e Simulação - {{countryName}}",
+    "ariaTitle": "Visão Geral de Previsão e Simulação para {{country}}",
+    "loading": "Carregando Previsão e Simulação...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento (2006–2025). Valide antes do uso operacional.",
+    "na": "N/D",
+    "downloadCSV": "Baixar CSV",
+    "downloadCSVLabel": "Baixar dados de previsão e simulação como CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPNGLabel": "Baixar painel de previsão e simulação como PNG",
+    "downloadPDF": "Baixar PDF",
+    "downloadPDFLabel": "Baixar painel de previsão e simulação como PDF",
+    "yearSelectLabel": "Selecionar Ano para Métricas",
+    "metricSelectLabel": "Selecionar Métrica para Comparação Anual",
+    "report_exported": "Exportado em: {{date}}",
+    "metrics": "Métricas: Uso Total de Insumos, Orçamento de Subsídios, Acesso ao Crédito",
+    "errors": {
+      "fetchFailed": "Falha ao buscar dados de previsão e simulação",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "invalidCountry": "Parâmetro de país inválido",
+      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
+      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
+      "invalidCanvas": "Canvas está vazio ou inválido",
+      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
+    },
+    "totalInputCard": "Cartão de Uso Total de Insumos para {{year}}",
+    "inputSubsidyCard": "Cartão de Orçamento de Subsídios para {{year}}",
+    "creditAccessCard": "Cartão de Acesso ao Crédito para {{year}}",
+    "trendsTitle": "Tendências de Previsão de Uso de Insumos (2006–{{year}})",
+    "trendsChart": "Gráfico de Tendências de Previsão de Uso de Insumos",
+    "comparisonTitle": "Comparação de Métricas Financeiras ({{country}})",
+    "comparisonChart": "Gráfico de Comparação de Métricas Financeiras",
+    "cerealSeeds": "Sementes de Cereais (toneladas)",
+    "fertilizer": "Fertilizantes (toneladas)",
+    "pesticides": "Pesticidas (litros)",
+    "inputSubsidy": "Orçamento de Subsídios (USD)",
+    "creditAccess": "Acesso ao Crédito (%)",
+    "seedGrowthRate": "Taxa de Crescimento da Adoção de Sementes Melhoradas (%)",
+    "mechanizationGrowthRate": "Taxa de Crescimento da Mecanização (%)"
+  },
+  "inputMetrics": {
+    "title": "Métricas de Insumos - {{countryName}}",
+    "ariaTitle": "Visão Geral das Métricas de Insumos para {{country}}",
+    "loading": "Carregando Métricas de Insumos...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento. Valide antes do uso operacional.",
+    "na": "N/D",
+    "downloadCSV": "Baixar CSV",
+    "downloadCSVLabel": "Baixar dados de métricas de insumos como CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPNGLabel": "Baixar painel de métricas de insumos como PNG",
+    "downloadPDF": "Baixar PDF",
+    "downloadPDFLabel": "Baixar painel de métricas de insumos como PDF",
+    "yearSelectLabel": "Selecionar Ano para Métricas",
+    "report_exported": "Exportado em: {{date}}",
+    "metrics": "Métricas: Rapidez de Distribuição, Índice de Preços de Insumos, Contagem de Agrodealers, Valor de Importação de Insumos, Produção Local de Insumos",
+    "errors": {
+      "fetchFailed": "Falha ao buscar dados de métricas de insumos",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "invalidCountry": "Parâmetro de país inválido",
+      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
+      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
+      "invalidCanvas": "Canvas está vazio ou inválido",
+      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
+    },
+    "percentageChartTitle": "Métricas Baseadas em Percentuais (2006–{{year}})",
+    "valueChartTitle": "Métricas Baseadas em Valores (2006–{{year}})",
+    "summaryTitle": "Resumo de Dados ({{year}})",
+    "summaryTooltip": "Resumo das métricas de insumos para o ano selecionado",
+    "distributionTimeliness": "Rapidez de Distribuição (%)",
+    "inputPriceIndex": "Índice de Preços de Insumos (Base 2006)",
+    "agroDealerCount": "Contagem de Agrodealers",
+    "inputImportValue": "Valor de Importação de Insumos (USD)",
+    "localProductionInputs": "Produção Local de Insumos (toneladas)",
+    "metric": "Métrica",
+    "value": "Valor"
   }
 }
+
+
 
 
 

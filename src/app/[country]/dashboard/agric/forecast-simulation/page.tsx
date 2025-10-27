@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   LineChart,
   Line,
@@ -16,8 +16,10 @@ import {
 } from 'recharts';
 import { FaTractor, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
-import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { useTranslation } from 'react-i18next';
+import '@/styles/dashboard-styles.css';
 
 interface InputData {
   country: string;
@@ -40,19 +42,25 @@ interface Dataset {
 
 interface GrowthData {
   year: number;
-  seedGrowthRate: number; // Annual growth rate for improved_seed_use_pct
-  mechanizationGrowthRate: number; // Annual growth rate for mechanization_units_per_1000_farms
+  seedGrowthRate: number;
+  mechanizationGrowthRate: number;
 }
 
 export default function ForecastSimulationPage() {
-  const { country } = useParams();
+  const { country } = useParams<{ country: string }>();
+  const { t } = useTranslation('common');
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [countryData, setCountryData] = useState<InputData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<'input_subsidy_budget_usd' | 'credit_access_pct'>('input_subsidy_budget_usd');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate growth rates for forecasting insights
+  const forecastFields = [
+    { key: 'input_subsidy_budget_usd', label: t('forecastSimulation.inputSubsidy'), format: (v: number) => `$${v.toLocaleString()}` },
+    { key: 'credit_access_pct', label: t('forecastSimulation.creditAccess'), format: (v: number) => `${v.toFixed(1)}%` },
+  ];
+
   const growthData: GrowthData[] = useMemo(() => {
     return countryData
       .sort((a, b) => a.year - b.year)
@@ -76,7 +84,7 @@ export default function ForecastSimulationPage() {
 
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('forecastSimulation.errors.invalidCountry'));
       setLoading(false);
       return;
     }
@@ -84,7 +92,7 @@ export default function ForecastSimulationPage() {
     async function fetchData() {
       try {
         const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error('Failed to fetch forecast and simulation data');
+        if (!response.ok) throw new Error(t('forecastSimulation.errors.fetchFailed'));
         const jsonData = (await response.json()) as Dataset;
 
         const years = jsonData.Simulated_Input_Data.map((d) => d.year);
@@ -92,11 +100,11 @@ export default function ForecastSimulationPage() {
         setSelectedYear(maxYear);
 
         const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === (country as string).toLowerCase()
+          (d) => d.country.toLowerCase() === country.toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('forecastSimulation.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -104,13 +112,13 @@ export default function ForecastSimulationPage() {
         setCountryData(filteredCountryData);
         setLoading(false);
       } catch (error) {
-        setError('Error loading forecast and simulation data');
+        setError(t('forecastSimulation.errors.fetchFailed'));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
@@ -122,16 +130,19 @@ export default function ForecastSimulationPage() {
     : 0;
 
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => ({
-      Year: data.year,
-      'Cereal Seeds (tons)': data.cereal_seeds_tons,
-      'Fertilizer (tons)': data.fertilizer_tons,
-      'Pesticides (liters)': data.pesticide_liters,
-      'Input Subsidy Budget (USD)': data.input_subsidy_budget_usd,
-      'Credit Access (%)': data.credit_access_pct,
-      'Improved Seed Adoption Growth Rate (%)': growthData.find((g) => g.year === data.year)?.seedGrowthRate.toFixed(2) || 0,
-      'Mechanization Growth Rate (%)': growthData.find((g) => g.year === data.year)?.mechanizationGrowthRate.toFixed(2) || 0,
-    }));
+    const csvData = countryData.map((data) => {
+      const growth = growthData.find((g) => g.year === data.year);
+      return {
+        Year: data.year,
+        [t('forecastSimulation.cerealSeeds')]: data.cereal_seeds_tons.toLocaleString(),
+        [t('forecastSimulation.fertilizer')]: data.fertilizer_tons.toLocaleString(),
+        [t('forecastSimulation.pesticides')]: data.pesticide_liters.toLocaleString(),
+        [t('forecastSimulation.inputSubsidy')]: data.input_subsidy_budget_usd.toLocaleString(),
+        [t('forecastSimulation.creditAccess')]: data.credit_access_pct.toFixed(2),
+        [t('forecastSimulation.seedGrowthRate')]: growth?.seedGrowthRate.toFixed(2) || '0',
+        [t('forecastSimulation.mechanizationGrowthRate')]: growth?.mechanizationGrowthRate.toFixed(2) || '0',
+      };
+    });
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -139,27 +150,118 @@ export default function ForecastSimulationPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `${country}_forecast_simulation_data.csv`;
     link.click();
+    console.log('CSV downloaded successfully');
+  };
+
+  const handlePNGDownload = async () => {
+    if (!dashboardRef.current) {
+      console.error('Dashboard element not found for PNG generation');
+      alert(t('forecastSimulation.errors.pngFailed'));
+      return;
+    }
+
+    try {
+      console.log('Starting PNG download...');
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
+      dashboardRef.current.classList.add('snapshot');
+      console.log('Applied snapshot styles');
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: true,
+      });
+
+      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      dashboardRef.current.classList.remove('snapshot');
+      console.log('Removed snapshot styles');
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
+        throw new Error(t('forecastSimulation.errors.invalidCanvas'));
+      }
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      if (!imgData || imgData === 'data:,') {
+        console.error('Invalid image data generated');
+        throw new Error(t('forecastSimulation.errors.invalidImageData'));
+      }
+
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `${country}_forecast_simulation_dashboard.png`;
+      link.click();
+      console.log('PNG downloaded successfully');
+    } catch (err) {
+      console.error('PNG generation error:', err);
+      alert(t('forecastSimulation.errors.pngFailed'));
+    }
   };
 
   const handlePDFDownload = async () => {
-    const dashboard = document.getElementById('dashboard-content');
-    if (!dashboard) return;
+    if (!dashboardRef.current) {
+      console.error('Dashboard element not found for PDF generation');
+      alert(t('forecastSimulation.errors.pdfFailed'));
+      return;
+    }
 
-    const canvas = await html2canvas(dashboard, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 190;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    try {
+      console.log('Starting PDF download...');
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
+      dashboardRef.current.classList.add('snapshot');
+      console.log('Applied snapshot styles');
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-    pdf.save(`${country}_forecast_simulation_dashboard.pdf`);
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: true,
+      });
+
+      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      dashboardRef.current.classList.remove('snapshot');
+      console.log('Removed snapshot styles');
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) {
+        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
+        throw new Error(t('forecastSimulation.errors.invalidCanvas'));
+      }
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      if (!imgData || imgData === 'data:,') {
+        console.error('Invalid image data generated');
+        throw new Error(t('forecastSimulation.errors.invalidImageData'));
+      }
+
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.setFontSize(12);
+      pdf.text(t('forecastSimulation.title', { countryName: country.toUpperCase() }), 10, 10);
+      pdf.text(t('forecastSimulation.metrics'), 10, 18);
+      pdf.text(t('forecastSimulation.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
+      pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
+      pdf.save(`${country}_forecast_simulation_dashboard.pdf`);
+      console.log('PDF downloaded successfully');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert(t('forecastSimulation.errors.pdfFailed'));
+    }
   };
 
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Forecast & Simulation...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('forecastSimulation.loading')}</p>
         </div>
       </div>
     );
@@ -169,46 +271,52 @@ export default function ForecastSimulationPage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">Error: {error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('forecastSimulation.errors.noData', { country })}</p>
         </div>
       </div>
     );
   }
 
+  const countryName = country.charAt(0).toUpperCase() + country.slice(1);
+
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
+      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content" ref={dashboardRef}>
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Forecast & Simulation Overview for ${country}`}
+          aria-label={t('forecastSimulation.ariaTitle', { country: countryName })}
         >
-          <FaTractor aria-hidden="true" className="text-lg sm:text-xl" /> Forecast & Simulation -{' '}
-          {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
+          <FaTractor aria-hidden="true" className="text-lg sm:text-xl" /> {t('forecastSimulation.title', { countryName })}
         </h1>
-        <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes (2006–2025). Validate before operational use.
-        </p>
+        <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">{t('forecastSimulation.simulatedDataNote')}</p>
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download forecast and simulation data as CSV"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+            aria-label={t('forecastSimulation.downloadCSVLabel')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('forecastSimulation.downloadCSV')}
+          </button>
+          <button
+            onClick={handlePNGDownload}
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+            aria-label={t('forecastSimulation.downloadPNGLabel')}
+          >
+            <FaDownload /> {t('forecastSimulation.downloadPNG')}
           </button>
           <button
             onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download forecast and simulation dashboard as PDF"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
+            aria-label={t('forecastSimulation.downloadPDFLabel')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('forecastSimulation.downloadPDF')}
           </button>
         </div>
 
         <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('forecastSimulation.yearSelectLabel')}
           </label>
           <select
             id="year-select"
@@ -225,24 +333,24 @@ export default function ForecastSimulationPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 max-w-full">
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Total Input Usage Forecast for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Total Input Usage ({selectedYear})</h3>
+          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={t('forecastSimulation.totalInputCard', { year: selectedYear })}>
+            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{t('forecastSimulation.totalInput')} ({selectedYear})</h3>
             <p className="text-[var(--wine)] text-base sm:text-lg">{totalInputUsage.toLocaleString()} units</p>
           </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Input Subsidy Budget Forecast for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Input Subsidy Budget ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">${selectedData?.input_subsidy_budget_usd.toLocaleString()}</p>
+          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={t('forecastSimulation.inputSubsidyCard', { year: selectedYear })}>
+            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{t('forecastSimulation.inputSubsidy')} ({selectedYear})</h3>
+            <p className="text-[var(--wine)] text-base sm:text-lg">${selectedData.input_subsidy_budget_usd.toLocaleString()}</p>
           </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={`Credit Access Forecast for ${selectedYear}`}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">Credit Access ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData?.credit_access_pct.toFixed(1)}%</p>
+          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={t('forecastSimulation.creditAccessCard', { year: selectedYear })}>
+            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{t('forecastSimulation.creditAccess')} ({selectedYear})</h3>
+            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.credit_access_pct.toFixed(1)}%</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Input Usage Forecast Trends Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden chart-section" aria-label={t('forecastSimulation.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Input Usage Forecast Trends (2006–{selectedYear})
+              {t('forecastSimulation.trendsTitle', { year: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -268,33 +376,33 @@ export default function ForecastSimulationPage() {
                   type="monotone"
                   dataKey="cereal_seeds_tons"
                   stroke="var(--olive-green)"
-                  name="Cereal Seeds (tons)"
+                  name={t('forecastSimulation.cerealSeeds')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="fertilizer_tons"
                   stroke="var(--wine)"
-                  name="Fertilizer (tons)"
+                  name={t('forecastSimulation.fertilizer')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="pesticide_liters"
                   stroke="#8884d8"
-                  name="Pesticides (liters)"
+                  name={t('forecastSimulation.pesticides')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Financial Metrics Comparison Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden chart-section" aria-label={t('forecastSimulation.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Financial Metrics Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('forecastSimulation.comparisonTitle', { country: countryName })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('forecastSimulation.metricSelectLabel')}
             </label>
             <select
               id="metric-select"
@@ -302,8 +410,11 @@ export default function ForecastSimulationPage() {
               onChange={(e) => setSelectedMetric(e.target.value as 'input_subsidy_budget_usd' | 'credit_access_pct')}
               className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
             >
-              <option value="input_subsidy_budget_usd">Input Subsidy Budget (USD)</option>
-              <option value="credit_access_pct">Credit Access (%)</option>
+              {forecastFields.map((field) => (
+                <option key={field.key} value={field.key}>
+                  {field.label}
+                </option>
+              ))}
             </select>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }} barGap={2} barCategoryGap="10%">

@@ -36,7 +36,7 @@ interface Dataset {
 }
 
 export default function InputMetricsPage() {
-  const { country } = useParams();
+  const { country } = useParams<{ country: string }>();
   const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [countryData, setCountryData] = useState<InputData[]>([]);
@@ -45,6 +45,14 @@ export default function InputMetricsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPercentageChart, setShowPercentageChart] = useState(true);
   const [showValueChart, setShowValueChart] = useState(true);
+
+  const inputMetricsFields = [
+    { key: 'distribution_timeliness_pct', label: t('inputMetrics.distributionTimeliness'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'input_price_index_2006_base', label: t('inputMetrics.inputPriceIndex'), format: (v: number) => v.toFixed(2) },
+    { key: 'agro_dealer_count', label: t('inputMetrics.agroDealerCount'), format: (v: number) => v.toLocaleString() },
+    { key: 'input_import_value_usd', label: t('inputMetrics.inputImportValue'), format: (v: number) => `$${v.toLocaleString()}` },
+    { key: 'local_production_inputs_tons', label: t('inputMetrics.localProductionInputs'), format: (v: number) => v.toLocaleString() },
+  ];
 
   useEffect(() => {
     if (!country || typeof country !== 'string') {
@@ -64,7 +72,7 @@ export default function InputMetricsPage() {
         setSelectedYear(maxYear);
 
         const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === (country as string).toLowerCase()
+          (d) => d.country.toLowerCase() === country.toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
@@ -91,14 +99,13 @@ export default function InputMetricsPage() {
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => ({
-      Year: data.year,
-      'Distribution Timeliness (%)': data.distribution_timeliness_pct ?? t('inputMetrics.na'),
-      'Input Price Index (2006 Base)': data.input_price_index_2006_base ?? t('inputMetrics.na'),
-      'Agro-Dealer Count': data.agro_dealer_count ?? t('inputMetrics.na'),
-      'Input Import Value (USD)': data.input_import_value_usd ?? t('inputMetrics.na'),
-      'Local Production Inputs (tons)': data.local_production_inputs_tons ?? t('inputMetrics.na'),
-    }));
+    const csvData = countryData.map((data) => {
+      const row: { [key: string]: string | number } = { Year: data.year };
+      inputMetricsFields.forEach((field) => {
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('inputMetrics.na');
+      });
+      return row;
+    });
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -106,24 +113,27 @@ export default function InputMetricsPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `${country}_input_metrics.csv`;
     link.click();
+    console.log('CSV downloaded successfully');
   };
 
   const handleDownload = async (format: 'png' | 'pdf') => {
     if (!dashboardRef.current) {
-      console.error('Dashboard element not found');
+      console.error('Dashboard element not found for', format.toUpperCase(), 'generation');
       alert(t(`inputMetrics.errors.${format}Failed`));
       return;
     }
 
     try {
+      console.log(`Starting ${format.toUpperCase()} download...`);
       // Force chart rendering
       setShowPercentageChart(true);
       setShowValueChart(true);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for charts to render
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay for chart rendering
 
       // Apply snapshot styles
       dashboardRef.current.classList.add('snapshot');
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for styles
+      console.log('Applied snapshot styles');
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay for styles
 
       // Capture canvas
       const canvas = await html2canvas(dashboardRef.current, {
@@ -133,7 +143,9 @@ export default function InputMetricsPage() {
         logging: true,
       });
 
+      console.log(`${format.toUpperCase()} Canvas dimensions:`, { width: canvas.width, height: canvas.height });
       dashboardRef.current.classList.remove('snapshot');
+      console.log('Removed snapshot styles');
 
       // Validate canvas
       if (!canvas || canvas.width === 0 || canvas.height === 0) {
@@ -143,7 +155,7 @@ export default function InputMetricsPage() {
 
       const imgData = canvas.toDataURL('image/png', 1.0);
       if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated from canvas');
+        console.error('Invalid image data generated');
         throw new Error(t('inputMetrics.errors.invalidImageData'));
       }
 
@@ -158,15 +170,18 @@ export default function InputMetricsPage() {
         // PDF download
         const pdf = new jsPDF({
           orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-          unit: 'px',
-          format: [canvas.width / 2, canvas.height / 2], // Scale down for PDF
+          unit: 'mm',
+          format: 'a4',
         });
 
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
         pdf.setFontSize(12);
-        pdf.text(t('inputMetrics.title', { countryName: (country as string).toUpperCase() }), 10, 10);
+        pdf.text(t('inputMetrics.title', { countryName: country.toUpperCase() }), 10, 10);
         pdf.text(t('inputMetrics.metrics'), 10, 18);
         pdf.text(t('inputMetrics.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-        pdf.addImage(imgData, 'PNG', 10, 35, canvas.width / 2 - 20, canvas.height / 2 - 20);
+        pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
         pdf.save(`${country}_input_metrics.pdf`);
         console.log('PDF downloaded successfully');
       }
@@ -192,7 +207,7 @@ export default function InputMetricsPage() {
     );
   }
 
-  const countryName = (country as string).charAt(0).toUpperCase() + (country as string).slice(1);
+  const countryName = country.charAt(0).toUpperCase() + country.slice(1);
 
   return (
     <div className="min-h-screen bg-[var(--white)]">
@@ -220,21 +235,21 @@ export default function InputMetricsPage() {
           </select>
           <button
             onClick={handleCSVDownload}
-            className="bg-[var(--medium-green)] text-[var(--white)] px-3 py-2 rounded flex items-center gap-2 hover:bg-[var(--yellow)] hover:text-[var(--dark-green)] transition-colors"
+            className="bg-[var(--medium-green)] text-[var(--white)] px-3 py-2 rounded flex items-center gap-2 hover:bg-[var(--yellow)] hover:text-[var(--dark-green)] transition-colors cursor-pointer"
             aria-label={t('inputMetrics.downloadCSVLabel')}
           >
             <FaDownload /> {t('inputMetrics.downloadCSV')}
           </button>
           <button
             onClick={() => handleDownload('png')}
-            className="bg-[var(--medium-green)] text-[var(--white)] px-3 py-2 rounded flex items-center gap-2 hover:bg-[var(--yellow)] hover:text-[var(--dark-green)] transition-colors"
+            className="bg-[var(--medium-green)] text-[var(--white)] px-3 py-2 rounded flex items-center gap-2 hover:bg-[var(--yellow)] hover:text-[var(--dark-green)] transition-colors cursor-pointer"
             aria-label={t('inputMetrics.downloadPNGLabel')}
           >
             <FaDownload /> {t('inputMetrics.downloadPNG')}
           </button>
           <button
             onClick={() => handleDownload('pdf')}
-            className="bg-[var(--medium-green)] text-[var(--white)] px-3 py-2 rounded flex items-center gap-2 hover:bg-[var(--yellow)] hover:text-[var(--dark-green)] transition-colors"
+            className="bg-[var(--medium-green)] text-[var(--white)] px-3 py-2 rounded flex items-center gap-2 hover:bg-[var(--yellow)] hover:text-[var(--dark-green)] transition-colors cursor-pointer"
             aria-label={t('inputMetrics.downloadPDFLabel')}
           >
             <FaDownload /> {t('inputMetrics.downloadPDF')}
@@ -249,7 +264,7 @@ export default function InputMetricsPage() {
         </p>
 
         {/* Percentage-Based Metrics Chart */}
-        <section className="bg-[var(--white)] p-4 rounded-lg mb-6 border-l-4 border-[var(--medium-green)]">
+        <section className="bg-[var(--white)] p-4 rounded-lg mb-6 border-l-4 border-[var(--medium-green)] chart-section">
           <button
             onClick={() => setShowPercentageChart(!showPercentageChart)}
             className="w-full text-left text-[var(--dark-green)] font-semibold text-lg sm:text-xl flex items-center justify-between mb-2 hover:text-[var(--yellow)]"
@@ -300,7 +315,7 @@ export default function InputMetricsPage() {
         </section>
 
         {/* Value-Based Metrics Chart */}
-        <section className="bg-[var(--white)] p-4 rounded-lg mb-6 border-l-4 border-[var(--medium-green)]">
+        <section className="bg-[var(--white)] p-4 rounded-lg mb-6 border-l-4 border-[var(--medium-green)] chart-section">
           <button
             onClick={() => setShowValueChart(!showValueChart)}
             className="w-full text-left text-[var(--dark-green)] font-semibold text-lg sm:text-xl flex items-center justify-between mb-2 hover:text-[var(--yellow)]"
@@ -372,36 +387,14 @@ export default function InputMetricsPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="border border-[var(--yellow)] p-2">{t('inputMetrics.distributionTimeliness')}</td>
-                  <td className="border border-[var(--yellow)] p-2">
-                    {selectedData.distribution_timeliness_pct != null ? `${selectedData.distribution_timeliness_pct.toFixed(1)}%` : t('inputMetrics.na')}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-[var(--yellow)] p-2">{t('inputMetrics.inputPriceIndex')}</td>
-                  <td className="border border-[var(--yellow)] p-2">
-                    {selectedData.input_price_index_2006_base != null ? selectedData.input_price_index_2006_base.toFixed(2) : t('inputMetrics.na')}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-[var(--yellow)] p-2">{t('inputMetrics.agroDealerCount')}</td>
-                  <td className="border border-[var(--yellow)] p-2">
-                    {selectedData.agro_dealer_count != null ? selectedData.agro_dealer_count.toLocaleString() : t('inputMetrics.na')}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-[var(--yellow)] p-2">{t('inputMetrics.inputImportValue')}</td>
-                  <td className="border border-[var(--yellow)] p-2">
-                    {selectedData.input_import_value_usd != null ? `$${selectedData.input_import_value_usd.toLocaleString()}` : t('inputMetrics.na')}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-[var(--yellow)] p-2">{t('inputMetrics.localProductionInputs')}</td>
-                  <td className="border border-[var(--yellow)] p-2">
-                    {selectedData.local_production_inputs_tons != null ? selectedData.local_production_inputs_tons.toLocaleString() : t('inputMetrics.na')}
-                  </td>
-                </tr>
+                {inputMetricsFields.map((field) => (
+                  <tr key={field.key}>
+                    <td className="border border-[var(--yellow)] p-2">{field.label}</td>
+                    <td className="border border-[var(--yellow)] p-2">
+                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('inputMetrics.na')}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

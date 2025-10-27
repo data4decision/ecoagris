@@ -425,6 +425,86 @@
     "cerealSeeds": "Semences céréalières (tonnes)",
     "fertilizer": "Engrais (tonnes)",
     "pesticides": "Pesticides (litres)"
+  },
+  
+  "forecastSimulation": {
+    "title": "Prévisions et simulations - {{countryName}}",
+    "ariaTitle": "Aperçu des prévisions et simulations pour {{country}}",
+    "loading": "Chargement des prévisions et simulations...",
+    "simulatedDataNote": "Données simulées à des fins de planification (2006–2025). Validez avant utilisation opérationnelle.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données de prévisions et simulations en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord des prévisions et simulations en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord des prévisions et simulations en PDF",
+    "yearSelectLabel": "Sélectionner l'année pour les métriques",
+    "metricSelectLabel": "Sélectionner la métrique pour la comparaison annuelle",
+    "report_exported": "Exporté le : {{date}}",
+    "metrics": "Métriques : Utilisation totale des intrants, Budget de subventions, Accès au crédit",
+    "errors": {
+      "fetchFailed": "Échec de la récupération des données de prévisions et simulations",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "invalidCountry": "Paramètre de pays invalide",
+      "pngFailed": "Échec du téléchargement PNG. Veuillez vérifier la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement PDF. Veuillez vérifier la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
+    },
+    "totalInputCard": "Carte d'utilisation totale des intrants pour {{year}}",
+    "inputSubsidyCard": "Carte du budget de subventions pour {{year}}",
+    "creditAccessCard": "Carte d'accès au crédit pour {{year}}",
+    "trendsTitle": "Tendances des prévisions d'utilisation des intrants (2006–{{year}})",
+    "trendsChart": "Graphique des tendances des prévisions d'utilisation des intrants",
+    "comparisonTitle": "Comparaison des métriques financières ({{country}})",
+    "comparisonChart": "Graphique de comparaison des métriques financières",
+    "cerealSeeds": "Semences céréalières (tonnes)",
+    "fertilizer": "Engrais (tonnes)",
+    "pesticides": "Pesticides (litres)",
+    "inputSubsidy": "Budget de subventions (USD)",
+    "creditAccess": "Accès au crédit (%)",
+    "seedGrowthRate": "Taux de croissance de l'adoption de semences améliorées (%)",
+    "mechanizationGrowthRate": "Taux de croissance de la mécanisation (%)"
+  },
+  
+  "inputMetrics": {
+    "title": "Métriques des intrants - {{countryName}}",
+    "ariaTitle": "Aperçu des métriques des intrants pour {{country}}",
+    "loading": "Chargement des métriques des intrants...",
+    "simulatedDataNote": "Données simulées à des fins de planification. Validez avant utilisation opérationnelle.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données des métriques des intrants en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord des métriques des intrants en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord des métriques des intrants en PDF",
+    "yearSelectLabel": "Sélectionner l'année pour les métriques",
+    "report_exported": "Exporté le : {{date}}",
+    "metrics": "Métriques : Rapidité de distribution, Indice des prix des intrants, Nombre d'agro-dealers, Valeur des importations d'intrants, Production locale d'intrants",
+    "errors": {
+      "fetchFailed": "Échec de la récupération des données des métriques des intrants",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "invalidCountry": "Paramètre de pays invalide",
+      "pngFailed": "Échec du téléchargement PNG. Veuillez vérifier la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement PDF. Veuillez vérifier la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
+    },
+    "percentageChartTitle": "Métriques basées sur les pourcentages (2006–{{year}})",
+    "valueChartTitle": "Métriques basées sur les valeurs (2006–{{year}})",
+    "summaryTitle": "Résumé des données ({{year}})",
+    "summaryTooltip": "Résumé des métriques des intrants pour l'année sélectionnée",
+    "distributionTimeliness": "Rapidité de distribution (%)",
+    "inputPriceIndex": "Indice des prix des intrants (base 2006)",
+    "agroDealerCount": "Nombre d'agro-dealers",
+    "inputImportValue": "Valeur des importations d'intrants (USD)",
+    "localProductionInputs": "Production locale d'intrants (tonnes)",
+    "metric": "Métrique",
+    "value": "Valeur"
   }
 }
+
+
   

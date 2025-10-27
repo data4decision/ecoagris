@@ -310,44 +310,6 @@
       "dataMethodologyDescription": "Details on data sources and simulation methodology."
     },
   
-
-  "inputMetrics": {
-    "title": "Input Metrics - {{countryName}}",
-    "ariaTitle": "Input Metrics for {{country}}",
-    "loading": "Loading Input Metrics...",
-    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
-    "na": "N/A",
-    "downloadCSV": "Download CSV",
-    "downloadCSVLabel": "Download input metrics data as CSV",
-    "downloadPNG": "Download PNG",
-    "downloadPNGLabel": "Download input metrics dashboard as PNG",
-    "downloadPDF": "Download PDF",
-    "downloadPDFLabel": "Download input metrics dashboard as PDF",
-    "yearSelectLabel": "Select Year for Metrics",
-    "report_exported": "Exported on: {{date}}",
-    "metrics": "Metrics: Distribution Timeliness, Input Price Index, Agro-Dealer Count, Input Import Value, Local Production Inputs",
-    "errors": {
-      "fetchFailed": "Failed to fetch input metrics data",
-      "noData": "No data available for {{country}}",
-      "invalidCountry": "Invalid country parameter",
-      "pngFailed": "PNG download failed. Please check console for details.",
-      "pdfFailed": "PDF download failed. Please check console for details.",
-      "invalidCanvas": "Canvas is empty or invalid",
-      "invalidImageData": "Failed to generate image data from canvas"
-    },
-    "percentageChartTitle": "Percentage-Based Metrics Trends (2006–{{year}})",
-    "valueChartTitle": "Value-Based Metrics Trends (2006–{{year}})",
-    "summaryTitle": "Data Summary for {{year}}",
-    "summaryTooltip": "Key input metrics for the selected year",
-    "metric": "Metric",
-    "value": "Value",
-    "distributionTimeliness": "Distribution Timeliness (%)",
-    "inputPriceIndex": "Input Price Index (2006 Base)",
-    "agroDealerCount": "Agro-Dealer Count",
-    "inputImportValue": "Input Import Value (USD)",
-    "localProductionInputs": "Local Production Inputs (tons)"
-  },
-  
   "supplyChain": {
     "title": "Supply Chain - {{countryName}}",
     "ariaTitle": "Supply Chain Overview for {{country}}",
@@ -464,8 +426,88 @@
     "cerealSeeds": "Cereal Seeds (tons)",
     "fertilizer": "Fertilizer (tons)",
     "pesticides": "Pesticides (liters)"
+  },
+  
+  "forecastSimulation": {
+    "title": "Forecast & Simulation - {{countryName}}",
+    "ariaTitle": "Forecast & Simulation Overview for {{country}}",
+    "loading": "Loading Forecast & Simulation...",
+    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download forecast and simulation data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download forecast and simulation dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download forecast and simulation dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "metricSelectLabel": "Select Metric for Year Comparison",
+    "report_exported": "Exported on: {{date}}",
+    "metrics": "Metrics: Total Input Usage, Input Subsidy Budget, Credit Access",
+    "errors": {
+      "fetchFailed": "Failed to fetch forecast and simulation data",
+      "noData": "No data available for {{country}}",
+      "invalidCountry": "Invalid country parameter",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
+    },
+    "totalInputCard": "Total Input Usage Card for {{year}}",
+    "inputSubsidyCard": "Input Subsidy Budget Card for {{year}}",
+    "creditAccessCard": "Credit Access Card for {{year}}",
+    "trendsTitle": "Input Usage Forecast Trends (2006–{{year}})",
+    "trendsChart": "Input Usage Forecast Trends Chart",
+    "comparisonTitle": "Financial Metrics Comparison ({{country}})",
+    "comparisonChart": "Financial Metrics Comparison Chart",
+    "cerealSeeds": "Cereal Seeds (tons)",
+    "fertilizer": "Fertilizer (tons)",
+    "pesticides": "Pesticides (liters)",
+    "inputSubsidy": "Input Subsidy Budget (USD)",
+    "creditAccess": "Credit Access (%)",
+    "seedGrowthRate": "Improved Seed Adoption Growth Rate (%)",
+    "mechanizationGrowthRate": "Mechanization Growth Rate (%)"
+  },
+
+  "inputMetrics": {
+    "title": "Input Metrics - {{countryName}}",
+    "ariaTitle": "Input Metrics Overview for {{country}}",
+    "loading": "Loading Input Metrics...",
+    "simulatedDataNote": "Simulated data for planning purposes. Validate before operational use.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download input metrics data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download input metrics dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download input metrics dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "report_exported": "Exported on: {{date}}",
+    "metrics": "Metrics: Distribution Timeliness, Input Price Index, Agro-Dealer Count, Input Import Value, Local Production Inputs",
+    "errors": {
+      "fetchFailed": "Failed to fetch input metrics data",
+      "noData": "No data available for {{country}}",
+      "invalidCountry": "Invalid country parameter",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
+    },
+    "percentageChartTitle": "Percentage-Based Metrics (2006–{{year}})",
+    "valueChartTitle": "Value-Based Metrics (2006–{{year}})",
+    "summaryTitle": "Data Summary ({{year}})",
+    "summaryTooltip": "Summary of input metrics for the selected year",
+    "distributionTimeliness": "Distribution Timeliness (%)",
+    "inputPriceIndex": "Input Price Index (2006 Base)",
+    "agroDealerCount": "Agro-Dealer Count",
+    "inputImportValue": "Input Import Value (USD)",
+    "localProductionInputs": "Local Production Inputs (tons)",
+    "metric": "Metric",
+    "value": "Value"
   }
 }
+
+
 
   
 
