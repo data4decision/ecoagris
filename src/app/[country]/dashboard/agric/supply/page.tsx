@@ -48,7 +48,7 @@ type SupplyChainMetric =
   | 'local_production_inputs_tons';
 
 export default function SupplyChainPage() {
-  const { country } = useParams();
+  const { country } = useParams<{ country: string }>();
   const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [countryData, setCountryData] = useState<InputData[]>([]);
@@ -87,7 +87,7 @@ export default function SupplyChainPage() {
         setSelectedYear(maxYear);
 
         const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === (country as string).toLowerCase()
+          (d) => d.country.toLowerCase() === country.toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
@@ -134,22 +134,26 @@ export default function SupplyChainPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `${country}_supply_chain_data.csv`;
     link.click();
+    console.log('CSV downloaded successfully');
   };
 
   const handleDownload = async (format: 'png' | 'pdf') => {
     if (!dashboardRef.current) {
-      console.error('Dashboard element not found');
+      console.error('Dashboard element not found for', format, 'generation');
       alert(t(`supplyChain.errors.${format}Failed`));
       return;
     }
 
     try {
-      // Force chart rendering by triggering a state update
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for charts to render
+      console.log(`Starting ${format} download...`);
+
+      // Wait for DOM and charts to render
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Increased to 1000ms
 
       // Apply snapshot styles
       dashboardRef.current.classList.add('snapshot');
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for styles
+      console.log('Applied snapshot styles');
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Capture canvas
       const canvas = await html2canvas(dashboardRef.current, {
@@ -159,7 +163,11 @@ export default function SupplyChainPage() {
         logging: true,
       });
 
+      console.log(`${format.toUpperCase()} Canvas dimensions:`, { width: canvas.width, height: canvas.height });
+
+      // Remove snapshot styles
       dashboardRef.current.classList.remove('snapshot');
+      console.log('Removed snapshot styles');
 
       // Validate canvas
       if (!canvas || canvas.width === 0 || canvas.height === 0) {
@@ -192,7 +200,7 @@ export default function SupplyChainPage() {
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
         pdf.setFontSize(12);
-        pdf.text(t('supplyChain.title', { countryName: (country as string).toUpperCase() }), 10, 10);
+        pdf.text(t('supplyChain.title', { countryName: country.toUpperCase() }), 10, 10);
         pdf.text(t('supplyChain.metrics'), 10, 18);
         pdf.text(t('supplyChain.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
         pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
@@ -225,7 +233,7 @@ export default function SupplyChainPage() {
     );
   }
 
-  const countryName = (country as string).charAt(0).toUpperCase() + (country as string).slice(1);
+  const countryName = country.charAt(0).toUpperCase() + country.slice(1);
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
