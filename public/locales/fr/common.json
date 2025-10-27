@@ -272,95 +272,7 @@
     }
   },
   
-  "overview": {
-    "title": "Aperçu des Intrants Agricoles - {{countryName}}",
-    "ariaTitle": "Aperçu des Intrants Agricoles pour {{country}}",
-    "loading": "Chargement de l'Aperçu des Intrants Agricoles...",
-    "simulatedDataNote": "Données simulées à des fins de planification. Explorez les catégories pour des tendances détaillées.",
-    "na": "N/D",
-    "downloadCSV": "Télécharger CSV",
-    "downloadCSVLabel": "Télécharger les données de l'aperçu des intrants agricoles en CSV",
-    "downloadPNG": "Télécharger PNG",
-    "downloadPNGLabel": "Télécharger le tableau de bord de l'aperçu des intrants agricoles en PNG",
-    "downloadPDF": "Télécharger PDF",
-    "downloadPDFLabel": "Télécharger le tableau de bord de l'aperçu des intrants agricoles en PDF",
-    "yearSelectLabel": "Sélectionner l'Année pour les Métriques",
-    "report_exported": "Exporté le : {{date}}",
-    "errors": {
-      "fetchFailed": "Échec de la récupération des données",
-      "noData": "Aucune donnée disponible pour {{country}}",
-      "invalidDataset": "Format de l'ensemble de données invalide",
-      "pngFailed": "Échec du téléchargement du PNG. Vérifiez la console pour plus de détails.",
-      "pdfFailed": "Échec du téléchargement du PDF. Vérifiez la console pour plus de détails.",
-      "invalidCanvas": "Le canvas est vide ou invalide",
-      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
-    },
-    "cards": {
-      "country": "Pays",
-      "year": "Année",
-      "cerealSeeds": "Graines de Céréales (tonnes)",
-      "currentYear": "Actuel : {{year}}",
-      "selected": "Sélectionné",
-      "yearLabel": "Année : {{year}}",
-      "countryCardAria": "Carte de Pays pour {{year}}",
-      "yearCardAria": "Carte d'Année pour {{year}}",
-      "cerealSeedsCardAria": "Carte de Graines de Céréales pour {{year}}"
-    },
-    "exploreCategories": "Explorer les Catégories Agricoles",
-    "nav": {
-      "supplyChain": "Chaîne d'Approvisionnement",
-      "economicIndicators": "Indicateurs Économiques",
-      "adoptionMechanization": "Adoption et Mécanisation",
-      "forecastSimulation": "Prévision et Simulation",
-      "inputMetrics": "Métriques des Intrants",
-      "dataMethodology": "Données et Méthodologie"
-    },
-    "navDescriptions": {
-      "supplyChain": "Graines de céréales, engrais, pesticides et métriques de distribution.",
-      "economicIndicators": "Subventions, accès au crédit et tendances des prix des intrants.",
-      "adoptionMechanization": "Intensité des engrais, adoption de graines et taux de mécanisation.",
-      "forecastSimulation": "Tendances simulées pour les intrants agricoles de 2006 à 2025.",
-      "inputMetrics": "Métricas detalhadas sobre o uso de insumos agrícolas.",
-      "dataMethodology": "Sources de données et méthodologie pour les intrants agricoles."
-    },
-    "navAria": "Naviguer vers {{title}}"
-  },
-  "inputMetrics": {
-    "title": "Métriques des Intrants - {{countryName}}",
-    "ariaTitle": "Métriques des Intrants pour {{country}}",
-    "loading": "Chargement des Métriques des Intrants...",
-    "simulatedDataNote": "Données simulées à des fins de planification (2006–2025). Validez avant utilisation opérationnelle.",
-    "na": "N/D",
-    "downloadCSV": "Télécharger CSV",
-    "downloadCSVLabel": "Télécharger les données des métriques des intrants en CSV",
-    "downloadPNG": "Télécharger PNG",
-    "downloadPNGLabel": "Télécharger le tableau de bord des métriques des intrants en PNG",
-    "downloadPDF": "Télécharger PDF",
-    "downloadPDFLabel": "Télécharger le tableau de bord des métriques des intrants en PDF",
-    "yearSelectLabel": "Sélectionner l'Année pour les Métriques",
-    "report_exported": "Exporté le : {{date}}",
-    "metrics": "Métriques : Ponctualité de la Distribution, Indice des Prix des Intrants, Nombre d'Agro-Revendeurs, Valeur des Importations d'Intrants, Intrants de Production Locale",
-    "errors": {
-      "fetchFailed": "Échec de la récupération des données des métriques des intrants",
-      "noData": "Aucune donnée disponible pour {{country}}",
-      "invalidCountry": "Paramètre de pays invalide",
-      "pngFailed": "Échec du téléchargement du PNG. Vérifiez la console pour plus de détails.",
-      "pdfFailed": "Échec du téléchargement du PDF. Vérifiez la console pour plus de détails.",
-      "invalidCanvas": "Le canvas est vide ou invalide",
-      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
-    },
-    "percentageChartTitle": "Tendances des Métriques Basées sur le Pourcentage (2006–{{year}})",
-    "valueChartTitle": "Tendances des Métriques Basées sur la Valeur (2006–{{year}})",
-    "summaryTitle": "Résumé des Données pour {{year}}",
-    "summaryTooltip": "Métriques clés des intrants pour l'année sélectionnée",
-    "metric": "Métrique",
-    "value": "Valeur",
-    "distributionTimeliness": "Ponctualité de la Distribution (%)",
-    "inputPriceIndex": "Indice des Prix des Intrants (Base 2006)",
-    "agroDealerCount": "Nombre d'Agro-Revendeurs",
-    "inputImportValue": "Valeur des Importations d'Intrants (USD)",
-    "localProductionInputs": "Intrants de Production Locale (tonnes)"
-  },
+  
   "supplyChain": {
     "title": "Chaîne d'Approvisionnement - {{countryName}}",
     "ariaTitle": "Aperçu de la Chaîne d'Approvisionnement pour {{country}}",
@@ -436,10 +348,40 @@
     "creditAccess": "Accès au Crédit (%)",
     "inputPriceIndex": "Indice des Prix des Intrants (Base 2006)",
     "inputImportValue": "Valeur des Importations d'Intrants (USD)"
+  },
+  "overview": {
+    "title": "Aperçu des intrants agricoles - {{countryName}}",
+    "downloadCSV": "Télécharger CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPDF": "Télécharger PDF",
+    "yearSelectLabel": "Sélectionner l'année",
+    "exploreCategories": "Explorer les catégories d'intrants agricoles",
+    "navigateTo": "Naviguer vers {{title}}",
+    "errors": {
+      "invalidCountry": "Pays invalide sélectionné",
+      "fetchFailed": "Échec de la récupération des données",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "loadingError": "Erreur lors du chargement des données",
+      "pngFailed": "Échec du téléchargement PNG",
+      "pdfFailed": "Échec du téléchargement PDF",
+      "invalidImageData": "Données d'image invalides générées"
+    },
+    "loading": "Chargement de l'aperçu des intrants agricoles...",
+    "na": "N/D",
+    "simulatedDataNote": "Données simulées à des fins de planification. Explorez les catégories pour des tendances détaillées.",
+    "metrics": "Métriques : Intrants agricoles",
+    "report_exported": "Exporté le : {{date}}",
+      "overview": "Aperçu",
+      "overviewDescription": "Résumé global des métriques des intrants agricoles.",
+      "supplyChain": "Chaîne d'approvisionnement",
+      "supplyChainDescription": "Métriques sur les semences céréalières, les engrais, les pesticides et la distribution.",
+      "economicIndicators": "Indicateurs économiques",
+      "economicIndicatorsDescription": "Budgets de subventions, accès au crédit et tendances des prix des intrants.",
+      "adoptionMechanization": "Adoption et mécanisation",
+      "adoptionMechanizationDescription": "Intensité des engrais, adoption de semences améliorées et métriques de mécanisation.",
+      "forecastSimulation": "Prévisions et simulations",
+      "forecastSimulationDescription": "Projections et simulations pour les intrants agricoles.",
+      "dataMethodology": "Données et méthodologie",
+      "dataMethodologyDescription": "Détails sur les sources de données et la méthodologie de simulation."
+    }
   }
-}
-
-
-
-
-

@@ -272,60 +272,45 @@
       "dataMethodology": "Data & Methodology"
     }
   },
+  
   "overview": {
-    "title": "Agricultural Inputs Overview - {{countryName}}",
-    "ariaTitle": "Agricultural Inputs Overview for {{country}}",
-    "loading": "Loading Agricultural Inputs Overview...",
-    "simulatedDataNote": "Simulated data for planning purposes. Explore categories for detailed trends.",
-    "na": "N/A",
+    "title": "Agricultural Input Overview - {{countryName}}",
     "downloadCSV": "Download CSV",
-    "downloadCSVLabel": "Download agricultural inputs overview data as CSV",
     "downloadPNG": "Download PNG",
-    "downloadPNGLabel": "Download agricultural inputs overview dashboard as PNG",
     "downloadPDF": "Download PDF",
-    "downloadPDFLabel": "Download agricultural inputs overview dashboard as PDF",
-    "yearSelectLabel": "Select Year for Metrics",
-    "report_exported": "Exported on: {{date}}",
+    "yearSelectLabel": "Select Year",
+    "exploreCategories": "Explore Agricultural Input Categories",
+    "navigateTo": "Navigate to {{title}}",
     "errors": {
+      "invalidCountry": "Invalid country selected",
       "fetchFailed": "Failed to fetch data",
       "noData": "No data available for {{country}}",
-      "invalidDataset": "Invalid dataset format",
-      "pngFailed": "PNG download failed. Please check console for details.",
-      "pdfFailed": "PDF download failed. Please check console for details.",
-      "invalidCanvas": "Canvas is empty or invalid",
-      "invalidImageData": "Failed to generate image data from canvas"
+      "loadingError": "Error loading data",
+      "pngFailed": "PNG download failed",
+      "pdfFailed": "PDF download failed",
+      "invalidImageData": "Invalid image data generated"
     },
-    "cards": {
-      "country": "Country",
-      "year": "Year",
-      "cerealSeeds": "Cereal Seeds (tons)",
-      "currentYear": "Current: {{year}}",
-      "selected": "Selected",
-      "yearLabel": "Year: {{year}}",
-      "countryCardAria": "Country Card for {{year}}",
-      "yearCardAria": "Year Card for {{year}}",
-      "cerealSeedsCardAria": "Cereal Seeds Card for {{year}}"
-    },
-    "exploreCategories": "Explore Agricultural Categories",
-    "nav": {
-      "supplyChain": "Supply Chain",
-      "economicIndicators": "Economic Indicators",
-      "adoptionMechanization": "Adoption & Mechanization",
-      "forecastSimulation": "Forecast & Simulation",
-      "inputMetrics": "Input Metrics",
-      "dataMethodology": "Data & Methodology"
-    },
-    "navDescriptions": {
-      "supplyChain": "Cereal seeds, fertilizer, pesticides, and distribution metrics.",
-      "economicIndicators": "Subsidies, credit access, and input price trends.",
-      "adoptionMechanization": "Fertilizer intensity, seed adoption, and mechanization rates.",
-      "forecastSimulation": "Simulated trends for agricultural inputs from 2006 to 2025.",
-      "inputMetrics": "Detailed metrics on agricultural input usage.",
-      "dataMethodology": "Data sources and methodology for agricultural inputs."
-    },
-    "navAria": "Navigate to {{title}}"
-  },
+    "loading": "Loading Agricultural Input Overview...",
+    "na": "N/A",
+    "simulatedDataNote": "Simulated data for planning purposes. Explore categories for detailed trends.",
+    "metrics": "Metrics: Agricultural Inputs",
+    "report_exported": "Exported on: {{date}}",
   
+      "overview": "Overview",
+      "overviewDescription": "High-level summary of agricultural input metrics.",
+      "supplyChain": "Supply Chain",
+      "supplyChainDescription": "Metrics on cereal seeds, fertilizer, pesticides, and distribution.",
+      "economicIndicators": "Economic Indicators",
+      "economicIndicatorsDescription": "Subsidy budgets, credit access, and input price trends.",
+      "adoptionMechanization": "Adoption & Mechanization",
+      "adoptionMechanizationDescription": "Fertilizer intensity, improved seed adoption, and mechanization metrics.",
+      "forecastSimulation": "Forecast & Simulation",
+      "forecastSimulationDescription": "Projections and simulations for agricultural inputs.",
+      "dataMethodology": "Data & Methodology",
+      "dataMethodologyDescription": "Details on data sources and simulation methodology."
+    },
+  
+
   "inputMetrics": {
     "title": "Input Metrics - {{countryName}}",
     "ariaTitle": "Input Metrics for {{country}}",

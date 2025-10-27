@@ -2,95 +2,88 @@
 
 // Import required dependencies
 import { useParams, useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { FaChartBar, FaGlobe, FaCalendarAlt, FaUsers, FaChartLine, FaDollarSign, FaHandsHelping, FaSeedling, FaDownload } from 'react-icons/fa';
+import { FaChartBar, FaTruck, FaMoneyBillWave, FaSeedling, FaChartLine, FaDatabase, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
+import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import '@/styles/dashboard-styles.css'; // Import CSS for snapshot styling
+import '@/styles/pdf-styles.css'; // Import CSS for snapshot styling
 
 // Define TypeScript interfaces
-interface MacroData {
+interface InputData {
   country: string;
   year: number;
-  population: number;
+  cereal_seeds_tons?: number;
+  fertilizer_tons?: number;
+  pesticide_liters?: number;
+  input_subsidy_budget_usd?: number;
+  credit_access_pct?: number;
+  stockouts_days_per_year?: number;
+  fertilizer_kg_per_ha?: number;
+  improved_seed_use_pct?: number;
+  mechanization_units_per_1000_farms?: number;
+  distribution_timeliness_pct?: number;
+  input_price_index_2006_base?: number;
+  agro_dealer_count?: number;
+  input_import_value_usd?: number;
+  local_production_inputs_tons?: number;
   [key: string]: unknown; // Type-safe dynamic keys
 }
 
 interface Dataset {
-  Simulated_Macro_Data: MacroData[];
-  Methodology_Assumptions: { note: string }[];
+  Simulated_Input_Data: InputData[];
+  Methodology_Assumptions?: {
+    data_source?: string;
+    simulation_method?: string;
+    assumptions?: string[];
+  };
 }
 
-export default function AgricOverviewPage() {
+export default function AgricInputOverviewPage() {
   const { country } = useParams<{ country: string }>();
   const router = useRouter();
   const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
-  const [overviewData, setOverviewData] = useState<MacroData[]>([]);
+  const [countryData, setCountryData] = useState<InputData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Page preview data (adjusted for agriculture context)
-  const pagePreviews = [
-    {
-      title: t('pagePreviews.adoptionMechanization.title'),
-      icon: FaChartLine,
-      path: `/${country}/dashboard/agric/adoption-mechanization`,
-      description: t('pagePreviews.adoptionMechanization.description'),
-    },
-    {
-      title: t('pagePreviews.economicIndicators.title'),
-      icon: FaDollarSign,
-      path: `/${country}/dashboard/agric/economic-indicators`,
-      description: t('pagePreviews.economicIndicators.description'),
-    },
-    {
-      title: t('pagePreviews.inputMetric.title'),
-      icon: FaHandsHelping,
-      path: `/${country}/dashboard/agric/input-metric`,
-      description: t('pagePreviews.inputMetric.description'),
-    },
-    {
-      title: t('pagePreviews.forecastSimulation.title'),
-      icon: FaGlobe,
-      path: `/${country}/dashboard/agric/forecast-simulation`,
-      description: t('pagePreviews.forecastSimulation.description'),
-    },
-    {
-      title: t('pagePreviews.dataMethodology.title'),
-      icon: FaSeedling,
-      path: `/${country}/dashboard/agric/data-methodology`,
-      description: t('pagePreviews.dataMethodology.description'),
-    },
+  // Navigation cards based on provided nav array
+  const nav = [
+    { label: t('overview.overview'), href: `/${country}/dashboard/agric`, icon: FaChartBar, description: t('overview.overviewDescription') },
+    { label: t('overview.supplyChain'), href: `/${country}/dashboard/agric/supply`, icon: FaTruck, description: t('overview.supplyChainDescription') },
+    { label: t('overview.economicIndicators'), href: `/${country}/dashboard/agric/economic-indicators`, icon: FaMoneyBillWave, description: t('overview.economicIndicatorsDescription') },
+    { label: t('overview.adoptionMechanization'), href: `/${country}/dashboard/agric/adoption-mechanization`, icon: FaSeedling, description: t('overview.adoptionMechanizationDescription') },
+    { label: t('overview.forecastSimulation'), href: `/${country}/dashboard/agric/forecast-simulation`, icon: FaChartLine, description: t('overview.forecastSimulationDescription') },
+    { label: t('overview.dataMethodology'), href: `/${country}/dashboard/agric/data-methodology`, icon: FaDatabase, description: t('overview.dataMethodologyDescription') },
   ];
 
   // Fetch data from backend only
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError(t('errors.invalidCountry'));
+      setError(t('overview.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        const response = await fetch('/data/macro/WestAfrica_Agric_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('errors.fetchFailed'));
+        const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
+        if (!response.ok) throw new Error(t('overview.errors.fetchFailed'));
         const jsonData = (await response.json()) as Dataset;
 
-        if (!jsonData.Simulated_Macro_Data || !Array.isArray(jsonData.Simulated_Macro_Data)) {
-          throw new Error(t('errors.invalidDataFormat'));
+        if (!jsonData.Simulated_Input_Data || !Array.isArray(jsonData.Simulated_Input_Data)) {
+          throw new Error(t('overview.errors.invalidDataFormat'));
         }
 
-        const filteredCountryData = jsonData.Simulated_Macro_Data.filter(
+        const filteredCountryData = jsonData.Simulated_Input_Data.filter(
           (d) => d.country && d.country.toLowerCase() === country.toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
-          setError(t('errors.noData', { country }));
+          setError(t('overview.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -99,11 +92,11 @@ export default function AgricOverviewPage() {
         const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
         setSelectedYear(maxYear);
 
-        setOverviewData(filteredCountryData);
+        setCountryData(filteredCountryData);
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(t('errors.fetchFailed'));
+        setError(t('overview.errors.loadingError'));
         setLoading(false);
       }
     }
@@ -113,124 +106,135 @@ export default function AgricOverviewPage() {
 
   // Get unique years for dropdown
   const availableYears = useMemo(() => {
-    return Array.from(new Set(overviewData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
-  }, [overviewData]);
+    return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
+  }, [countryData]);
 
   // Get data for the selected year
-  const selectedData = overviewData.find((d) => d.year === selectedYear);
+  const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Unified download function for CSV and PDF
-  const handleDownload = async (format: 'csv' | 'pdf') => {
-    if (format === 'pdf' && !dashboardRef.current) {
-      console.error('Dashboard element not found');
-      alert(t(`errors.${format}Failed`));
+  // Function to handle CSV download
+  const handleCSVDownload = () => {
+    const csvData = countryData.map((data) => ({
+      Country: data.country,
+      Year: data.year,
+      CerealSeedsTons: data.cereal_seeds_tons?.toLocaleString() ?? t('overview.na'),
+      FertilizerTons: data.fertilizer_tons?.toLocaleString() ?? t('overview.na'),
+      PesticideLiters: data.pesticide_liters?.toLocaleString() ?? t('overview.na'),
+      InputSubsidyBudgetUSD: data.input_subsidy_budget_usd ? `$${data.input_subsidy_budget_usd.toLocaleString()}` : t('overview.na'),
+      CreditAccessPct: data.credit_access_pct ? `${data.credit_access_pct.toFixed(1)}%` : t('overview.na'),
+      StockoutsDaysPerYear: data.stockouts_days_per_year?.toLocaleString() ?? t('overview.na'),
+      FertilizerKgPerHa: data.fertilizer_kg_per_ha?.toFixed(1) ?? t('overview.na'),
+      ImprovedSeedUsePct: data.improved_seed_use_pct ? `${data.improved_seed_use_pct.toFixed(1)}%` : t('overview.na'),
+      MechanizationUnitsPer1000Farms: data.mechanization_units_per_1000_farms?.toFixed(1) ?? t('overview.na'),
+      DistributionTimelinessPct: data.distribution_timeliness_pct ? `${data.distribution_timeliness_pct.toFixed(1)}%` : t('overview.na'),
+      InputPriceIndex2006Base: data.input_price_index_2006_base?.toFixed(2) ?? t('overview.na'),
+      AgroDealerCount: data.agro_dealer_count?.toLocaleString() ?? t('overview.na'),
+      InputImportValueUSD: data.input_import_value_usd ? `$${data.input_import_value_usd.toLocaleString()}` : t('overview.na'),
+      LocalProductionInputsTons: data.local_production_inputs_tons?.toLocaleString() ?? t('overview.na'),
+    }));
+
+    const csv = stringify(csvData, { header: true });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${country}_agric_input_overview.csv`;
+    link.click();
+    console.log('CSV downloaded successfully');
+  };
+
+  // Function to handle PNG download
+  const handlePNGDownload = async () => {
+    if (!dashboardRef.current) {
+      console.error('Dashboard element not found for PNG generation');
+      alert(t('overview.errors.pngFailed'));
       return;
     }
 
     try {
-      if (format === 'csv') {
-        // CSV download
-        const csvData = overviewData.map((data) => ({
-          Country: data.country,
-          Year: data.year,
-          Population: data.population,
-        }));
+      // Wait for DOM to be fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Increased to 500ms
 
-        const csv = stringify(csvData, { header: true });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${country}_agric_overview.csv`;
-        link.click();
-        console.log('CSV downloaded successfully');
-      } else {
-        // PDF download
-        // Null check for dashboardRef.current
-        if (!dashboardRef.current) {
-          throw new Error('Dashboard reference is null');
-        }
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: true, // Enable logging for debugging
+      });
 
-        // Apply snapshot styles
-        dashboardRef.current.classList.add('snapshot');
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for styles
+      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
 
-        // Ensure all content is in view
-        const originalScrollPosition = { x: window.scrollX, y: window.scrollY };
-        window.scrollTo(0, 0);
-
-        // Calculate full content dimensions
-        const { scrollWidth, scrollHeight } = dashboardRef.current;
-        console.log('Content dimensions:', { scrollWidth, scrollHeight });
-
-        // Capture canvas
-        const canvas = await html2canvas(dashboardRef.current, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: true,
-          width: scrollWidth,
-          height: scrollHeight,
-          windowWidth: scrollWidth + 200,
-          windowHeight: scrollHeight + 200,
-          scrollX: 0,
-          scrollY: 0,
-        });
-
-        // Cleanup
-        dashboardRef.current.classList.remove('snapshot');
-        window.scrollTo(originalScrollPosition.x, originalScrollPosition.y);
-
-        // Validate canvas
-        if (!canvas || canvas.width === 0 || canvas.height === 0) {
-          console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-          throw new Error(t('errors.invalidCanvas'));
-        }
-
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        if (!imgData || imgData === 'data:,') {
-          console.error('Invalid image data generated from canvas');
-          throw new Error(t('errors.invalidImageData'));
-        }
-
-        // Create PDF with canvas dimensions
-        const pdf = new jsPDF({
-          orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-          unit: 'px',
-          format: [canvas.width, canvas.height],
-        });
-
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.setFontSize(12);
-        pdf.text(t('title', { countryName: country.toUpperCase() }), 10, 10);
-        pdf.text(t('metrics'), 10, 18);
-        pdf.text(t('report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-        pdf.save(`${country}_agric_overview.pdf`);
-        console.log('PDF downloaded successfully');
+      const imgData = canvas.toDataURL('image/png');
+      if (!imgData || imgData === 'data:,') {
+        console.error('Invalid image data generated');
+        throw new Error(t('overview.errors.invalidImageData'));
       }
+
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `${country}_agric_input_overview.png`;
+      link.click();
+      console.log('PNG downloaded successfully');
     } catch (err) {
-      console.error(`${format.toUpperCase()} generation error:`, err);
-      alert(t(`errors.${format}Failed`));
+      console.error('PNG generation error:', err);
+      alert(t('overview.errors.pngFailed'));
+    }
+  };
+
+  // Function to handle PDF download
+  const handlePDFDownload = async () => {
+    if (!dashboardRef.current) {
+      console.error('Dashboard element not found for PDF generation');
+      alert(t('overview.errors.pdfFailed'));
+      return;
+    }
+
+    try {
+      // Wait for DOM to be fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Increased to 500ms
+
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: true, // Enable logging for debugging
+      });
+
+      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
+
+      const imgData = canvas.toDataURL('image/png');
+      if (!imgData || imgData === 'data:,') {
+        console.error('Invalid image data generated');
+        throw new Error(t('overview.errors.invalidImageData'));
+      }
+
+      const pdf = new jsPDF('landscape');
+      pdf.setFontSize(12);
+      pdf.text(t('overview.title', { countryName: country.toUpperCase() }), 10, 10);
+      pdf.text(t('overview.metrics'), 10, 18);
+      pdf.text(t('overview.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
+      pdf.addImage(imgData, 'PNG', 10, 35, 270, 120);
+      pdf.save(`${country}_agric_input_overview.pdf`);
+      console.log('PDF downloaded successfully');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert(t('overview.errors.pdfFailed'));
     }
   };
 
   // Render loading state
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('loading')}</p>
-        </div>
+      <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
+        <p className="text-[var(--dark-green)] text-lg font-medium">{t('overview.loading')}</p>
       </div>
     );
   }
 
   // Render error state
-  if (!selectedData) {
+  if (error || !selectedData) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('errors.noData', { country })}</p>
-        </div>
+      <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
+        <p className="text-[var(--wine)] text-lg font-medium">{error || t('overview.errors.noData', { country })}</p>
       </div>
     );
   }
@@ -238,46 +242,19 @@ export default function AgricOverviewPage() {
   const countryName = country.charAt(0).toUpperCase() + country.slice(1);
 
   return (
-    <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div ref={dashboardRef} className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
-        {/* Page Header */}
-        <h1
-          className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={t('ariaTitle', { country: countryName })}
-        >
-          <FaChartBar aria-hidden="true" className="text-lg sm:text-xl" />
-          {t('title', { countryName })}
-        </h1>
-        <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">{t('simulatedDataNote')}</p>
-
-        {/* Download Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
-          <button
-            onClick={() => handleDownload('csv')}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label={t('downloadCSVLabel')}
-          >
-            <FaDownload /> {t('downloadCSV')}
-          </button>
-          <button
-            onClick={() => handleDownload('pdf')}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label={t('downloadPDFLabel')}
-          >
-            <FaDownload /> {t('downloadPDF')}
-          </button>
+    <div className="min-h-screen bg-[var(--white)] font-sans">
+      {/* Header */}
+      <header className="bg-[var(--medium-green)] text-[var(--white)] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-md">
+        <div className="flex items-center gap-2">
+          <FaChartBar className="text-2xl sm:text-3xl text-[var(--yellow)]" />
+          <h1 className="text-xl sm:text-2xl font-bold">{t('overview.title', { countryName })}</h1>
         </div>
-
-        {/* Year Selection */}
-        <div className="mb-6 max-w-full">
-          <label htmlFor="year-select" className="sr-only">
-            {t('yearSelectLabel')}
-          </label>
+        <div className="flex flex-col sm:flex-row gap-3">
           <select
-            id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+            className="p-2 rounded bg-[var(--white)] text-[var(--dark-green)] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[var(--yellow)]"
+            aria-label={t('overview.yearSelectLabel')}
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -285,71 +262,57 @@ export default function AgricOverviewPage() {
               </option>
             ))}
           </select>
+          <button
+            onClick={handleCSVDownload}
+            className="flex items-center gap-2 cursor-pointer bg-[var(--yellow)] text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
+            aria-label={t('overview.downloadCSV')}
+          >
+            <FaDownload className="text-[var(--dark-green)]" /> {t('overview.downloadCSV')}
+          </button>
+          <button
+            onClick={handlePNGDownload}
+            className="flex items-center gap-2 bg-[var(--yellow)] cursor-pointer text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
+            aria-label={t('overview.downloadPNG')}
+          >
+            <FaDownload className="text-[var(--dark-green)]" /> {t('overview.downloadPNG')}
+          </button>
+          <button
+            onClick={handlePDFDownload}
+            className="flex items-center gap-2 bg-[var(--yellow)] cursor-pointer text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
+            aria-label={t('overview.downloadPDF')}
+          >
+            <FaDownload className="text-[var(--dark-green)]" /> {t('overview.downloadPDF')}
+          </button>
         </div>
+      </header>
 
-        {/* Overview Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
-          {/* Country Card */}
-          <div
-            className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0 card"
-            aria-label={t('metricCard', { label: 'Country', year: selectedYear })}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <FaGlobe className="text-[var(--dark-green)] text-lg" />
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{t('country')}</h3>
-            </div>
-            <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">{selectedData.country}</p>
-            <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">{t('currentYear', { year: selectedYear })}</p>
-          </div>
+      {/* Main Content */}
+      <main ref={dashboardRef} className="max-w-7xl mx-auto p-4 sm:p-6" id="dashboard-content">
+        <p className="text-[var(--olive-green)] mb-6 text-sm sm:text-base italic">
+          {t('overview.simulatedDataNote')}
+        </p>
 
-          {/* Year Card */}
-          <div
-            className="bg-gradient-to-br from-[var(--white)] to-[var(--green)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0 card"
-            aria-label={t('metricCard', { label: 'Year', year: selectedYear })}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <FaCalendarAlt className="text-[var(--dark-green)] text-lg" />
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{t('year')}</h3>
-            </div>
-            <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">{selectedYear}</p>
-            <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">{t('selected')}</p>
-          </div>
-
-          {/* Population Card */}
-          <div
-            className="bg-gradient-to-br from-[var(--white)] to-[var(--wine)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0 card"
-            aria-label={t('metricCard', { label: 'Population', year: selectedYear })}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <FaUsers className="text-[var(--dark-green)] text-lg" />
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{t('population')}</h3>
-            </div>
-            <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">{selectedData.population?.toLocaleString() || t('na')}</p>
-            <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">{t('currentYear', { year: selectedYear })}</p>
-          </div>
-        </div>
-
-        {/* Page Previews Grid */}
+        {/* Navigation Cards */}
         <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">{t('exploreCategories')}</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">{t('overview.exploreCategories')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {pagePreviews.map((preview) => (
+            {nav.map((item) => (
               <div
-                key={preview.title}
-                className="bg-gradient-to-br from-[var(--white)] to-[var(--green)]/20 p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 cursor-pointer card"
-                onClick={() => router.push(preview.path)}
-                aria-label={t('navigateTo', { title: preview.title })}
+                key={item.label}
+                className="bg-[var(--white)] p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)] cursor-pointer"
+                onClick={() => router.push(item.href)}
+                aria-label={t('overview.navigateTo', { title: item.label })}
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <preview.icon className="text-[var(--dark-green)] text-2xl" />
-                  <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{preview.title}</h3>
+                  <item.icon className="text-[var(--dark-green)] text-2xl" />
+                  <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{item.label}</h3>
                 </div>
-                <p className="text-[var(--olive-green)] text-xs sm:text-sm">{preview.description}</p>
+                <p className="text-[var(--olive-green)] text-xs sm:text-sm">{item.description}</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
