@@ -389,7 +389,8 @@
     "localProductionInputs": "Local Production Inputs (tons)",
     "units": "units"
   },
-    "economicIndicators": {
+    
+  "economicIndicators": {
     "title": "Economic Indicators - {{countryName}}",
     "ariaTitle": "Economic Indicators Overview for {{country}}",
     "loading": "Loading Economic Indicators...",
@@ -425,7 +426,6 @@
     "inputImportValue": "Input Import Value (USD)"
   }
 }
-
   
 
 

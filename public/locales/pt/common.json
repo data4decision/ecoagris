@@ -312,41 +312,7 @@
     "localProductionInputs": "Insumos de Produção Local (toneladas)",
     "units": "unidades"
   },
-  "economicIndicators": {
-    "title": "Indicadores Econômicos - {{countryName}}",
-    "ariaTitle": "Visão Geral dos Indicadores Econômicos para {{country}}",
-    "loading": "Carregando Indicadores Econômicos...",
-    "simulatedDataNote": "Dados simulados para fins de planejamento. Valide antes do uso operacional.",
-    "na": "N/D",
-    "downloadCSV": "Baixar CSV",
-    "downloadCSVLabel": "Baixar dados dos indicadores econômicos como CSV",
-    "downloadPNG": "Baixar PNG",
-    "downloadPNGLabel": "Baixar painel dos indicadores econômicos como PNG",
-    "downloadPDF": "Baixar PDF",
-    "downloadPDFLabel": "Baixar painel dos indicadores econômicos como PDF",
-    "yearSelectLabel": "Selecionar Ano para Métricas",
-    "metricSelectLabel": "Selecionar Métrica para Comparação Anual",
-    "report_exported": "Exportado em: {{date}}",
-    "metrics": "Métricas: Orçamento de Subsídios, Acesso ao Crédito, Índice de Preço de Insumos, Valor de Importação de Insumos",
-    "errors": {
-      "fetchFailed": "Falha ao buscar dados dos indicadores econômicos",
-      "noData": "Nenhum dado disponível para {{country}}",
-      "invalidCountry": "Parâmetro de país inválido",
-      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
-      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
-      "invalidCanvas": "Canvas está vazio ou inválido",
-      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
-    },
-    "metricCard": "Cartão de {{label}} para {{year}}",
-    "trendsTitle": "Tendências Econômicas (2006–{{year}})",
-    "trendsChart": "Gráfico de Tendências Econômicas",
-    "comparisonTitle": "Comparação Anual ({{country}})",
-    "comparisonChart": "Gráfico de Comparação Anual",
-    "subsidyBudget": "Orçamento de Subsídios (USD)",
-    "creditAccess": "Acesso ao Crédito (%)",
-    "inputPriceIndex": "Índice de Preço de Insumos (Base 2006)",
-    "inputImportValue": "Valor de Importação de Insumos (USD)"
-  },
+  
   "overview": {
     "title": "Visão Geral de Insumos Agrícolas - {{countryName}}",
     "downloadCSV": "Baixar CSV",
@@ -381,8 +347,45 @@
       "forecastSimulationDescription": "Projeções e simulações para insumos agrícolas.",
       "dataMethodology": "Dados e Metodologia",
       "dataMethodologyDescription": "Detalhes sobre fontes de dados e metodologia de simulação."
-    }
+    },
+    
+  "economicIndicators": {
+    "title": "Indicadores Econômicos - {{countryName}}",
+    "ariaTitle": "Visão Geral dos Indicadores Econômicos para {{country}}",
+    "loading": "Carregando Indicadores Econômicos...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento. Valide antes do uso operacional.",
+    "na": "N/D",
+    "downloadCSV": "Baixar CSV",
+    "downloadCSVLabel": "Baixar dados dos indicadores econômicos como CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPNGLabel": "Baixar painel dos indicadores econômicos como PNG",
+    "downloadPDF": "Baixar PDF",
+    "downloadPDFLabel": "Baixar painel dos indicadores econômicos como PDF",
+    "yearSelectLabel": "Selecionar Ano para Métricas",
+    "metricSelectLabel": "Selecionar Métrica para Comparação Anual",
+    "report_exported": "Exportado em: {{date}}",
+    "metrics": "Métricas: Orçamento de Subsídios, Acesso ao Crédito, Índice de Preços de Insumos, Valor de Importação de Insumos",
+    "errors": {
+      "fetchFailed": "Falha ao buscar dados dos indicadores econômicos",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "invalidCountry": "Parâmetro de país inválido",
+      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
+      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
+      "invalidCanvas": "Canvas está vazio ou inválido",
+      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
+    },
+    "metricCard": "Cartão {{label}} para {{year}}",
+    "trendsTitle": "Tendências Econômicas (2006–{{year}})",
+    "trendsChart": "Gráfico de Tendências Econômicas",
+    "comparisonTitle": "Comparação Anual ({{country}})",
+    "comparisonChart": "Gráfico de Comparação Anual",
+    "subsidyBudget": "Orçamento de Subsídios (USD)",
+    "creditAccess": "Acesso ao Crédito (%)",
+    "inputPriceIndex": "Índice de Preços de Insumos (Base 2006)",
+    "inputImportValue": "Valor de Importação de Insumos (USD)"
   }
+}
+
 
 
 
