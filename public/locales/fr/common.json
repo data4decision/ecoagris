@@ -385,5 +385,46 @@
       "forecastSimulationDescription": "Projections et simulations pour les intrants agricoles.",
       "dataMethodology": "Données et méthodologie",
       "dataMethodologyDescription": "Détails sur les sources de données et la méthodologie de simulation."
-    }
+    },
+  
+  "adoptionMechanization": {
+    "title": "Adoption et mécanisation - {{countryName}}",
+    "ariaTitle": "Aperçu de l'adoption et de la mécanisation pour {{country}}",
+    "loading": "Chargement de l'adoption et de la mécanisation...",
+    "simulatedDataNote": "Données simulées à des fins de planification. Validez avant utilisation opérationnelle.",
+    "na": "N/D",
+    "downloadCSV": "Télécharger CSV",
+    "downloadCSVLabel": "Télécharger les données d'adoption et de mécanisation en CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPNGLabel": "Télécharger le tableau de bord d'adoption et de mécanisation en PNG",
+    "downloadPDF": "Télécharger PDF",
+    "downloadPDFLabel": "Télécharger le tableau de bord d'adoption et de mécanisation en PDF",
+    "yearSelectLabel": "Sélectionner l'année pour les métriques",
+    "metricSelectLabel": "Sélectionner la métrique pour la comparaison annuelle",
+    "report_exported": "Exporté le : {{date}}",
+    "metrics": "Métriques : Adoption de semences améliorées, Intensité des engrais, Mécanisation",
+    "errors": {
+      "fetchFailed": "Échec de la récupération des données d'adoption et de mécanisation",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "invalidCountry": "Paramètre de pays invalide",
+      "pngFailed": "Échec du téléchargement PNG. Veuillez vérifier la console pour plus de détails.",
+      "pdfFailed": "Échec du téléchargement PDF. Veuillez vérifier la console pour plus de détails.",
+      "invalidCanvas": "Le canvas est vide ou invalide",
+      "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
+    },
+    "improvedSeedCard": "Carte d'adoption de semences améliorées pour {{year}}",
+    "fertilizerCard": "Carte d'intensité des engrais pour {{year}}",
+    "mechanizationCard": "Carte de mécanisation pour {{year}}",
+    "trendsTitle": "Tendances d'adoption (2006–{{year}})",
+    "trendsChart": "Graphique des tendances d'adoption",
+    "comparisonTitle": "Comparaison annuelle ({{country}})",
+    "comparisonChart": "Graphique de comparaison annuelle",
+    "improvedSeed": "Adoption de semences améliorées (%)",
+    "fertilizerIntensity": "Intensité des engrais (kg/ha)",
+    "mechanization": "Mécanisation (unités/1 000 fermes)",
+    "cerealSeeds": "Semences céréalières (tonnes)",
+    "fertilizer": "Engrais (tonnes)",
+    "pesticides": "Pesticides (litres)"
   }
+}
+  

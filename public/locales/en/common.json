@@ -424,8 +424,49 @@
     "creditAccess": "Credit Access (%)",
     "inputPriceIndex": "Input Price Index (2006 Base)",
     "inputImportValue": "Input Import Value (USD)"
+  },
+  
+  "adoptionMechanization": {
+    "title": "Adoption & Mechanization - {{countryName}}",
+    "ariaTitle": "Adoption & Mechanization Overview for {{country}}",
+    "loading": "Loading Adoption & Mechanization...",
+    "simulatedDataNote": "Simulated data for planning purposes. Validate before operational use.",
+    "na": "N/A",
+    "downloadCSV": "Download CSV",
+    "downloadCSVLabel": "Download adoption and mechanization data as CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPNGLabel": "Download adoption and mechanization dashboard as PNG",
+    "downloadPDF": "Download PDF",
+    "downloadPDFLabel": "Download adoption and mechanization dashboard as PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "metricSelectLabel": "Select Metric for Year Comparison",
+    "report_exported": "Exported on: {{date}}",
+    "metrics": "Metrics: Improved Seed Adoption, Fertilizer Intensity, Mechanization",
+    "errors": {
+      "fetchFailed": "Failed to fetch adoption and mechanization data",
+      "noData": "No data available for {{country}}",
+      "invalidCountry": "Invalid country parameter",
+      "pngFailed": "PNG download failed. Please check console for details.",
+      "pdfFailed": "PDF download failed. Please check console for details.",
+      "invalidCanvas": "Canvas is empty or invalid",
+      "invalidImageData": "Failed to generate image data from canvas"
+    },
+    "improvedSeedCard": "Improved Seed Adoption Card for {{year}}",
+    "fertilizerCard": "Fertilizer Intensity Card for {{year}}",
+    "mechanizationCard": "Mechanization Card for {{year}}",
+    "trendsTitle": "Adoption Trends (2006–{{year}})",
+    "trendsChart": "Adoption Trends Chart",
+    "comparisonTitle": "Year Comparison ({{country}})",
+    "comparisonChart": "Year Comparison Chart",
+    "improvedSeed": "Improved Seed Adoption (%)",
+    "fertilizerIntensity": "Fertilizer Intensity (kg/ha)",
+    "mechanization": "Mechanization (Units/1,000 Farms)",
+    "cerealSeeds": "Cereal Seeds (tons)",
+    "fertilizer": "Fertilizer (tons)",
+    "pesticides": "Pesticides (liters)"
   }
 }
+
   
 
 

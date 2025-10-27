@@ -383,8 +383,49 @@
     "creditAccess": "Acesso ao Crédito (%)",
     "inputPriceIndex": "Índice de Preços de Insumos (Base 2006)",
     "inputImportValue": "Valor de Importação de Insumos (USD)"
+  },
+  
+  "adoptionMechanization": {
+    "title": "Adoção e Mecanização - {{countryName}}",
+    "ariaTitle": "Visão Geral de Adoção e Mecanização para {{country}}",
+    "loading": "Carregando Adoção e Mecanização...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento. Valide antes do uso operacional.",
+    "na": "N/D",
+    "downloadCSV": "Baixar CSV",
+    "downloadCSVLabel": "Baixar dados de adoção e mecanização como CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPNGLabel": "Baixar painel de adoção e mecanização como PNG",
+    "downloadPDF": "Baixar PDF",
+    "downloadPDFLabel": "Baixar painel de adoção e mecanização como PDF",
+    "yearSelectLabel": "Selecionar Ano para Métricas",
+    "metricSelectLabel": "Selecionar Métrica para Comparação Anual",
+    "report_exported": "Exportado em: {{date}}",
+    "metrics": "Métricas: Adoção de Sementes Melhoradas, Intensidade de Fertilizantes, Mecanização",
+    "errors": {
+      "fetchFailed": "Falha ao buscar dados de adoção e mecanização",
+      "noData": "Nenhum dado disponível para {{country}}",
+      "invalidCountry": "Parâmetro de país inválido",
+      "pngFailed": "Falha no download do PNG. Verifique o console para detalhes.",
+      "pdfFailed": "Falha no download do PDF. Verifique o console para detalhes.",
+      "invalidCanvas": "Canvas está vazio ou inválido",
+      "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
+    },
+    "improvedSeedCard": "Cartão de Adoção de Sementes Melhoradas para {{year}}",
+    "fertilizerCard": "Cartão de Intensidade de Fertilizantes para {{year}}",
+    "mechanizationCard": "Cartão de Mecanização para {{year}}",
+    "trendsTitle": "Tendências de Adoção (2006–{{year}})",
+    "trendsChart": "Gráfico de Tendências de Adoção",
+    "comparisonTitle": "Comparação Anual ({{country}})",
+    "comparisonChart": "Gráfico de Comparação Anual",
+    "improvedSeed": "Adoção de Sementes Melhoradas (%)",
+    "fertilizerIntensity": "Intensidade de Fertilizantes (kg/ha)",
+    "mechanization": "Mecanização (Unidades/1.000 Fazendas)",
+    "cerealSeeds": "Sementes de Cereais (toneladas)",
+    "fertilizer": "Fertilizantes (toneladas)",
+    "pesticides": "Pesticidas (litros)"
   }
 }
+
 
 
 
