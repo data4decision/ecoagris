@@ -1,321 +1,367 @@
 'use client';
 
-// Import required dependencies
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
-import {
-  FaChartBar,
-  FaLeaf,
-  FaIndustry,
-  FaMoneyBillWave,
-  FaHeartbeat,
-  FaMap,
-  FaChartLine,
-  FaDatabase,
-  FaDownload,
-} from 'react-icons/fa';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useParams } from 'next/navigation';
+import { FaHorse, FaLeaf, FaDrumstickBite, FaChartLine, FaCalendarAlt, FaDownload } from 'react-icons/fa';
+import { format } from 'date-fns';
 import { stringify } from 'csv-stringify/sync';
-import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import '@/styles/pdf-styles.css'; // Import CSS for snapshot styling
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces
+// Full dataset interface
 interface LivestockData {
   country: string;
   year: number;
   cattle_head: number;
+  small_ruminants_head: number;
+  pigs_head: number;
+  poultry_head: number;
   milk_production_tons: number;
   meat_production_tons: number;
+  livestock_price_index_2006_base: number;
+  vaccination_coverage_pct: number;
+  fmd_incidents_count: number;
+  grazing_area_ha: number;
+  transhumance_events: number;
+  veterinary_facilities_count: number;
+  feed_imports_tons: number;
+  local_feed_production_tons: number;
+  livestock_exports_tons: number;
+  offtake_rate_pct: number;
 }
 
 interface Dataset {
   Simulated_Livestock_Data: LivestockData[];
 }
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  description: string;
-}
-
-export default function LivestockOverview() {
-  const { country } = useParams<{ country: string }>();
-  const router = useRouter();
+export default function LiveStockOverview() {
   const { t } = useTranslation('common');
+  const { country } = useParams<{ country: string }>();
   const dashboardRef = useRef<HTMLDivElement>(null);
-  const [countryData, setCountryData] = useState<LivestockData[]>([]);
+
+  const [data, setData] = useState<LivestockData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Navigation cards
-  const nav: NavItem[] = [
-    { label: t('livestockOverview.nav.overview'), href: `/${country}/dashboard/livestock`, icon: FaChartBar, description: t('livestockOverview.navDesc.overview') },
-    { label: t('livestockOverview.nav.population'), href: `/${country}/dashboard/livestock/population`, icon: FaLeaf, description: t('livestockOverview.navDesc.population') },
-    { label: t('livestockOverview.nav.production'), href: `/${country}/dashboard/livestock/production`, icon: FaIndustry, description: t('livestockOverview.navDesc.production') },
-    { label: t('livestockOverview.nav.economic'), href: `/${country}/dashboard/livestock/economic-indicators`, icon: FaMoneyBillWave, description: t('livestockOverview.navDesc.economic') },
-    { label: t('livestockOverview.nav.health'), href: `/${country}/dashboard/livestock/health-welfare`, icon: FaHeartbeat, description: t('livestockOverview.navDesc.health') },
-    { label: t('livestockOverview.nav.grazing'), href: `/${country}/dashboard/livestock/grazing-tranhumance`, icon: FaMap, description: t('livestockOverview.navDesc.grazing') },
-    { label: t('livestockOverview.nav.forecast'), href: `/${country}/dashboard/livestock/forecast-simulation`, icon: FaChartLine, description: t('livestockOverview.navDesc.forecast') },
-    { label: t('livestockOverview.nav.methodology'), href: `/${country}/dashboard/livestock/data-methodology`, icon: FaDatabase, description: t('livestockOverview.navDesc.methodology') },
-  ];
-
   // Fetch data
   useEffect(() => {
-    if (!country || typeof country !== 'string') {
-      setError(t('livestockOverview.errors.invalidCountry'));
-      setLoading(false);
-      return;
-    }
+    if (!country) return;
 
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/data/livestock/APMD_ECOWAS_Livestock_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('livestockOverview.errors.fetchFailed'));
-        const jsonData = (await response.json()) as Dataset;
+        const res = await fetch('/data/livestock/APMD_ECOWAS_Livestock_Simulated_2006_2025.json');
+        if (!res.ok) throw new Error(t('livestockOverview.errors.fetchFailed'));
 
-        if (!jsonData.Simulated_Livestock_Data || !Array.isArray(jsonData.Simulated_Livestock_Data)) {
-          throw new Error(t('livestockOverview.errors.invalidDataFormat'));
-        }
+        const json: Dataset = await res.json();
 
-        const filteredCountryData = jsonData.Simulated_Livestock_Data.filter(
-          (d) => d.country && d.country.toLowerCase() === country.toLowerCase()
+        const filtered = json.Simulated_Livestock_Data.filter(
+          (d) => d.country?.toLowerCase() === country.toLowerCase()
         );
 
-        if (filteredCountryData.length === 0) {
-          setError(t('livestockOverview.errors.noData', { country }));
-          setLoading(false);
-          return;
+        if (filtered.length === 0) {
+          throw new Error(t('livestockOverview.errors.noData', { country }));
         }
 
-        const years = filteredCountryData.map((d) => d.year).filter((y) => typeof y === 'number');
-        const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
-        setSelectedYear(maxYear);
-
-        setCountryData(filteredCountryData);
+        const years = filtered.map(d => d.year).sort((a, b) => b - a);
+        setSelectedYear(years[0]);
+        setData(filtered);
         setLoading(false);
       } catch (err) {
-        console.error('Fetch error:', err);
-        setError(t('livestockOverview.errors.loadingError'));
+        setError(err instanceof Error ? err.message : t('livestockOverview.errors.loadingError'));
         setLoading(false);
       }
-    }
+    };
 
     fetchData();
   }, [country, t]);
 
-  // Get data for selected year
-  const selectedData = countryData.find((d) => d.year === selectedYear);
+  // Current year data — safe fallback
+  const current = useMemo(() => {
+    return data.find(d => d.year === selectedYear) ?? data[0] ?? null;
+  }, [data, selectedYear]);
 
-  // CSV Download (same as AgricInput)
+  const years = useMemo(() => {
+    return Array.from(new Set(data.map(d => d.year))).sort((a, b) => b - a);
+  }, [data]);
+
+  // Formatters
+  const formatNum = (n: number): string => {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    return n.toLocaleString();
+  };
+
+  const formatTons = (t: number): string => `${formatNum(t)} t`;
+
+  // === EARLY RETURN: Loading / Error / No Data ===
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[var(--white)] flex items-center justify-center">
+        <p className="text-lg font-medium text-[var(--dark-green)]">
+          {t('livestockOverview.loading')}
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !current) {
+    return (
+      <div className="min-h-screen bg-[var(--white)] flex items-center justify-center p-4">
+        <p className="text-lg font-medium text-[var(--red)] text-center">
+          {error || t('livestockOverview.errors.noData', { country })}
+        </p>
+      </div>
+    );
+  }
+
+  // === SAFE TO USE `current` NOW ===
+  const totalAnimals =
+    current.cattle_head +
+    current.small_ruminants_head +
+    current.pigs_head +
+    current.poultry_head;
+
+  // === DOWNLOAD FUNCTIONS ===
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => ({
-      Country: data.country,
-      Year: data.year,
-      CattleHead: data.cattle_head?.toLocaleString() ?? t('livestockOverview.na'),
-      MilkProductionTons: data.milk_production_tons?.toLocaleString() ?? t('livestockOverview.na'),
-      MeatProductionTons: data.meat_production_tons?.toLocaleString() ?? t('livestockOverview.na'),
+    const csvData = data.map(d => ({
+      [t('livestockOverview.country')]: d.country,
+      [t('livestockOverview.year')]: d.year,
+      [t('livestockOverview.cattle')]: d.cattle_head,
+      [t('livestockOverview.smallRuminants')]: d.small_ruminants_head,
+      [t('livestockOverview.poultry')]: d.poultry_head,
+      [t('livestockOverview.milk')]: d.milk_production_tons,
+      [t('livestockOverview.meat')]: d.meat_production_tons,
+      [t('livestockOverview.priceIndex')]: d.livestock_price_index_2006_base.toFixed(3),
+      [t('livestockOverview.vaccination')]: d.vaccination_coverage_pct.toFixed(1),
+      [t('livestockOverview.fmdIncidents')]: d.fmd_incidents_count,
+      [t('livestockOverview.grazingArea')]: d.grazing_area_ha,
+      [t('livestockOverview.vetFacilities')]: d.veterinary_facilities_count,
+      [t('livestockOverview.offtakeRate')]: d.offtake_rate_pct.toFixed(1),
     }));
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${country}_livestock_overview.csv`;
-    link.click();
-    console.log('CSV downloaded successfully');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${country}_livestock_data_${selectedYear}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  // PNG Download (same as AgricInput)
   const handlePNGDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PNG generation');
-      alert(t('livestockOverview.errors.pngFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       const canvas = await html2canvas(dashboardRef.current, {
         scale: 2,
-        useCORS: true,
         backgroundColor: '#ffffff',
-        logging: true,
+        useCORS: true,
       });
-
-      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
-
-      const imgData = canvas.toDataURL('image/png');
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('livestockOverview.errors.invalidImageData'));
-      }
-
       const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `${country}_livestock_overview.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.download = `${country}_livestock_overview_${selectedYear}.png`;
       link.click();
-      console.log('PNG downloaded successfully');
     } catch (err) {
-      console.error('PNG generation error:', err);
+      console.error('PNG export failed:', err);
       alert(t('livestockOverview.errors.pngFailed'));
     }
   };
 
-  // PDF Download (same as AgricInput)
   const handlePDFDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PDF generation');
-      alert(t('livestockOverview.errors.pdfFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       const canvas = await html2canvas(dashboardRef.current, {
         scale: 2,
-        useCORS: true,
         backgroundColor: '#ffffff',
-        logging: true,
+        useCORS: true,
       });
-
-      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
-
       const imgData = canvas.toDataURL('image/png');
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('livestockOverview.errors.invalidImageData'));
-      }
-
       const pdf = new jsPDF('landscape');
-      pdf.setFontSize(12);
-      pdf.text(t('livestockOverview.title', { countryName: country.toUpperCase() }), 10, 10);
-      pdf.text(t('livestockOverview.metrics'), 10, 18);
-      pdf.text(t('livestockOverview.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-      pdf.addImage(imgData, 'PNG', 10, 35, 270, 120);
-      pdf.save(`${country}_livestock_overview.pdf`);
-      console.log('PDF downloaded successfully');
+      const imgWidth = pdf.internal.pageSize.getWidth() - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.setFontSize(16);
+      pdf.text(t('livestockOverview.title', { countryName: country.toUpperCase() }), 14, 15);
+      pdf.setFontSize(10);
+      pdf.text(t('livestockOverview.report_exported', { date: format(new Date(), 'PPP') }), 14, 22);
+      pdf.addImage(imgData, 'PNG', 10, 30, imgWidth, imgHeight);
+      pdf.save(`${country}_livestock_overview_${selectedYear}.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error('PDF export failed:', err);
       alert(t('livestockOverview.errors.pdfFailed'));
     }
   };
-
-  // Loading & Error States
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
-        <p className="text-[var(--dark-green)] text-lg font-medium">{t('livestockOverview.loading')}</p>
-      </div>
-    );
-  }
-
-  if (error || !selectedData) {
-    return (
-      <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
-        <p className="text-[var(--wine)] text-lg font-medium">{error || t('livestockOverview.errors.noData', { country })}</p>
-      </div>
-    );
-  }
 
   const countryName = country.charAt(0).toUpperCase() + country.slice(1);
 
   return (
-    <div className="min-h-screen bg-[var(--white)] font-sans">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-[var(--medium-green)] text-[var(--white)] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-md">
-        <div className="flex items-center gap-2">
-          <FaChartBar className="text-2xl sm:text-3xl text-[var(--yellow)]" />
-          <h1 className="text-xl sm:text-2xl font-bold">{t('livestockOverview.title', { countryName })}</h1>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 rounded bg-[var(--white)] text-[var(--dark-green)] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[var(--yellow)]"
-            aria-label={t('livestockOverview.yearSelectLabel')}
-          >
-            {Array.from(new Set(countryData.map(d => d.year))).sort((a, b) => a - b).map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-          <button
-            onClick={handleCSVDownload}
-            className="flex items-center gap-2 cursor-pointer bg-[var(--yellow)] text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
-            aria-label={t('livestockOverview.downloadCSV')}
-          >
-            <FaDownload className="text-[var(--dark-green)]" /> {t('livestockOverview.downloadCSV')}
-          </button>
-          <button
-            onClick={handlePNGDownload}
-            className="flex items-center gap-2 bg-[var(--yellow)] cursor-pointer text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
-            aria-label={t('livestockOverview.downloadPNG')}
-          >
-            <FaDownload className="text-[var(--dark-green)]" /> {t('livestockOverview.downloadPNG')}
-          </button>
-          <button
-            onClick={handlePDFDownload}
-            className="flex items-center gap-2 bg-[var(--yellow)] cursor-pointer text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
-            aria-label={t('livestockOverview.downloadPDF')}
-          >
-            <FaDownload className="text-[var(--dark-green)]" /> {t('livestockOverview.downloadPDF')}
-          </button>
+      <header className="bg-[var(--medium-green)] text-white shadow-lg sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <FaHorse className="text-3xl text-[var(--yellow)]" />
+            <h1 className="text-2xl font-bold">
+              {t('livestockOverview.title', { countryName })}
+            </h1>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Year Selector */}
+            <div className="flex items-center gap-2">
+              <FaCalendarAlt className="text-[var(--yellow)]" />
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="bg-white text-[var(--dark-green)] px-3 py-1.5 rounded text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--yellow)]"
+                aria-label={t('livestockOverview.yearSelectLabel')}
+              >
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Download Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={handleCSVDownload}
+                className="flex items-center gap-1.5 bg-[var(--yellow)] text-[var(--dark-green)] px-3 py-1.5 rounded text-sm font-medium hover:bg-[var(--yellow)]/90 transition"
+                title={t('livestockOverview.downloadCSV')}
+              >
+                <FaDownload /> {t('livestockOverview.downloadCSV')}
+              </button>
+              <button
+                onClick={handlePNGDownload}
+                className="flex items-center gap-1.5 bg-[var(--yellow)] text-[var(--dark-green)] px-3 py-1.5 rounded text-sm font-medium hover:bg-[var(--yellow)]/90 transition"
+                title={t('livestockOverview.downloadPNG')}
+              >
+                <FaDownload /> {t('livestockOverview.downloadPNG')}
+              </button>
+              <button
+                onClick={handlePDFDownload}
+                className="flex items-center gap-1.5 bg-[var(--yellow)] text-[var(--dark-green)] px-3 py-1.5 rounded text-sm font-medium hover:bg-[var(--yellow)]/90 transition"
+                title={t('livestockOverview.downloadPDF')}
+              >
+                <FaDownload /> {t('livestockOverview.downloadPDF')}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main ref={dashboardRef} className="max-w-7xl mx-auto p-4 sm:p-6" id="dashboard-content">
-        <p className="text-[var(--olive-green)] mb-6 text-sm sm:text-base italic">
-          {t('livestockOverview.simulatedDataNote')}
-        </p>
+      {/* Main Dashboard */}
+      <main ref={dashboardRef} className="max-w-7xl mx-auto px-4 py-8 bg-white">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          {/* Total Animals */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.totalAnimals')}</h3>
+              <FaLeaf className="text-2xl text-[var(--olive-green)]" />
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{formatNum(totalAnimals)}</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.heads')}</p>
+          </div>
 
-        {/* KPI Cards */}
-        <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">
-            {t('livestockOverview.kpiTitle', { year: selectedYear })}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-[var(--light-green)] p-4 rounded-lg text-center shadow">
-              <p className="font-medium text-[var(--dark-green)]">{t('livestockOverview.cattle')}</p>
-              <p className="text-3xl font-bold text-[var(--olive-green)]">{selectedData.cattle_head.toLocaleString()}</p>
+          {/* Cattle */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.cattle')}</h3>
+              <FaHorse className="text-2xl text-[var(--green)]" />
             </div>
-            <div className="bg-[var(--light-green)] p-4 rounded-lg text-center shadow">
-              <p className="font-medium text-[var(--dark-green)]">{t('livestockOverview.milk')}</p>
-              <p className="text-3xl font-bold text-[var(--olive-green)]">{selectedData.milk_production_tons.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{formatNum(current.cattle_head)}</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.heads')}</p>
+          </div>
+
+          {/* Small Ruminants */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.smallRuminants')}</h3>
+              <FaLeaf className="text-2xl text-[var(--olive-green)]" />
             </div>
-            <div className="bg-[var(--light-green)] p-4 rounded-lg text-center shadow">
-              <p className="font-medium text-[var(--dark-green)]">{t('livestockOverview.meat')}</p>
-              <p className="text-3xl font-bold text-[var(--olive-green)]">{selectedData.meat_production_tons.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{formatNum(current.small_ruminants_head)}</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.heads')}</p>
+          </div>
+
+          {/* Poultry */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.poultry')}</h3>
+              <FaDrumstickBite className="text-2xl text-[var(--yellow)]" />
             </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{formatNum(current.poultry_head)}</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.heads')}</p>
+          </div>
+
+          {/* Milk */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.milk')}</h3>
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-sm font-bold">M</div>
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{formatTons(current.milk_production_tons)}</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.tons')}</p>
+          </div>
+
+          {/* Meat */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.meat')}</h3>
+              <FaDrumstickBite className="text-2xl text-[var(--wine)]" />
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{formatTons(current.meat_production_tons)}</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.tons')}</p>
+          </div>
+
+          {/* Vaccination */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.vaccination')}</h3>
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm font-bold">V</div>
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{current.vaccination_coverage_pct.toFixed(1)}%</p>
+            <p className="text-xs text-gray-500">{t('livestockOverview.coverage')}</p>
+          </div>
+
+          {/* Price Index */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('livestockOverview.priceIndex')}</h3>
+              <FaChartLine className="text-2xl text-[var(--yellow)]" />
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{current.livestock_price_index_2006_base.toFixed(3)}</p>
+            <p className="text-xs text-gray-500">2006 = 1.0</p>
           </div>
         </div>
 
-        {/* Navigation Cards */}
-        <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">{t('livestockOverview.exploreCategories')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {nav.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.label}
-                  className="bg-[var(--white)] p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)] cursor-pointer"
-                  onClick={() => router.push(item.href)}
-                  aria-label={t('livestockOverview.navigateTo', { title: item.label })}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Icon className="text-[var(--dark-green)] text-2xl" />
-                    <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{item.label}</h3>
-                  </div>
-                  <p className="text-[var(--olive-green)] text-xs sm:text-sm">{item.description}</p>
-                </div>
-              );
-            })}
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="bg-[var(--dark-green)] text-white p-4 rounded-lg">
+            <p className="text-xs opacity-80">{t('livestockOverview.fmdIncidents')}</p>
+            <p className="text-2xl font-bold">{current.fmd_incidents_count}</p>
           </div>
+          <div className="bg-[var(--olive-green)] text-white p-4 rounded-lg">
+            <p className="text-xs opacity-80">{t('livestockOverview.vetFacilities')}</p>
+            <p className="text-2xl font-bold">{current.veterinary_facilities_count}</p>
+          </div>
+          <div className="bg-[var(--yellow)] text-[var(--dark-green)] p-4 rounded-lg">
+            <p className="text-xs font-medium">{t('livestockOverview.grazingArea')}</p>
+            <p className="text-2xl font-bold">{formatNum(current.grazing_area_ha)} ha</p>
+          </div>
+          <div className="bg-[var(--wine)] text-white p-4 rounded-lg">
+            <p className="text-xs opacity-80">{t('livestockOverview.offtakeRate')}</p>
+            <p className="text-2xl font-bold">{current.offtake_rate_pct.toFixed(1)}%</p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-gray-500">
+          <p>
+            {t('livestockOverview.simulatedDataNote')} • {t('livestockOverview.lastUpdated', { date: format(new Date(), 'MMMM d, yyyy') })}
+          </p>
         </div>
       </main>
     </div>

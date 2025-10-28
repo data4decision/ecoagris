@@ -570,57 +570,268 @@
     "value": "Value"
   },
   "livestockOverview": {
-    "title": "Livestock Overview - {{countryName}}",
-    "loading": "Loading Livestock Overview...",
-    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
-    "kpiTitle": "Key Indicators ({{year}})",
-    "cattle": "Cattle Population (head)",
-    "milk": "Milk Production (tons)",
-    "meat": "Meat Production (tons)",
-    "metrics": "Livestock Metrics",
-    "report_exported": "Exported on: {{date}}",
-    "exploreCategories": "Explore Categories",
-    "yearSelectLabel": "Select Year",
-    "na": "N/A",
+    "title": "{{countryName}} Livestock Overview",
+    "loading": "Loading livestock data...",
+    "errors": {
+      "noData": "No livestock data available for this country.",
+      "invalidCountry": "Invalid country parameter.",
+      "fetchFailed": "Failed to load data.",
+      "invalidDataFormat": "Invalid data format received.",
+      "loadingError": "An error occurred while loading data.",
+      "pngFailed": "Failed to export PNG.",
+      "pdfFailed": "Failed to export PDF.",
+      "invalidImageData": "Invalid image data generated."
+    },
+    "yearSelectLabel": "Select year",
+    "downloadCSV": "CSV",
+    "downloadPNG": "PNG",
+    "downloadPDF": "PDF",
+    "simulatedDataNote": "Simulated data for planning and analysis",
+    "lastUpdated": "Last updated: {{date}}",
+    "totalAnimals": "Total Animals",
+    "cattle": "Cattle",
+    "smallRuminants": "Small Ruminants",
+    "poultry": "Poultry",
+    "milk": "Milk Production",
+    "meat": "Meat Production",
+    "vaccination": "Vaccination",
+    "priceIndex": "Price Index",
+    "fmdIncidents": "FMD Incidents",
+    "vetFacilities": "Vet Facilities",
+    "grazingArea": "Grazing Area",
+    "offtakeRate": "Offtake Rate",
+    "heads": "Heads",
+    "tons": "Tons",
+    "coverage": "Coverage",
+    "country": "Country",
+    "year": "Year",
+    "report_exported": "Generated on {{date}}",
+    "metrics": "Livestock Metrics Dashboard"
+  },
+  "layout": {
+    "loading": "Loading...",
+    "user": "User",
+    "username": "Username",
+    "noEmail": "No email",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "greeting": "Hello, {{name}}",
+    "welcomeBack": "Welcome back!",
+    "dashboard": "Dashboard",
+    "sidebar": {
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar"
+    }
+  },
+  "populationChart": {
+  "title": "Livestock Population - {{countryName}}",
+  "chartTitle": "Population Trends",
+  "loading": "Loading population data...",
+  "noData": "No population data available for {{countryName}}.",
+  "year": "Year",
+  "headCount": "Head Count",
+  "cattle": "Cattle",
+  "smallRuminants": "Small Ruminants",
+  "pigs": "Pigs",
+  "poultry": "Poultry",
+  "errors": {
+    "fetchFailed": "Failed to load population data.",
+    "loadingError": "Error loading population data."
+  }
+},
 
+  "LivestockSidebar": {
+    "overview": "Overview",
+    "population": "Population",
+    "production": "Production",
+    "economic": "Economic Indicators",
+    "health": "Health & Welfare",
+    "grazing": "Grazing & Transhumance",
+    "forecast": "Forecast & Simulation",
+    "methodology": "Data & Methodology"
+  },
+  "population": {
+  "title": "{{countryName}} Livestock Population",
+  "loading": "Loading population data...",
+  "trendTitle": "Population Trend (2006–2025)",
+  "total": "Total Population",
+  "cattle": "Cattle",
+  "smallRuminants": "Small Ruminants",
+  "pigs": "Pigs",
+  "poultry": "Poultry",
+  "heads": "Heads",
+  "country": "Country",
+  "year": "Year",
+  "downloadCSV": "CSV",
+  "downloadPNG": "PNG",
+  "downloadPDF": "PDF",
+  "simulatedDataNote": "Simulated data for planning and analysis",
+  "lastUpdated": "Last updated: {{date}}",
+  "report_exported": "Generated on {{date}}",
+  "errors": {
+    "noData": "No population data available for this country.",
+    "fetchFailed": "Failed to load data.",
+    "loadingError": "An error occurred while loading data.",
+    "pngFailed": "Failed to export PNG.",
+    "pdfFailed": "Failed to export PDF."
+  }
+},
+"production": {
+  "title": "Livestock Production in {{countryName}}",
+  "loading": "Loading production data...",
+  "simulatedDataNote": "Simulated data for analysis purposes.",
+  "lastUpdated": "Last updated: {{date}}",
+  "trendTitle": "Production Trend (2006–2025)",
+  "total": "Total Production",
+  "milk": "Milk",
+  "meat": "Meat",
+  "tons": "tons",
+  "country": "Country",
+  "year": "Year",
+  "downloadCSV": "CSV",
+  "downloadPNG": "PNG",
+  "downloadPDF": "PDF",
+  "report_exported": "Report exported on {{date}}",
+  "errors": {
+    "fetchFailed": "Failed to fetch production data.",
+    "noData": "No production data found for {{country}}.",
+    "loadingError": "Error loading data.",
+    "pngFailed": "Failed to export PNG.",
+    "pdfFailed": "Failed to export PDF."
+  }
+},
+"economic": {
+  "title": "Livestock Economics in {{countryName}}",
+  "loading": "Loading economic data...",
+  "simulatedDataNote": "Data from ECOWAS Livestock Simulation Model.",
+  "lastUpdated": "Last updated: {{date}}",
+  "trendTitle": "Economic Trends (2006–2025)",
+  "priceIndex": "Price Index",
+  "exports": "Exports",
+  "offtake": "Offtake Rate",
+  "feedImports": "Feed Imports",
+  "localFeed": "Local Feed",
+  "tons": "tons",
+  "pct": "%",
+  "country": "Country",
+  "year": "Year",
+  "downloadCSV": "CSV",
+  "downloadPNG": "PNG",
+  "downloadPDF": "PDF",
+  "report_exported": "Report exported on {{date}}",
+  "errors": {
+    "fetchFailed": "Failed to load economic data.",
+    "noData": "No economic data for {{country}}.",
+    "loadingError": "Error loading data.",
+    "pngFailed": "Failed to export PNG.",
+    "pdfFailed": "Failed to export PDF."
+  }
+},
+
+"health": {
+    "title": "Livestock Health Dashboard – {{countryName}}",
+    "ariaTitle": "Livestock Health Dashboard for {{country}}",
+    "simulatedDataNote": "All data is simulated for demonstration purposes.",
+    "loading": "Loading health data...",
+    "yearSelectLabel": "Select Year",
+    "metricSelectLabel": "Select Metric",
     "downloadCSV": "Download CSV",
     "downloadPNG": "Download PNG",
     "downloadPDF": "Download PDF",
-
-    "nav": {
-      "overview": "Overview",
-      "population": "Population",
-      "production": "Production",
-      "economic": "Economic Indicators",
-      "health": "Health & Welfare",
-      "grazing": "Grazing & Transhumance",
-      "forecast": "Forecast & Simulation",
-      "methodology": "Data & Methodology"
-    },
-
-    "navDesc": {
-      "overview": "High-level summary of livestock sector performance.",
-      "population": "Trends in cattle, sheep, goat, and poultry populations.",
-      "production": "Annual milk, meat, and egg production volumes.",
-      "economic": "Value of livestock products, trade, and GDP contribution.",
-      "health": "Disease prevalence, vaccination rates, and animal welfare.",
-      "grazing": "Pasture availability, transhumance routes, and conflict zones.",
-      "forecast": "Projected growth under different climate and policy scenarios.",
-      "methodology": "Data sources, simulation models, and key assumptions."
-    },
-
+    "downloadCSVLabel": "Download health data as CSV",
+    "downloadPNGLabel": "Download dashboard as PNG image",
+    "downloadPDFLabel": "Download dashboard as PDF report",
+    "na": "N/A",
+    "reportExported": "Report exported on {{date}}",
+    "trendsTitle": "Health Trends Over Time",
+    "comparisonTitle": "Yearly Comparison – {{country}}",
+    "vaccinationCoverage": "Vaccination Coverage",
+    "fmdIncidents": "FMD Incidents",
+    "veterinaryFacilities": "Veterinary Facilities",
+    "metricCard": "{{label}} in {{year}}",
     "errors": {
-      "invalidCountry": "Invalid country parameter.",
-      "fetchFailed": "Failed to fetch livestock data.",
-      "invalidDataFormat": "Invalid data format received.",
+      "fetchFailed": "Failed to load data. Please try again later.",
+      "noData": "No health data available for {{country}}.",
+      "invalidCountry": "Invalid country selected.",
+      "pngFailed": "Failed to generate PNG. Please try again.",
+      "pdfFailed": "Failed to generate PDF. Please try again.",
+      "invalidCanvas": "Generated image is empty.",
+      "invalidImageData": "Failed to create image data."
+    }
+  },
+  "grazing": {
+    "title": "Grazing Dashboard – {{countryName}}",
+    "ariaTitle": "Grazing Dashboard for {{country}}",
+    "simulatedDataNote": "All grazing data is simulated for demonstration.",
+    "loading": "Loading grazing data...",
+    "yearSelectLabel": "Select Year",
+    "metricSelectLabel": "Select Metric",
+    "downloadCSV": "Download CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPDF": "Download PDF",
+    "downloadCSVLabel": "Download grazing data as CSV",
+    "downloadPNGLabel": "Download dashboard as PNG",
+    "downloadPDFLabel": "Download dashboard as PDF",
+    "na": "N/A",
+    "reportExported": "Report exported on {{date}}",
+    "trendsTitle": "Grazing Trends Over Time",
+    "comparisonTitle": "Yearly Comparison – {{country}}",
+    "area": "Grazing Area (ha)",
+    "events": "Transhumance Events",
+    "metricCard": "{{label}} in {{year}}",
+    "errors": {
+      "fetchFailed": "Failed to load grazing data.",
+      "noData": "No grazing data for {{country}}.",
+      "invalidCountry": "Invalid country.",
+      "pngFailed": "Failed to generate PNG.",
+      "pdfFailed": "Failed to generate PDF."
+    }
+  },
+  
+  "forecast": {
+    "title": "Livestock Forecast – {{countryName}}",
+    "simulatedDataNote": "Forecasts are based on simulated historical trends (2006–2025).",
+    "loading": "Generating forecasts...",
+    "yearsAhead": "{{count}} years ahead",
+    "projected": "Projected {{year}}: {{value}} ({{growth}}% growth)",
+    "historical": "Historical",
+    "forecast": "Forecast",
+    "trendsTitle": "Historical Trend & Forecast",
+    "downloadCSV": "CSV",
+    "downloadPNG": "PNG",
+    "downloadPDF": "PDF",
+    "reportExported": "Exported on {{date}}",
+    "cattle": "Cattle (head)",
+    "smallRuminants": "Small Ruminants (head)",
+    "pigs": "Pigs (head)",
+    "poultry": "Poultry (head)",
+    "milk": "Milk Production (tons)",
+    "meat": "Meat Production (tons)",
+    "priceIndex": "Livestock Price Index",
+    "vaccination": "Vaccination Coverage (%)",
+    "fmd": "FMD Incidents",
+    "grazingArea": "Grazing Area (ha)",
+    "transhumance": "Transhumance Events",
+    "vetFacilities": "Veterinary Facilities",
+    "feedImports": "Feed Imports (tons)",
+    "localFeed": "Local Feed Production (tons)",
+    "exports": "Livestock Exports (tons)",
+    "offtake": "Offtake Rate (%)",
+    "errors": {
+      "fetchFailed": "Failed to load forecast data.",
       "noData": "No data available for {{country}}.",
-      "loadingError": "Error loading livestock data.",
-      "pngFailed": "PNG download failed.",
-      "pdfFailed": "PDF download failed.",
-      "invalidImageData": "Invalid image data generated."
+      "pngFailed": "PNG export failed.",
+      "pdfFailed": "PDF export failed."
     }
   }
 }
+
+
+
+
+
+
 
 
 
