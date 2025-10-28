@@ -1,7 +1,7 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Overview from '@/app/[country]/dashboard/livestock/Overview';
+import LivestockOverview from '@/app/[country]/dashboard/livestock/LiveStockOverview';
 
 
 export default function LivestockDashboard() {
@@ -34,7 +34,7 @@ export default function LivestockDashboard() {
         <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4">
           Livestock Overview for {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
-        <Overview />
+        <LivestockOverview />
       </div>
     </div>
   );

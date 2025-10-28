@@ -568,6 +568,57 @@
     "localProductionInputsDesc": "Locally produced agricultural inputs in tons.",
     "metric": "Metric",
     "value": "Value"
+  },
+  "livestockOverview": {
+    "title": "Livestock Overview - {{countryName}}",
+    "loading": "Loading Livestock Overview...",
+    "simulatedDataNote": "Simulated data for planning purposes (2006–2025). Validate before operational use.",
+    "kpiTitle": "Key Indicators ({{year}})",
+    "cattle": "Cattle Population (head)",
+    "milk": "Milk Production (tons)",
+    "meat": "Meat Production (tons)",
+    "metrics": "Livestock Metrics",
+    "report_exported": "Exported on: {{date}}",
+    "exploreCategories": "Explore Categories",
+    "yearSelectLabel": "Select Year",
+    "na": "N/A",
+
+    "downloadCSV": "Download CSV",
+    "downloadPNG": "Download PNG",
+    "downloadPDF": "Download PDF",
+
+    "nav": {
+      "overview": "Overview",
+      "population": "Population",
+      "production": "Production",
+      "economic": "Economic Indicators",
+      "health": "Health & Welfare",
+      "grazing": "Grazing & Transhumance",
+      "forecast": "Forecast & Simulation",
+      "methodology": "Data & Methodology"
+    },
+
+    "navDesc": {
+      "overview": "High-level summary of livestock sector performance.",
+      "population": "Trends in cattle, sheep, goat, and poultry populations.",
+      "production": "Annual milk, meat, and egg production volumes.",
+      "economic": "Value of livestock products, trade, and GDP contribution.",
+      "health": "Disease prevalence, vaccination rates, and animal welfare.",
+      "grazing": "Pasture availability, transhumance routes, and conflict zones.",
+      "forecast": "Projected growth under different climate and policy scenarios.",
+      "methodology": "Data sources, simulation models, and key assumptions."
+    },
+
+    "errors": {
+      "invalidCountry": "Invalid country parameter.",
+      "fetchFailed": "Failed to fetch livestock data.",
+      "invalidDataFormat": "Invalid data format received.",
+      "noData": "No data available for {{country}}.",
+      "loadingError": "Error loading livestock data.",
+      "pngFailed": "PNG download failed.",
+      "pdfFailed": "PDF download failed.",
+      "invalidImageData": "Invalid image data generated."
+    }
   }
 }
 

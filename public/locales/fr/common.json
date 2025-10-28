@@ -567,9 +567,56 @@
     "localProductionInputsDesc": "Intrants agricoles produits localement en tonnes.",
     "metric": "Métrique",
     "value": "Valeur"
+  },
+  "livestockOverview": {
+    "title": "Aperçu de l’élevage - {{countryName}}",
+    "loading": "Chargement de l’aperçu de l’élevage...",
+    "simulatedDataNote": "Données simulées à des fins de planification (2006–2025). Valider avant utilisation opérationnelle.",
+    "kpiTitle": "Indicateurs clés ({{year}})",
+    "cattle": "Population bovine (têtes)",
+    "milk": "Production de lait (tonnes)",
+    "meat": "Production de viande (tonnes)",
+    "metrics": "Métriques de l’élevage",
+    "report_exported": "Exporté le : {{date}}",
+    "exploreCategories": "Explorer les catégories",
+    "yearSelectLabel": "Sélectionner l’année",
+    "na": "N/A",
+
+    "downloadCSV": "Télécharger CSV",
+    "downloadPNG": "Télécharger PNG",
+    "downloadPDF": "Télécharger PDF",
+
+    "nav": {
+      "overview": "Aperçu",
+      "population": "Population",
+      "production": "Production",
+      "economic": "Indicateurs économiques",
+      "health": "Santé & Bien-être",
+      "grazing": "Pâturage & Transhumance",
+      "forecast": "Prévision & Simulation",
+      "methodology": "Données & Méthodologie"
+    },
+
+    "navDesc": {
+      "overview": "Résumé de haut niveau des performances du secteur de l’élevage.",
+      "population": "Tendances des populations bovines, ovines, caprines et avicoles.",
+      "production": "Volumes annuels de lait, viande et œufs.",
+      "economic": "Valeur des produits d’élevage, commerce et contribution au PIB.",
+      "health": "Prévalence des maladies, taux de vaccination et bien-être animal.",
+      "grazing": "Disponibilité des pâturages, routes de transhumance et zones de conflit.",
+      "forecast": "Croissance projetée sous différents scénarios climatiques et politiques.",
+      "methodology": "Sources de données, modèles de simulation et hypothèses clés."
+    },
+
+    "errors": {
+      "invalidCountry": "Paramètre de pays invalide.",
+      "fetchFailed": "Échec du chargement des données d’élevage.",
+      "invalidDataFormat": "Format de données invalide reçu.",
+      "noData": "Aucune donnée disponible pour {{country}}.",
+      "loadingError": "Erreur lors du chargement des données d’élevage.",
+      "pngFailed": "Échec du téléchargement PNG.",
+      "pdfFailed": "Échec du téléchargement PDF.",
+      "invalidImageData": "Données d’image invalides générées."
+    }
   }
 }
-
-
-
-  

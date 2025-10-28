@@ -564,16 +564,56 @@
     "localProductionInputsDesc": "Insumos agrícolas produzidos localmente em toneladas.",
     "metric": "Métrica",
     "value": "Valor"
+  },
+  "livestockOverview": {
+    "title": "Visão Geral do Pecuário - {{countryName}}",
+    "loading": "Carregando Visão Geral do Pecuário...",
+    "simulatedDataNote": "Dados simulados para fins de planejamento (2006–2025). Validar antes do uso operacional.",
+    "kpiTitle": "Indicadores-chave ({{year}})",
+    "cattle": "População Bovina (cabeças)",
+    "milk": "Produção de Leite (toneladas)",
+    "meat": "Produção de Carne (toneladas)",
+    "metrics": "Métricas do Pecuário",
+    "report_exported": "Exportado em: {{date}}",
+    "exploreCategories": "Explorar Categorias",
+    "yearSelectLabel": "Selecionar Ano",
+    "na": "N/D",
+
+    "downloadCSV": "Baixar CSV",
+    "downloadPNG": "Baixar PNG",
+    "downloadPDF": "Baixar PDF",
+
+    "nav": {
+      "overview": "Visão Geral",
+      "population": "População",
+      "production": "Produção",
+      "economic": "Indicadores Econômicos",
+      "health": "Saúde & Bem-estar",
+      "grazing": "Pastagem & Transumância",
+      "forecast": "Previsão & Simulação",
+      "methodology": "Dados & Metodologia"
+    },
+
+    "navDesc": {
+      "overview": "Resumo de alto nível do desempenho do setor pecuário.",
+      "population": "Tendências em populações de gado, ovinos, caprinos e aves.",
+      "production": "Volumes anuais de leite, carne e ovos.",
+      "economic": "Valor dos produtos pecuários, comércio e contribuição ao PIB.",
+      "health": "Prevalência de doenças, taxas de vacinação e bem-estar animal.",
+      "grazing": "Disponibilidade de pastagens, rotas de transumância e zonas de conflito.",
+      "forecast": "Crescimento projetado sob diferentes cenários climáticos e políticos.",
+      "methodology": "Fontes de dados, modelos de simulação e principais suposições."
+    },
+
+    "errors": {
+      "invalidCountry": "Parâmetro de país inválido.",
+      "fetchFailed": "Falha ao carregar dados de pecuária.",
+      "invalidDataFormat": "Formato de dados inválido recebido.",
+      "noData": "Nenhum dado disponível para {{country}}.",
+      "loadingError": "Erro ao carregar dados de pecuária.",
+      "pngFailed": "Falha no download do PNG.",
+      "pdfFailed": "Falha no download do PDF.",
+      "invalidImageData": "Dados de imagem inválidos gerados."
+    }
   }
 }
-
-
-
-
-
-
-
-
-
-
-

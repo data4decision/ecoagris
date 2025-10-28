@@ -7,6 +7,7 @@ import { FaCaretDown, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { db, auth } from '@/firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface User {
   firstName?: string;
@@ -105,7 +106,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--yellow)] bg-[var(--medium-green)] text-[var(--white)] shadow-sm w-full">
           <h1 className="text-lg font-semibold sm:ml-0 ml-10 sticky">
             {isLoading ? 'Loading...' : user?.firstName || 'User'}
+           
           </h1>
+           <LanguageSwitcher/>
           <div className="relative" ref={dropdownRef}>
             <button
               className="flex items-center gap-2 hover:bg-[var(--wine)]/90 p-2 rounded-md transition-colors"
