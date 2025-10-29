@@ -141,7 +141,7 @@ export default function MacroOverviewPage() {
     link.click();
   };
 
-  // PNG Download
+  // PNG Download – FIXED
   const handlePNGDownload = async () => {
     const el = dashboardRef.current;
     if (!el) return alert(t('macro.overview.errors.pngFailed'));
@@ -153,7 +153,9 @@ export default function MacroOverviewPage() {
         useCORS: true,
         backgroundColor: '#ffffff',
       });
-      const imgData = canvas.toDataHASL('image/png');
+
+      const imgData = canvas.toDataURL('image/png'); 
+
       const link = document.createElement('a');
       link.href = imgData;
       link.download = `${country}_macro_overview.png`;
@@ -234,7 +236,7 @@ export default function MacroOverviewPage() {
       pdf.save(`${country}_macro_overview.pdf`);
     } catch (err: unknown) {
       console.error('PDF error:', err);
-      alert(t('macro.overview.errors.pdfFailed') + ' ' + err.message);
+      alert(t('macro.overview.errors.pdfFailed') + ' ' + (err as Error).message);
     }
   };
 
