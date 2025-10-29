@@ -1,7 +1,5 @@
-// src/app/[country]/dashboard/nutrition/malnutrition/program-coverage-surveillance/page.tsx
 'use client';
 
-// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -20,8 +18,8 @@ import { FaChartLine, FaDownload, FaHeartbeat, FaEye, FaPills, FaSyringe } from 
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
 interface ProgramCoverageSurveillanceData {
   country: string;
   year: number;
@@ -29,14 +27,13 @@ interface ProgramCoverageSurveillanceData {
   nutrition_surveillance_coverage_pct?: number;
   deworming_coverage_children_pct?: number;
   immunization_coverage_measles_pct?: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  [key: string]: unknown;
 }
 
 interface Dataset {
   Nutrition_Data: ProgramCoverageSurveillanceData[];
 }
 
-// Define available metrics for the bar chart
 type ProgramCoverageSurveillanceMetric =
   | 'nutrition_program_coverage_pct'
   | 'nutrition_surveillance_coverage_pct'
@@ -44,84 +41,70 @@ type ProgramCoverageSurveillanceMetric =
   | 'immunization_coverage_measles_pct';
 
 export default function ProgramCoverageSurveillancePage() {
-  // Get dynamic country parameter from URL
+  const { t } = useTranslation('common');
   const { country } = useParams();
-  // State for country-specific data, selected metric, selected year, loading, error
   const [countryData, setCountryData] = useState<ProgramCoverageSurveillanceData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<ProgramCoverageSurveillanceMetric>('nutrition_program_coverage_pct');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
   const programCoverageFields = [
     {
       key: 'nutrition_program_coverage_pct',
-      label: 'Nutrition Program Coverage (%)',
+      label: t('programCoverage.programCoverage'),
       format: (v: number) => `${v.toFixed(1)}%`,
       icon: <FaHeartbeat className="text-[var(--dark-green)] text-lg" />,
     },
     {
       key: 'nutrition_surveillance_coverage_pct',
-      label: 'Nutrition Surveillance Coverage (%)',
+      label: t('programCoverage.surveillanceCoverage'),
       format: (v: number) => `${v.toFixed(1)}%`,
       icon: <FaEye className="text-[var(--olive-green)] text-lg" />,
     },
     {
       key: 'deworming_coverage_children_pct',
-      label: 'Deworming Coverage (Children, %)',
+      label: t('programCoverage.deworming'),
       format: (v: number) => `${v.toFixed(1)}%`,
       icon: <FaPills className="text-[var(--wine)] text-lg" />,
     },
     {
       key: 'immunization_coverage_measles_pct',
-      label: 'Measles Immunization Coverage (%)',
+      label: t('programCoverage.measlesImmunization'),
       format: (v: number) => `${v.toFixed(1)}%`,
       icon: <FaSyringe className="text-[var(--yellow)] text-lg" />,
     },
   ];
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('programCoverage.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the program coverage and surveillance dataset
-        // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch program coverage and surveillance data: ${response.status} ${response.statusText}`);
+          throw new Error(t('programCoverage.errors.fetchFailed', { status: response.status, text: response.statusText }));
         }
         const jsonData = (await response.json()) as Dataset;
 
-        // Log sample data to verify fields
-        console.log('Sample dataset record:', jsonData.Nutrition_Data[0]);
-
-        // Validate dataset structure
         if (!jsonData.Nutrition_Data || !Array.isArray(jsonData.Nutrition_Data)) {
-          throw new Error('Invalid dataset format: Nutrition_Data is missing or not an array');
+          throw new Error(t('programCoverage.errors.invalidFormat'));
         }
 
-        // Calculate the latest year dynamically
         const years = jsonData.Nutrition_Data.map((d) => d.year).filter((y) => typeof y === 'number');
         const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
         setSelectedYear(maxYear);
 
-        // Filter data for the selected country
         const filteredCountryData = jsonData.Nutrition_Data.filter(
           (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
-        // Log filtered data to check values
-        console.log(`Filtered data for ${country}:`, filteredCountryData);
-
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('programCoverage.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -130,28 +113,25 @@ export default function ProgramCoverageSurveillancePage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading program coverage and surveillance data: ${(err as Error).message}`);
+        setError(t('programCoverage.errors.loadingError', { message: (err as Error).message }));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('programCoverage.year')]: data.year };
       programCoverageFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('programCoverage.na');
       });
       return row;
     });
@@ -164,11 +144,11 @@ export default function ProgramCoverageSurveillancePage() {
     link.click();
   };
 
-  // Function to handle PDF download
+  // Same as MalnutritionPage — guaranteed to work
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
+      console.error(t('programCoverage.errors.dashboardNotFound'));
       return;
     }
 
@@ -182,27 +162,25 @@ export default function ProgramCoverageSurveillancePage() {
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`${country}_program_coverage_surveillance_dashboard.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(t('programCoverage.errors.pdfError'), err);
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Program Coverage and Surveillance Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('programCoverage.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('programCoverage.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -214,43 +192,43 @@ export default function ProgramCoverageSurveillancePage() {
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Program Coverage and Surveillance Overview for ${country}`}
+          aria-label={t('programCoverage.overview', { country })}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Program Coverage and Surveillance -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('programCoverage.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('programCoverage.simulatedNote')}
         </p>
 
         {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download program coverage and surveillance data as CSV"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
+            aria-label={t('programCoverage.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('programCoverage.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download program coverage and surveillance dashboard as PDF"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
+            aria-label={t('programCoverage.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('programCoverage.downloadPDF')}
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
-        <div className="mb-6 max-w-full">
+        {/* Year Selection */}
+        <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('programCoverage.selectYear')}
           </label>
           <select
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -260,32 +238,33 @@ export default function ProgramCoverageSurveillancePage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 max-w-full">
+        {/* Metric Cards — Same as MalnutritionPage */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
           {programCoverageFields.map((field) => (
             <div
               key={field.key}
-              className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
+              aria-label={t('programCoverage.cardLabel', { label: field.label, year: selectedYear })}
             >
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 {field.icon}
-                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{field.label}</h3>
+                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">
+                  {field.label} ({selectedYear})
+                </h3>
               </div>
-              <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+              <p className="text-[var(--wine)] text-base sm:text-lg">
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('programCoverage.na')}
               </p>
-              <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Year: {selectedYear}</p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
+        {/* Visualizations — Same as MalnutritionPage */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Program Coverage and Surveillance Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Program Coverage and Surveillance Trends Chart">
+          {/* Line Chart */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('programCoverage.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Program Coverage and Surveillance Trends (2006–{selectedYear})
+              {t('programCoverage.trendsTitle', { start: 2006, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -311,47 +290,47 @@ export default function ProgramCoverageSurveillancePage() {
                   type="monotone"
                   dataKey="nutrition_program_coverage_pct"
                   stroke="var(--olive-green)"
-                  name="Nutrition Program Coverage (%)"
+                  name={t('programCoverage.programCoverage')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="nutrition_surveillance_coverage_pct"
                   stroke="var(--wine)"
-                  name="Nutrition Surveillance Coverage (%)"
+                  name={t('programCoverage.surveillanceCoverage')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="deworming_coverage_children_pct"
                   stroke="var(--yellow)"
-                  name="Deworming Coverage (Children, %)"
+                  name={t('programCoverage.deworming')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="immunization_coverage_measles_pct"
                   stroke="var(--medium-green)"
-                  name="Measles Immunization Coverage (%)"
+                  name={t('programCoverage.measlesImmunization')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          {/* Bar Chart */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('programCoverage.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('programCoverage.comparisonTitle', { country: (country as string).charAt(0).toUpperCase() + (country as string).slice(1) })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('programCoverage.selectMetric')}
             </label>
             <select
               id="metric-select"
               value={selectedMetric}
               onChange={(e) => setSelectedMetric(e.target.value as ProgramCoverageSurveillanceMetric)}
-              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
             >
               {programCoverageFields.map((field) => (
                 <option key={field.key} value={field.key}>

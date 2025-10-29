@@ -1,7 +1,5 @@
-// src/app/[country]/dashboard/nutrition/malnutrition/policy-and-funding/page.tsx
 'use client';
 
-// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -16,12 +14,20 @@ import {
   Bar,
   ResponsiveContainer,
 } from 'recharts';
-import { FaChartLine, FaDownload, FaDollarSign, FaBalanceScale, FaUsers, FaClipboardCheck, FaHandHoldingUsd } from 'react-icons/fa';
+import {
+  FaChartLine,
+  FaDownload,
+  FaDollarSign,
+  FaBalanceScale,
+  FaUsers,
+  FaClipboardCheck,
+  FaHandHoldingUsd,
+} from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
 interface PolicyAndFundingData {
   country: string;
   year: number;
@@ -30,14 +36,13 @@ interface PolicyAndFundingData {
   multisectoral_coordination_score?: number;
   national_nutrition_policy_implementation_pct?: number;
   donor_funding_for_nutrition_usd_million?: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  [key: string]: unknown;
 }
 
 interface Dataset {
   Nutrition_Data: PolicyAndFundingData[];
 }
 
-// Define available metrics for the bar chart
 type PolicyAndFundingMetric =
   | 'nutrition_budget_spending_usd_per_capita'
   | 'nutrition_policy_score_index'
@@ -46,90 +51,76 @@ type PolicyAndFundingMetric =
   | 'donor_funding_for_nutrition_usd_million';
 
 export default function PolicyAndFundingPage() {
-  // Get dynamic country parameter from URL
+  const { t } = useTranslation('common');
   const { country } = useParams();
-  // State for country-specific data, selected metric, selected year, loading, error
   const [countryData, setCountryData] = useState<PolicyAndFundingData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<PolicyAndFundingMetric>('nutrition_budget_spending_usd_per_capita');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
   const policyAndFundingFields = [
     {
       key: 'nutrition_budget_spending_usd_per_capita',
-      label: 'Nutrition Budget Spending (USD per Capita)',
+      label: t('policyFunding.budgetPerCapita'),
       format: (v: number) => `$${v.toFixed(2)}`,
       icon: <FaDollarSign className="text-[var(--dark-green)] text-lg" />,
     },
     {
       key: 'nutrition_policy_score_index',
-      label: 'Nutrition Policy Score (Index)',
+      label: t('policyFunding.policyScore'),
       format: (v: number) => v.toFixed(1),
       icon: <FaBalanceScale className="text-[var(--olive-green)] text-lg" />,
     },
     {
       key: 'multisectoral_coordination_score',
-      label: 'Multisectoral Coordination Score',
+      label: t('policyFunding.coordinationScore'),
       format: (v: number) => v.toFixed(1),
       icon: <FaUsers className="text-[var(--wine)] text-lg" />,
     },
     {
       key: 'national_nutrition_policy_implementation_pct',
-      label: 'Nutrition Policy Implementation (%)',
+      label: t('policyFunding.implementationPct'),
       format: (v: number) => `${v.toFixed(1)}%`,
       icon: <FaClipboardCheck className="text-[var(--yellow)] text-lg" />,
     },
     {
       key: 'donor_funding_for_nutrition_usd_million',
-      label: 'Donor Funding for Nutrition (USD Million)',
+      label: t('policyFunding.donorFunding'),
       format: (v: number) => `$${v.toFixed(1)}M`,
       icon: <FaHandHoldingUsd className="text-[var(--medium-green)] text-lg" />,
     },
   ];
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('policyFunding.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the policy and funding dataset
-        // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch policy and funding data: ${response.status} ${response.statusText}`);
+          throw new Error(t('policyFunding.errors.fetchFailed', { status: response.status, text: response.statusText }));
         }
         const jsonData = (await response.json()) as Dataset;
 
-        // Log sample data to verify fields
-        console.log('Sample dataset record:', jsonData.Nutrition_Data[0]);
-
-        // Validate dataset structure
         if (!jsonData.Nutrition_Data || !Array.isArray(jsonData.Nutrition_Data)) {
-          throw new Error('Invalid dataset format: Nutrition_Data is missing or not an array');
+          throw new Error(t('policyFunding.errors.invalidFormat'));
         }
 
-        // Calculate the latest year dynamically
         const years = jsonData.Nutrition_Data.map((d) => d.year).filter((y) => typeof y === 'number');
         const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
         setSelectedYear(maxYear);
 
-        // Filter data for the selected country
         const filteredCountryData = jsonData.Nutrition_Data.filter(
           (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
-        // Log filtered data to check values
-        console.log(`Filtered data for ${country}:`, filteredCountryData);
-
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('policyFunding.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -138,28 +129,25 @@ export default function PolicyAndFundingPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading policy and funding data: ${(err as Error).message}`);
+        setError(t('policyFunding.errors.loadingError', { message: (err as Error).message }));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('policyFunding.year')]: data.year };
       policyAndFundingFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('policyFunding.na');
       });
       return row;
     });
@@ -172,11 +160,11 @@ export default function PolicyAndFundingPage() {
     link.click();
   };
 
-  // Function to handle PDF download
+  // Same as MalnutritionPage — 100% working
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
+      console.error(t('policyFunding.errors.dashboardNotFound'));
       return;
     }
 
@@ -190,27 +178,25 @@ export default function PolicyAndFundingPage() {
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`${country}_policy_and_funding_dashboard.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(t('policyFunding.errors.pdfError'), err);
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Policy and Funding Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('policyFunding.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('policyFunding.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -222,43 +208,43 @@ export default function PolicyAndFundingPage() {
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Policy and Funding Overview for ${country}`}
+          aria-label={t('policyFunding.overview', { country })}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Policy and Funding -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('policyFunding.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('policyFunding.simulatedNote')}
         </p>
 
         {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download policy and funding data as CSV"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
+            aria-label={t('policyFunding.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('policyFunding.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download policy and funding dashboard as PDF"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
+            aria-label={t('policyFunding.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('policyFunding.downloadPDF')}
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
-        <div className="mb-6 max-w-full">
+        {/* Year Selection */}
+        <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('policyFunding.selectYear')}
           </label>
           <select
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -268,32 +254,33 @@ export default function PolicyAndFundingPage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
+        {/* Metric Cards — Same as MalnutritionPage */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 max-w-full">
           {policyAndFundingFields.map((field) => (
             <div
               key={field.key}
-              className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/70 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
+              aria-label={t('policyFunding.cardLabel', { label: field.label, year: selectedYear })}
             >
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 {field.icon}
-                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{field.label}</h3>
+                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">
+                  {field.label} ({selectedYear})
+                </h3>
               </div>
-              <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+              <p className="text-[var(--wine)] text-base sm:text-lg">
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('policyFunding.na')}
               </p>
-              <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Year: {selectedYear}</p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
+        {/* Visualizations — Same as MalnutritionPage */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Policy and Funding Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Policy and Funding Trends Chart">
+          {/* Line Chart */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('policyFunding.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Policy and Funding Trends (2006–{selectedYear})
+              {t('policyFunding.trendsTitle', { start: 2006, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -319,54 +306,54 @@ export default function PolicyAndFundingPage() {
                   type="monotone"
                   dataKey="nutrition_budget_spending_usd_per_capita"
                   stroke="var(--olive-green)"
-                  name="Nutrition Budget (USD per Capita)"
+                  name={t('policyFunding.budgetPerCapita')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="nutrition_policy_score_index"
                   stroke="var(--wine)"
-                  name="Policy Score (Index)"
+                  name={t('policyFunding.policyScore')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="multisectoral_coordination_score"
                   stroke="var(--yellow)"
-                  name="Coordination Score"
+                  name={t('policyFunding.coordinationScore')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="national_nutrition_policy_implementation_pct"
                   stroke="var(--medium-green)"
-                  name="Policy Implementation (%)"
+                  name={t('policyFunding.implementationPct')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="donor_funding_for_nutrition_usd_million"
                   stroke="var(--red)"
-                  name="Donor Funding (USD Million)"
+                  name={t('policyFunding.donorFunding')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          {/* Bar Chart */}
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('policyFunding.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('policyFunding.comparisonTitle', { country: (country as string).charAt(0).toUpperCase() + (country as string).slice(1) })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('policyFunding.selectMetric')}
             </label>
             <select
               id="metric-select"
               value={selectedMetric}
               onChange={(e) => setSelectedMetric(e.target.value as PolicyAndFundingMetric)}
-              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
             >
               {policyAndFundingFields.map((field) => (
                 <option key={field.key} value={field.key}>

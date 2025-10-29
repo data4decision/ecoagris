@@ -1,4 +1,3 @@
-// src/app/[country]/dashboard/nutrition/malnutrition/page.tsx
 'use client';
 
 // Import required dependencies
@@ -20,6 +19,7 @@ import { FaChartLine, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
 // Define TypeScript interfaces directly in the file
 interface NutritionData {
@@ -50,6 +50,7 @@ type MalnutritionMetric =
   | 'child_obesity_prevalence_pct';
 
 export default function MalnutritionPage() {
+  const { t } = useTranslation('common');
   // Get dynamic country parameter from URL
   const { country } = useParams();
   // State for country-specific data, selected metric, selected year, loading, error
@@ -61,19 +62,19 @@ export default function MalnutritionPage() {
 
   // Define field metadata for display and formatting
   const malnutritionFields = [
-    { key: 'prevalence_undernourishment_pct', label: 'Prevalence of Undernourishment (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'prevalence_stunting_children_under5_pct', label: 'Child Stunting (Under 5, %)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'prevalence_wasting_children_under5_pct', label: 'Child Wasting (Under 5, %)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'prevalence_overweight_children_under5_pct', label: 'Child Overweight (Under 5, %)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'adult_obesity_prevalence_pct', label: 'Adult Obesity (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'adult_underweight_prevalence_pct', label: 'Adult Underweight (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'child_obesity_prevalence_pct', label: 'Child Obesity (%)', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'prevalence_undernourishment_pct', label: t('malnutrition.undernourishment'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'prevalence_stunting_children_under5_pct', label: t('malnutrition.stunting'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'prevalence_wasting_children_under5_pct', label: t('malnutrition.wasting'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'prevalence_overweight_children_under5_pct', label: t('malnutrition.overweight'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'adult_obesity_prevalence_pct', label: t('malnutrition.adultObesity'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'adult_underweight_prevalence_pct', label: t('malnutrition.adultUnderweight'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'child_obesity_prevalence_pct', label: t('malnutrition.childObesity'), format: (v: number) => `${v.toFixed(1)}%` },
   ];
 
   // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('malnutrition.errors.invalidCountry'));
       setLoading(false);
       return;
     }
@@ -84,7 +85,7 @@ export default function MalnutritionPage() {
         // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch malnutrition data: ${response.status} ${response.statusText}`);
+          throw new Error(t('malnutrition.errors.fetchFailed', { status: response.status, text: response.statusText }));
         }
         const jsonData = (await response.json()) as Dataset;
 
@@ -93,7 +94,7 @@ export default function MalnutritionPage() {
 
         // Validate dataset structure
         if (!jsonData.Nutrition_Data || !Array.isArray(jsonData.Nutrition_Data)) {
-          throw new Error('Invalid dataset format: Nutrition_Data is missing or not an array');
+          throw new Error(t('malnutrition.errors.invalidFormat'));
         }
 
         // Calculate the latest year dynamically
@@ -110,7 +111,7 @@ export default function MalnutritionPage() {
         console.log(`Filtered data for ${country}:`, filteredCountryData);
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('malnutrition.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -119,13 +120,13 @@ export default function MalnutritionPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading malnutrition data: ${(err as Error).message}`);
+        setError(t('malnutrition.errors.loadingError', { message: (err as Error).message }));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
   // Get unique years for dropdown
   const availableYears = useMemo(() => {
@@ -138,9 +139,9 @@ export default function MalnutritionPage() {
   // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('malnutrition.year')]: data.year };
       malnutritionFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('malnutrition.na');
       });
       return row;
     });
@@ -157,7 +158,7 @@ export default function MalnutritionPage() {
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
+      console.error(t('malnutrition.errors.dashboardNotFound'));
       return;
     }
 
@@ -171,7 +172,7 @@ export default function MalnutritionPage() {
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`${country}_malnutrition_dashboard.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(t('malnutrition.errors.pdfError'), err);
     }
   };
 
@@ -180,7 +181,7 @@ export default function MalnutritionPage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Malnutrition Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('malnutrition.loading')}</p>
         </div>
       </div>
     );
@@ -191,7 +192,7 @@ export default function MalnutritionPage() {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('malnutrition.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -203,13 +204,13 @@ export default function MalnutritionPage() {
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Malnutrition Overview for ${country}`}
+          aria-label={t('malnutrition.overview', { country })}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Malnutrition -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('malnutrition.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('malnutrition.simulatedNote')}
         </p>
 
         {/* Download Buttons */}
@@ -217,23 +218,23 @@ export default function MalnutritionPage() {
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download malnutrition data as CSV"
+            aria-label={t('malnutrition.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('malnutrition.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download malnutrition dashboard as PDF"
+            aria-label={t('malnutrition.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('malnutrition.downloadPDF')}
           </button>
         </div>
 
         {/* Year Selection for Cards */}
         <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('malnutrition.selectYear')}
           </label>
           <select
             id="year-select"
@@ -255,11 +256,11 @@ export default function MalnutritionPage() {
             <div
               key={field.key}
               className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              aria-label={t('malnutrition.cardLabel', { label: field.label, year: selectedYear })}
             >
               <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
               <p className="text-[var(--wine)] text-base sm:text-lg">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('malnutrition.na')}
               </p>
             </div>
           ))}
@@ -268,9 +269,9 @@ export default function MalnutritionPage() {
         {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
           {/* Line Chart: Malnutrition Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Malnutrition Trends Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('malnutrition.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Malnutrition Trends (2006–{selectedYear})
+              {t('malnutrition.trendsTitle', { start: 2006, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -296,49 +297,49 @@ export default function MalnutritionPage() {
                   type="monotone"
                   dataKey="prevalence_undernourishment_pct"
                   stroke="var(--olive-green)"
-                  name="Prevalence of Undernourishment (%)"
+                  name={t('malnutrition.undernourishment')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="prevalence_stunting_children_under5_pct"
                   stroke="var(--wine)"
-                  name="Child Stunting (Under 5, %)"
+                  name={t('malnutrition.stunting')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="prevalence_wasting_children_under5_pct"
                   stroke="var(--yellow)"
-                  name="Child Wasting (Under 5, %)"
+                  name={t('malnutrition.wasting')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="prevalence_overweight_children_under5_pct"
                   stroke="var(--medium-green)"
-                  name="Child Overweight (Under 5, %)"
+                  name={t('malnutrition.overweight')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="adult_obesity_prevalence_pct"
                   stroke="var(--red)"
-                  name="Adult Obesity (%)"
+                  name={t('malnutrition.adultObesity')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="adult_underweight_prevalence_pct"
                   stroke="var(--green)"
-                  name="Adult Underweight (%)"
+                  name={t('malnutrition.adultUnderweight')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="child_obesity_prevalence_pct"
                   stroke="var(--dark-green)"
-                  name="Child Obesity (%)"
+                  name={t('malnutrition.childObesity')}
                   strokeWidth={2}
                 />
               </LineChart>
@@ -346,12 +347,12 @@ export default function MalnutritionPage() {
           </div>
 
           {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('malnutrition.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('malnutrition.comparisonTitle', { country: (country as string).charAt(0).toUpperCase() + (country as string).slice(1) })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('malnutrition.selectMetric')}
             </label>
             <select
               id="metric-select"

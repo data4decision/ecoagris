@@ -1,283 +1,260 @@
 'use client';
 
-// Import required dependencies
-import { useParams, useRouter } from 'next/navigation'; // Added useRouter
-import { useState, useEffect, useMemo } from 'react';
-import { FaChartBar, FaHeartbeat, FaUtensils, FaCapsules, FaChild, FaHandsHelping, FaMoneyBillWave, FaDownload, FaShieldAlt, FaDatabase, FaGlobe, FaCalendarAlt, FaUsers } from 'react-icons/fa';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useParams } from 'next/navigation';
+import {
+  FaChartBar,
+  FaHeartbeat,
+  FaUtensils,
+  FaCapsules,
+  FaChild,
+  FaHandsHelping,
+  FaMoneyBillWave,
+  FaShieldAlt,
+  FaDatabase,
+  FaUsers,
+  FaCalendarAlt,
+  FaDownload
+} from 'react-icons/fa';
+import { format } from 'date-fns';
 import { stringify } from 'csv-stringify/sync';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
-interface OverviewData {
+interface NutritionData {
   country: string;
   year: number;
   population: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  [key: string]: unknown;
 }
 
 interface Dataset {
-  Nutrition_Data: OverviewData[];
+  Nutrition_Data: NutritionData[];
 }
 
-export default function OverviewPage() {
-  // Get dynamic country parameter from URL
-  const { country } = useParams();
-  const router = useRouter(); // Initialize router
-  // State for overview data, selected year, loading, and error
-  const [overviewData, setOverviewData] = useState<OverviewData[]>([]);
+export default function NutritionOverview() {
+  const { t } = useTranslation('common');
+  const { country } = useParams<{ country: string }>();
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const [data, setData] = useState<NutritionData[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Page preview data (title, icon, path, description)
-  const pagePreviews = [
-    { title: 'Malnutrition Indicators', icon: FaHeartbeat, path: `/${country}/dashboard/nutrition/malnutrition`, description: 'Prevalence of undernourishment, stunting, and obesity trends.' },
-    { title: 'Dietary & Nutrient Intake', icon: FaUtensils, path: `/${country}/dashboard/nutrition/dietary-nutrient-intake`, description: 'Caloric intake, protein, and food consumption patterns.' },
-    { title: 'Micronutrient Deficiencies', icon: FaCapsules, path: `/${country}/dashboard/nutrition/micronutrient-deficiencies`, description: 'Vitamin A, iron, and anemia rates in women and children.' },
-    { title: 'Health Outcomes', icon: FaChild, path: `/${country}/dashboard/nutrition/health-outcomes`, description: 'Child mortality, maternal mortality, and birth weight metrics.' },
-    { title: 'Nutrition Interventions', icon: FaHandsHelping, path: `/${country}/dashboard/nutrition/interventions`, description: 'Breastfeeding, dietary diversity, and school meals coverage.' },
-    { title: 'Policy & Funding', icon: FaMoneyBillWave, path: `/${country}/dashboard/nutrition/policy-funding`, description: 'Budget spending, policy scores, and donor funding.' },
-    { title: 'Program Coverage & Surveillance', icon: FaShieldAlt, path: `/${country}/dashboard/nutrition/program-coverage-surveillance`, description: 'Program coverage, surveillance, deworming, and immunization rates.' },
-    { title: 'Data Quality & Methodology', icon: FaDatabase, path: `/${country}/dashboard/nutrition/data-quality-and-methodology`, description: 'Data quality index and methodology notes.' }, // Fixed path to match file structure
-  ];
-
-  // Fetch data from JSON file
+  // Fetch data
   useEffect(() => {
-    if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
-      setLoading(false);
-      return;
-    }
+    if (!country) return;
 
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        // Data Fetch Location: Load the overview dataset
-        // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
-        const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch overview data: ${response.status} ${response.statusText}`);
-        }
-        const jsonData = (await response.json()) as Dataset;
+        const res = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
+        if (!res.ok) throw new Error(t('nutritionOverview.errors.fetchFailed'));
 
-        // Log sample data to verify fields
-        console.log('Sample dataset record:', jsonData.Nutrition_Data[0]);
-
-        // Validate dataset structure
-        if (!jsonData.Nutrition_Data || !Array.isArray(jsonData.Nutrition_Data)) {
-          throw new Error('Invalid dataset format: Nutrition_Data is missing or not an array');
-        }
-
-        // Calculate the latest year dynamically
-        const years = jsonData.Nutrition_Data.map((d) => d.year).filter((y) => typeof y === 'number');
-        const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
-        setSelectedYear(maxYear);
-
-        // Filter data for the selected country
-        const filteredCountryData = jsonData.Nutrition_Data.filter(
-          (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
+        const json: Dataset = await res.json();
+        const filtered = json.Nutrition_Data.filter(
+          d => d.country?.toLowerCase() === country.toLowerCase()
         );
 
-        // Log filtered data to check values
-        console.log(`Filtered overview data for ${country}:`, filteredCountryData);
-
-        if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
-          setLoading(false);
-          return;
+        if (filtered.length === 0) {
+          throw new Error(t('nutritionOverview.errors.noData', { country }));
         }
 
-        setOverviewData(filteredCountryData);
+        const years = filtered.map(d => d.year).sort((a, b) => b - a);
+        setSelectedYear(years[0]);
+        setData(filtered);
         setLoading(false);
       } catch (err) {
-        console.error('Fetch error:', err);
-        setError(`Error loading overview data: ${(err as Error).message}`);
+        setError(err instanceof Error ? err.message : t('nutritionOverview.errors.loadingError'));
         setLoading(false);
       }
-    }
+    };
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
-  const availableYears = useMemo(() => {
-    return Array.from(new Set(overviewData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
-  }, [overviewData]);
+  const current = useMemo(() => {
+    return data.find(d => d.year === selectedYear) ?? data[0] ?? null;
+  }, [data, selectedYear]);
 
-  // Get data for the selected year
-  const selectedData = overviewData.find((d) => d.year === selectedYear);
+  const years = useMemo(() => {
+    return Array.from(new Set(data.map(d => d.year))).sort((a, b) => b - a);
+  }, [data]);
 
-  // Function to handle CSV download
+  const formatNum = (n: number): string => {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    return n.toLocaleString();
+  };
+
+  // CSV Download
   const handleCSVDownload = () => {
-    const csvData = overviewData.map((data) => ({
-      Country: data.country,
-      Year: data.year,
-      Population: data.population,
+    const csvData = data.map(d => ({
+      [t('nutritionOverview.country')]: d.country,
+      [t('nutritionOverview.year')]: d.year,
+      [t('nutritionOverview.population')]: d.population,
     }));
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${country}_overview_data.csv`;
-    link.click();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${country}_nutrition_overview_${selectedYear}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  // Function to handle PDF download
-  const handlePDFDownload = async () => {
-    const dashboard = document.getElementById('dashboard-content');
-    if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
-      return;
-    }
-
-    try {
-      const canvas = await html2canvas(dashboard, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      pdf.save(`${country}_overview_dashboard.pdf`);
-    } catch (err) {
-      console.error('PDF generation error:', err);
-    }
-  };
-
-  // Render loading state
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Overview Data...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-lg font-medium text-[var(--dark-green)]">
+          {t('nutritionOverview.loading')}
+        </p>
       </div>
     );
   }
 
-  // Render error state
-  if (!selectedData) {
+  if (error || !current) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <p className="text-lg font-medium text-red-600 text-center">
+          {error || t('nutritionOverview.errors.noData', { country })}
+        </p>
       </div>
     );
   }
+
+  const countryName = country.charAt(0).toUpperCase() + country.slice(1);
 
   return (
-    <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
-        {/* Page Header */}
-        <h1
-          className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Overview for ${country}`}
-        >
-          <FaChartBar aria-hidden="true" className="text-lg sm:text-xl" /> Overview -{' '}
-          {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
-        </h1>
-        <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
-        </p>
-
-        {/* Download Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
-          <button
-            onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download overview data as CSV"
-          >
-            <FaDownload /> Download CSV
-          </button>
-          <button
-            onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download overview dashboard as PDF"
-          >
-            <FaDownload /> Download PDF
-          </button>
-        </div>
-
-        {/* Year Selection */}
-        <div className="mb-6 max-w-full">
-          <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
-          </label>
-          <select
-            id="year-select"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
-          >
-            {availableYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Overview Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
-          {/* Country Card */}
-          <div className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <FaGlobe className="text-[var(--dark-green)] text-lg" />
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">Country</h3>
-            </div>
-            <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
-              {selectedData.country}
-            </p>
-            <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Current: {selectedYear}</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-[var(--medium-green)] text-white shadow-lg sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <FaChartBar className="text-3xl text-[var(--yellow)]" />
+            <h1 className="text-2xl font-bold">
+              {t('nutritionOverview.title', { countryName })}
+            </h1>
           </div>
 
-          {/* Year Card */}
-          <div className="bg-gradient-to-br from-[var(--white)] to-[var(--green)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <FaCalendarAlt className="text-[var(--dark-green)] text-lg" />
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">Year</h3>
-            </div>
-            <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
-              {selectedYear}
-            </p>
-            <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Selected</p>
-          </div>
-
-          {/* Population Card */}
-          <div className="bg-gradient-to-br from-[var(--white)] to-[var(--wine)]/30 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <FaUsers className="text-[var(--dark-green)] text-lg" />
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">Population</h3>
-            </div>
-            <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
-              {selectedData.population?.toLocaleString() || 'N/A'}
-            </p>
-            <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Year: {selectedYear}</p>
-          </div>
-        </div>
-
-        {/* Page Previews Grid */}
-        <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">Explore Categories</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {pagePreviews.map((preview) => (
-              <div
-                key={preview.title}
-                className="bg-gradient-to-br from-[var(--white)] to-[var(--green)]/20 p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 cursor-pointer"
-                onClick={() => router.push(preview.path)}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Year Selector */}
+            <div className="flex items-center gap-2">
+              <FaCalendarAlt className="text-[var(--yellow)]" />
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="bg-white text-[var(--dark-green)] px-3 py-1.5 rounded text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--yellow)]"
+                aria-label={t('nutritionOverview.yearSelectLabel')}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <preview.icon className="text-[var(--dark-green)] text-2xl" />
-                  <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{preview.title}</h3>
-                </div>
-                <p className="text-[var(--olive-green)] text-xs sm:text-sm">{preview.description}</p>
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* CSV Download Only */}
+            <button
+              onClick={handleCSVDownload}
+              className="flex items-center gap-1.5 bg-[var(--yellow)] text-[var(--dark-green)] px-3 py-1.5 rounded text-sm font-medium hover:bg-[var(--yellow)]/90 transition"
+              title={t('nutritionOverview.downloadCSV')}
+            >
+              <FaDownload /> {t('nutritionOverview.downloadCSV')}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Dashboard */}
+      <main ref={dashboardRef} className="max-w-7xl mx-auto px-4 py-8 bg-white">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          {/* Population */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('nutritionOverview.population')}</h3>
+              <FaUsers className="text-2xl text-[var(--olive-green)]" />
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">
+              {formatNum(current.population)}
+            </p>
+            <p className="text-xs text-gray-500">{t('nutritionOverview.people')}</p>
+          </div>
+
+          {/* Country */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('nutritionOverview.country')}</h3>
+              <div className="w-8 h-8 bg-[var(--light-green)] rounded-full flex items-center justify-center text-[var(--dark-green)] text-sm font-bold">
+                C
               </div>
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{current.country}</p>
+            <p className="text-xs text-gray-500">{t('nutritionOverview.current')}: {selectedYear}</p>
+          </div>
+
+          {/* Year */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('nutritionOverview.year')}</h3>
+              <FaCalendarAlt className="text-2xl text-[var(--yellow)]" />
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">{selectedYear}</p>
+            <p className="text-xs text-gray-500">{t('nutritionOverview.selected')}</p>
+          </div>
+
+          {/* Placeholder for future metric */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-gray-600">{t('nutritionOverview.comingSoon')}</h3>
+              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-sm font-bold">
+                ?
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-[var(--dark-green)]">—</p>
+            <p className="text-xs text-gray-500">{t('nutritionOverview.moreSoon')}</p>
+          </div>
+        </div>
+
+        {/* Category Navigation */}
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-[var(--dark-green)] mb-6">
+            {t('nutritionOverview.exploreCategories')}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { icon: FaHeartbeat, title: t('nutritionOverview.malnutrition'), path: 'malnutrition' },
+              { icon: FaUtensils, title: t('nutritionOverview.dietary'), path: 'dietary-nutrient-intake' },
+              { icon: FaCapsules, title: t('nutritionOverview.micronutrient'), path: 'micronutrient-deficiencies' },
+              { icon: FaChild, title: t('nutritionOverview.healthOutcomes'), path: 'health-outcomes' },
+              { icon: FaHandsHelping, title: t('nutritionOverview.interventions'), path: 'interventions' },
+              { icon: FaMoneyBillWave, title: t('nutritionOverview.policyFunding'), path: 'policy-funding' },
+              { icon: FaShieldAlt, title: t('nutritionOverview.coverage'), path: 'program-coverage-surveillance' },
+              { icon: FaDatabase, title: t('nutritionOverview.dataMethodology'), path: 'data-quality-and-methodology' },
+            ].map((item) => (
+              <a
+                key={item.path}
+                href={`/${country}/dashboard/nutrition/${item.path}`}
+                className="bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-xl transition-all hover:scale-105 cursor-pointer flex items-center gap-4"
+              >
+                <item.icon className="text-2xl text-[var(--dark-green)]" />
+                <div>
+                  <h3 className="font-semibold text-[var(--dark-green)]">{item.title}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{t('nutritionOverview.viewDetails')}</p>
+                </div>
+              </a>
             ))}
           </div>
         </div>
-      </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-gray-500">
+          <p>
+            {t('nutritionOverview.simulatedDataNote')} • {t('nutritionOverview.lastUpdated', { date: format(new Date(), 'MMMM d, yyyy') })}
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

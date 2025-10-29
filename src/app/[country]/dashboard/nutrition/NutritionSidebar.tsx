@@ -1,9 +1,11 @@
 'use client';
+
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, usePathname } from 'next/navigation';
-import { FaChartBar,
+import {
+  FaChartBar,
   FaHeartbeat,
   FaUtensils,
   FaCapsules,
@@ -12,14 +14,17 @@ import { FaChartBar,
   FaMoneyBill,
   FaShieldAlt,
   FaDatabase,
-FaChevronCircleRight,
-FaChevronCircleLeft,
-FaSignOutAlt } from 'react-icons/fa';
-// Add the logout function implementation (imported or defined)
+  FaChevronCircleRight,
+  FaChevronCircleLeft,
+  FaSignOutAlt
+} from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+
+// ---------------------------------------------------------------------
+// Logout
+// ---------------------------------------------------------------------
 const logout = () => {
-  // Implement your logout logic here
   console.log('Logging out...');
-  // Example: redirect to login page
   window.location.href = '/login';
 };
 
@@ -32,24 +37,28 @@ const NutritionSidebar = ({ onCollapseChange }: NutritionSidebarProps) => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const { country } = useParams();
   const pathname = usePathname();
+  const { t } = useTranslation('common');   // <-- only common.json
 
- const nav = [
-  {label: 'Overview', href: `/${country}/dashboard/nutrition`, icon: FaChartBar, },
-  {label: 'Malnutrition Indicators', href: `/${country}/dashboard/nutrition/malnutrition`, icon: FaHeartbeat, },
-  {label: 'Dietary & Nutrient Intake', href: `/${country}/dashboard/nutrition/dietary-nutrient-intake`, icon: FaUtensils, },
-  {label: 'Micronutrient Deficiencies',href: `/${country}/dashboard/nutrition/micronutrient-deficiencies`, icon: FaCapsules },
-  {label: 'Health Outcomes', href: `/${country}/dashboard/nutrition/health-outcomes`, icon: FaChild},
-  {label: 'Nutrition Interventions', href: `/${country}/dashboard/nutrition/interventions`, icon: FaHandsHelping,},
-  {label: 'Policy & Funding', href: `/${country}/dashboard/nutrition/policy-funding`, icon: FaMoneyBill},
-  {label: 'Program Coverage & Surveillance', href: `/${country}/dashboard/nutrition/program-coverage-surveillance`, icon: FaShieldAlt, },
-  {label: 'Data & Methodology', href: `/${country}/dashboard/nutrition/data-methodology`, icon: FaDatabase, },
-];
- 
+  // -----------------------------------------------------------------
+  // Navigation items – keys live in common.json
+  // -----------------------------------------------------------------
+  const nav = [
+    { label: t('sidebar.overview'),          href: `/${country}/dashboard/nutrition`,                     icon: FaChartBar },
+    { label: t('sidebar.malnutrition'),      href: `/${country}/dashboard/nutrition/malnutrition`,        icon: FaHeartbeat },
+    { label: t('sidebar.dietary'),           href: `/${country}/dashboard/nutrition/dietary-nutrient-intake`, icon: FaUtensils },
+    { label: t('sidebar.micronutrient'),     href: `/${country}/dashboard/nutrition/micronutrient-deficiencies`, icon: FaCapsules },
+    { label: t('sidebar.healthOutcomes'),    href: `/${country}/dashboard/nutrition/health-outcomes`,     icon: FaChild },
+    { label: t('sidebar.interventions'),     href: `/${country}/dashboard/nutrition/interventions`,       icon: FaHandsHelping },
+    { label: t('sidebar.policyFunding'),     href: `/${country}/dashboard/nutrition/policy-funding`,      icon: FaMoneyBill },
+    { label: t('sidebar.coverage'),          href: `/${country}/dashboard/nutrition/program-coverage-surveillance`, icon: FaShieldAlt },
+    { label: t('sidebar.dataMethodology'),   href: `/${country}/dashboard/nutrition/data-methodology`,   icon: FaDatabase },
+  ];
 
-  // Detect active path
   const isActive = (href: string) => pathname === href;
 
-  // Detect screen size for mobile and handle collapse
+  // -----------------------------------------------------------------
+  // Mobile / Collapse handling
+  // -----------------------------------------------------------------
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 1024;
@@ -64,7 +73,6 @@ const NutritionSidebar = ({ onCollapseChange }: NutritionSidebarProps) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [onCollapseChange]);
 
-  // Handle collapse toggle
   const toggleCollapse = () => {
     setIsCollapsed(prev => {
       const newState = !prev;
@@ -73,48 +81,59 @@ const NutritionSidebar = ({ onCollapseChange }: NutritionSidebarProps) => {
     });
   };
 
+  // -----------------------------------------------------------------
+  // Render
+  // -----------------------------------------------------------------
   return (
-    <aside 
-      className={`fixed top-0 left-0 h-screen bg-[var(--dark-green)] text-[var(--white)] flex flex-col z-40 transition-all duration-300 ${isCollapsed ? 'w-13' : 'w-44'}`} 
-      aria-label="User Navigation"
+    <aside
+      className={`fixed top-0 left-0 h-screen bg-[var(--dark-green)] text-[var(--white)] flex flex-col z-40 transition-all duration-300 ${isCollapsed ? 'w-13' : 'w-44'}`}
+      aria-label={t('sidebar.aria.navigation')}
     >
+      {/* Logo & Brand */}
       <div className="px-4 h-16 flex items-center gap-2 font-semibold border-b border-[var(--wine)]">
-        <div className="h-9 w-9 grid place-items-center rounded-full font-bold bg-[var(--white)]">
-          <Image src="/logo.png" width={30} height={30} alt="ECOAGRIS LOGO" />
+        <div className="h-9 w-9 grid place-items-center rounded-full bg-[var(--white)] overflow-hidden">
+          <Image src="/logo.png" width={30} height={30} alt={t('sidebar.logo.alt')} />
         </div>
-        {!isCollapsed && <span>ECOAGRIS</span>}
+        {!isCollapsed && <span>{t('sidebar.brand')}</span>}
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1">
         <ul className="py-2">
           {nav.map(({ href, icon: Icon, label }) => (
             <li key={href}>
-              <Link 
-                href={href} 
-                className={`flex items-center gap-3 px-4 py-3 transition-colors ${isActive(href) ? ' text-sm sm:text-[15px] bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow' : 'hover:bg-[var(--yellow)]/90 '}`}
+              <Link
+                href={href}
+                className={`flex items-center gap-3 px-4 py-3 transition-colors text-sm sm:text-[15px] ${
+                  isActive(href)
+                    ? 'bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow'
+                    : 'hover:bg-[var(--yellow)]/90'
+                }`}
                 aria-current={isActive(href) ? 'page' : undefined}
               >
-                <Icon className="shrink-0" />
-                {!isCollapsed && <span className=" text-sm sm:text-[12px]">{label}</span>}
+                <Icon className="shrink-0 text-lg" />
+                {!isCollapsed && <span className="text-sm sm:text-[12px]">{label}</span>}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* Logout Button */}
-      <button 
-        onClick={logout} 
+      {/* Logout */}
+      <button
+        onClick={logout}
         className="flex items-center gap-3 px-4 py-3 text-left text-[var(--white)] hover:text-[var(--yellow)] hover:bg-[var(--wine)]/90 transition-colors"
+        aria-label={t('sidebar.logout')}
       >
-        <FaSignOutAlt />
-        {!isCollapsed && <span>Logout</span>}
+        <FaSignOutAlt className="text-lg" />
+        {!isCollapsed && <span>{t('sidebar.logout')}</span>}
       </button>
 
-      {/* Toggle Collapse Button */}
-      <button 
-        className={`absolute top-21 ${isCollapsed ? 'left-17' : 'left-47'} transform -translate-x-full text-[var(--white)] bg-[var(--wine)] p-2 rounded-full`} 
+      {/* Collapse Toggle */}
+      <button
+        className={`absolute top-20 ${isCollapsed ? 'left-13' : 'left-44'} transform -translate-y-1/2 text-[var(--white)] bg-[var(--wine)] p-2 rounded-full shadow-lg hover:scale-110 transition-transform`}
         onClick={toggleCollapse}
+        aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
       >
         {isCollapsed ? <FaChevronCircleRight /> : <FaChevronCircleLeft />}
       </button>

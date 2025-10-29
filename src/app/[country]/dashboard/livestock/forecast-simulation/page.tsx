@@ -12,7 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { FaChartLine, FaDownload } from 'react-icons/fa';
+import { FaChartLine, FaDownload, FaInfoCircle } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -145,9 +145,7 @@ export default function ForecastDashboard() {
     { key: 'offtake_rate_pct', label: t('forecast.offtake'), format: (v: number) => `${v.toFixed(1)}%` },
   ];
 
-  // -----------------------------------------------------------------
-  // 5. Fetch Data (CORRECT PATH + KEY)
-  // -----------------------------------------------------------------
+  
   // -----------------------------------------------------------------
 // 5. Fetch Data (CORRECT PATH + KEY + NO TYPO)
 // -----------------------------------------------------------------
@@ -172,7 +170,7 @@ useEffect(() => {
         throw new Error('Invalid JSON: Simulated_Livestock_Data missing or not an array');
       }
 
-      console.log('Forecast data loaded:', rawData); // Debug
+      console.log('Forecast data loaded:', rawData); 
 
       const filtered = rawData
         .filter((d) => d.country?.toLowerCase() === country.toLowerCase())
@@ -183,7 +181,7 @@ useEffect(() => {
           small_ruminants_head: Number(d.small_ruminants_head) || 0,
           pigs_head: Number(d.pigs_head) || 0,
           poultry_head: Number(d.poultry_head) || 0,
-          milk_production_tons: Number(d.milk_production_tons) || 0,  // FIXED: removed "лаз"
+          milk_production_tons: Number(d.milk_production_tons) || 0,  
           meat_production_tons: Number(d.meat_production_tons) || 0,
           livestock_price_index_2006_base: Number(d.livestock_price_index_2006_base) || 0,
           vaccination_coverage_pct: Number(d.vaccination_coverage_pct) || 0,
@@ -338,7 +336,7 @@ useEffect(() => {
             max="10"
             value={forecastYears}
             onChange={(e) => setForecastYears(Number(e.target.value))}
-            className="w-full sm:w-48"
+            className="w-full sm:w-48 bg-[var(--wine)] text-[var(--yellow)]"
           />
           <span className="text-sm text-[var(--dark-green)] self-center">
             {t('forecast.yearsAhead', { count: forecastYears })}
@@ -411,6 +409,29 @@ useEffect(() => {
             </LineChart>
           </ResponsiveContainer>
         </div>
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-2 flex items-center gap-2">
+  <FaChartLine /> {t('forecast.title', { countryName })}
+</h1>
+
+{/* NEW EXPLANATION */}
+<div className="bg-[var(--light-yellow)] p-3 rounded-md mb-6 text-sm text-[var(--dark-green)] border border-[var(--medium-green)]">
+
+  <p className="font-semibold mb-1 flex items-center gap-1">
+  {t('forecast.howItWorksTitle')}
+  <FaInfoCircle className="text-[var(--wine)] cursor-help" title={t('forecast.howItWorks.note')} />
+</p>
+  <ul className="list-disc list-inside space-y-1">
+    <li>{t('forecast.howItWorks.1')}</li>
+    <li>{t('forecast.howItWorks.2')}</li>
+    <li>{t('forecast.howItWorks.3')}</li>
+    <li>{t('forecast.howItWorks.4')}</li>
+  </ul>
+  <p className="mt-2 italic">{t('forecast.howItWorks.note')}</p>
+</div>
+
+<p className="text-[var(--olive-green)] mb-6 text-sm sm:text-base">
+  {t('forecast.simulatedDataNote')}
+</p>
       </div>
     </div>
   );

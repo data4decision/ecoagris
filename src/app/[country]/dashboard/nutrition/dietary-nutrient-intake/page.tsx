@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -19,8 +18,8 @@ import { FaChartLine, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
 interface DietaryData {
   country: string;
   year: number;
@@ -31,14 +30,13 @@ interface DietaryData {
   animal_protein_share_of_total_protein_pct?: number;
   household_food_expenditure_share_pct?: number;
   household_food_insecurity_pct?: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  [key: string]: unknown;
 }
 
 interface Dataset {
   Nutrition_Data: DietaryData[];
 }
 
-// Define available metrics for the bar chart
 type DietaryMetric =
   | 'average_daily_caloric_intake_kcal'
   | 'protein_intake_g_per_capita_per_day'
@@ -49,55 +47,47 @@ type DietaryMetric =
   | 'household_food_insecurity_pct';
 
 export default function DietaryNutrientIntakePage() {
-  // Get dynamic country parameter from URL
+  const { t } = useTranslation('common');
   const { country } = useParams();
-  // State for country-specific data, selected metric, selected year, loading, error
   const [countryData, setCountryData] = useState<DietaryData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<DietaryMetric>('average_daily_caloric_intake_kcal');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
   const dietaryFields = [
-    { key: 'average_daily_caloric_intake_kcal', label: 'Average Daily Caloric Intake (kcal)', format: (v: number) => `${v.toFixed(0)} kcal` },
-    { key: 'protein_intake_g_per_capita_per_day', label: 'Protein Intake (g/capita/day)', format: (v: number) => `${v.toFixed(1)} g` },
-    { key: 'dietary_energy_supply_kcal_per_capita_per_day', label: 'Dietary Energy Supply (kcal/capita/day)', format: (v: number) => `${v.toFixed(0)} kcal` },
-    { key: 'fruit_vegetable_consumption_g_per_day', label: 'Fruit & Vegetable Consumption (g/day)', format: (v: number) => `${v.toFixed(0)} g` },
-    { key: 'animal_protein_share_of_total_protein_pct', label: 'Animal Protein Share (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'household_food_expenditure_share_pct', label: 'Household Food Expenditure Share (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'household_food_insecurity_pct', label: 'Household Food Insecurity (%)', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'average_daily_caloric_intake_kcal', label: t('dietary.caloricIntake'), format: (v: number) => `${v.toFixed(0)} kcal` },
+    { key: 'protein_intake_g_per_capita_per_day', label: t('dietary.proteinIntake'), format: (v: number) => `${v.toFixed(1)} g` },
+    { key: 'dietary_energy_supply_kcal_per_capita_per_day', label: t('dietary.energySupply'), format: (v: number) => `${v.toFixed(0)} kcal` },
+    { key: 'fruit_vegetable_consumption_g_per_day', label: t('dietary.fruitVeg'), format: (v: number) => `${v.toFixed(0)} g` },
+    { key: 'animal_protein_share_of_total_protein_pct', label: t('dietary.animalProtein'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'household_food_expenditure_share_pct', label: t('dietary.foodExpenditure'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'household_food_insecurity_pct', label: t('dietary.foodInsecurity'), format: (v: number) => `${v.toFixed(1)}%` },
   ];
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('dietary.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the dietary and nutrient intake dataset
-        // Path: /data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
-        // Ensure the file is in public/data/nutrition or adjust if hosted elsewhere (e.g., API)
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
-        if (!response.ok) throw new Error('Failed to fetch dietary and nutrient intake data');
+        if (!response.ok) throw new Error(t('dietary.errors.fetchFailed'));
         const jsonData = (await response.json()) as Dataset;
 
-        // Calculate the latest year dynamically
         const years = jsonData.Nutrition_Data.map((d) => d.year);
         const maxYear = Math.max(...years, 2025);
         setSelectedYear(maxYear);
 
-        // Filter data for the selected country
         const filteredCountryData = jsonData.Nutrition_Data.filter(
           (d) => d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('dietary.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -105,28 +95,25 @@ export default function DietaryNutrientIntakePage() {
         setCountryData(filteredCountryData);
         setLoading(false);
       } catch (error) {
-        setError('Error loading dietary and nutrient intake data');
+        setError(t('dietary.errors.loadingError'));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('dietary.year')]: data.year };
       dietaryFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('dietary.na');
       });
       return row;
     });
@@ -139,7 +126,6 @@ export default function DietaryNutrientIntakePage() {
     link.click();
   };
 
-  // Function to handle PDF download
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) return;
@@ -154,23 +140,21 @@ export default function DietaryNutrientIntakePage() {
     pdf.save(`${country}_dietary_nutrient_intake_dashboard.pdf`);
   };
 
-  // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Dietary & Nutrient Intake Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('dietary.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('dietary.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -179,40 +163,37 @@ export default function DietaryNutrientIntakePage() {
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
       <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
-        {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Dietary & Nutrient Intake Overview for ${country}`}
+          aria-label={t('dietary.overview', { country })}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Dietary & Nutrient Intake -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('dietary.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('dietary.simulatedNote')}
         </p>
 
-        {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download dietary and nutrient intake data as CSV"
+            aria-label={t('dietary.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('dietary.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download dietary and nutrient intake dashboard as PDF"
+            aria-label={t('dietary.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('dietary.downloadPDF')}
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
         <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('dietary.selectYear')}
           </label>
           <select
             id="year-select"
@@ -228,28 +209,25 @@ export default function DietaryNutrientIntakePage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
           {dietaryFields.map((field) => (
             <div
               key={field.key}
               className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              aria-label={t('dietary.cardLabel', { label: field.label, year: selectedYear })}
             >
               <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
               <p className="text-[var(--wine)] text-base sm:text-lg">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('dietary.na')}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Dietary Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Dietary Trends Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('dietary.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Dietary Trends (2006–{selectedYear})
+              {t('dietary.trendsTitle', { start: 2006, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -275,62 +253,61 @@ export default function DietaryNutrientIntakePage() {
                   type="monotone"
                   dataKey="average_daily_caloric_intake_kcal"
                   stroke="var(--olive-green)"
-                  name="Average Daily Caloric Intake (kcal)"
+                  name={t('dietary.caloricIntake')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="protein_intake_g_per_capita_per_day"
                   stroke="var(--wine)"
-                  name="Protein Intake (g/capita/day)"
+                  name={t('dietary.proteinIntake')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="dietary_energy_supply_kcal_per_capita_per_day"
                   stroke="var(--yellow)"
-                  name="Dietary Energy Supply (kcal/capita/day)"
+                  name={t('dietary.energySupply')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="fruit_vegetable_consumption_g_per_day"
                   stroke="var(--medium-green)"
-                  name="Fruit & Vegetable Consumption (g/day)"
+                  name={t('dietary.fruitVeg')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="animal_protein_share_of_total_protein_pct"
                   stroke="var(--red)"
-                  name="Animal Protein Share (%)"
+                  name={t('dietary.animalProtein')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="household_food_expenditure_share_pct"
                   stroke="var(--dark-green)"
-                  name="Household Food Expenditure Share (%)"
+                  name={t('dietary.foodExpenditure')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="household_food_insecurity_pct"
                   stroke="var(--green)"
-                  name="Household Food Insecurity (%)"
+                  name={t('dietary.foodInsecurity')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('dietary.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('dietary.comparisonTitle', { country: (country as string).charAt(0).toUpperCase() + (country as string).slice(1) })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('dietary.selectMetric')}
             </label>
             <select
               id="metric-select"

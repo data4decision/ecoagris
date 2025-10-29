@@ -1,7 +1,5 @@
-// src/app/[country]/dashboard/nutrition/malnutrition/interventions/page.tsx
 'use client';
 
-// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -20,8 +18,8 @@ import { FaChartLine, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
 interface NutritionInterventionData {
   country: string;
   year: number;
@@ -29,14 +27,13 @@ interface NutritionInterventionData {
   minimum_dietary_diversity_children_pct?: number;
   school_meal_coverage_pct?: number;
   wfp_food_assistance_beneficiaries?: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  [key: string]: unknown;
 }
 
 interface Dataset {
   Nutrition_Data: NutritionInterventionData[];
 }
 
-// Define available metrics for the bar chart
 type NutritionInterventionMetric =
   | 'exclusive_breastfeeding_under6months_pct'
   | 'minimum_dietary_diversity_children_pct'
@@ -44,80 +41,70 @@ type NutritionInterventionMetric =
   | 'wfp_food_assistance_beneficiaries';
 
 export default function InterventionsPage() {
-  // Get dynamic country parameter from URL
+  const { t } = useTranslation('common');
   const { country } = useParams();
-  // State for country-specific data, selected metric, selected year, loading, error
   const [countryData, setCountryData] = useState<NutritionInterventionData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<NutritionInterventionMetric>('exclusive_breastfeeding_under6months_pct');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
   const nutritionInterventionFields = [
     {
       key: 'exclusive_breastfeeding_under6months_pct',
-      label: 'Exclusive Breastfeeding (Under 6 Months, %)',
+      label: t('interventions.breastfeeding'),
       format: (v: number) => `${v.toFixed(1)}%`,
     },
     {
       key: 'minimum_dietary_diversity_children_pct',
-      label: 'Minimum Dietary Diversity (Children, %)',
+      label: t('interventions.dietaryDiversity'),
       format: (v: number) => `${v.toFixed(1)}%`,
     },
     {
       key: 'school_meal_coverage_pct',
-      label: 'School Meal Coverage (%)',
+      label: t('interventions.schoolMeals'),
       format: (v: number) => `${v.toFixed(1)}%`,
     },
     {
       key: 'wfp_food_assistance_beneficiaries',
-      label: 'WFP Food Assistance Beneficiaries',
+      label: t('interventions.wfpBeneficiaries'),
       format: (v: number) => v.toLocaleString(),
     },
   ];
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('interventions.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the interventions dataset
-        // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch interventions data: ${response.status} ${response.statusText}`);
+          throw new Error(t('interventions.errors.fetchFailed', { status: response.status, text: response.statusText }));
         }
         const jsonData = (await response.json()) as Dataset;
 
-        // Log sample data to verify fields
         console.log('Sample dataset record:', jsonData.Nutrition_Data[0]);
 
-        // Validate dataset structure
         if (!jsonData.Nutrition_Data || !Array.isArray(jsonData.Nutrition_Data)) {
-          throw new Error('Invalid dataset format: Nutrition_Data is missing or not an array');
+          throw new Error(t('interventions.errors.invalidFormat'));
         }
 
-        // Calculate the latest year dynamically
         const years = jsonData.Nutrition_Data.map((d) => d.year).filter((y) => typeof y === 'number');
         const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
         setSelectedYear(maxYear);
 
-        // Filter data for the selected country
         const filteredCountryData = jsonData.Nutrition_Data.filter(
           (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
-        // Log filtered data to check values
         console.log(`Filtered data for ${country}:`, filteredCountryData);
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('interventions.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -126,28 +113,25 @@ export default function InterventionsPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading interventions data: ${(err as Error).message}`);
+        setError(t('interventions.errors.loadingError', { message: (err as Error).message }));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('interventions.year')]: data.year };
       nutritionInterventionFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('interventions.na');
       });
       return row;
     });
@@ -160,11 +144,10 @@ export default function InterventionsPage() {
     link.click();
   };
 
-  // Function to handle PDF download
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
+      console.error(t('interventions.errors.dashboardNotFound'));
       return;
     }
 
@@ -178,27 +161,25 @@ export default function InterventionsPage() {
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`${country}_interventions_dashboard.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(t('interventions.errors.pdfError'), err);
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Interventions Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('interventions.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('interventions.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -207,40 +188,37 @@ export default function InterventionsPage() {
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
       <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
-        {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Nutrition Interventions Overview for ${country}`}
+          aria-label={t('interventions.overview', { country })}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Nutrition Interventions -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('interventions.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('interventions.simulatedNote')}
         </p>
 
-        {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download interventions data as CSV"
+            aria-label={t('interventions.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('interventions.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download interventions dashboard as PDF"
+            aria-label={t('interventions.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('interventions.downloadPDF')}
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
         <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('interventions.selectYear')}
           </label>
           <select
             id="year-select"
@@ -256,28 +234,25 @@ export default function InterventionsPage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
           {nutritionInterventionFields.map((field) => (
             <div
               key={field.key}
               className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              aria-label={t('interventions.cardLabel', { label: field.label, year: selectedYear })}
             >
               <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
               <p className="text-[var(--wine)] text-base sm:text-lg">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('interventions.na')}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Nutrition Interventions Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Nutrition Interventions Trends Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('interventions.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Nutrition Interventions Trends (2006–{selectedYear})
+              {t('interventions.trendsTitle', { start: 2006, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -303,41 +278,40 @@ export default function InterventionsPage() {
                   type="monotone"
                   dataKey="exclusive_breastfeeding_under6months_pct"
                   stroke="var(--olive-green)"
-                  name="Exclusive Breastfeeding (Under 6 Months, %)"
+                  name={t('interventions.breastfeeding')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="minimum_dietary_diversity_children_pct"
                   stroke="var(--wine)"
-                  name="Minimum Dietary Diversity (Children, %)"
+                  name={t('interventions.dietaryDiversity')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="school_meal_coverage_pct"
                   stroke="var(--yellow)"
-                  name="School Meal Coverage (%)"
+                  name={t('interventions.schoolMeals')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="wfp_food_assistance_beneficiaries"
                   stroke="var(--medium-green)"
-                  name="WFP Food Assistance Beneficiaries"
+                  name={t('interventions.wfpBeneficiaries')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('interventions.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('interventions.comparisonTitle', { country: (country as string).charAt(0).toUpperCase() + (country as string).slice(1) })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('interventions.selectMetric')}
             </label>
             <select
               id="metric-select"

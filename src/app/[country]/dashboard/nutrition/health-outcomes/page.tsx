@@ -1,7 +1,5 @@
-// src/app/[country]/dashboard/nutrition/malnutrition/health-outcomes/page.tsx
 'use client';
 
-// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -20,85 +18,74 @@ import { FaChartLine, FaDownload } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
 interface HealthOutcomeData {
   country: string;
   year: number;
   child_obesity_prevalence_pct?: number;
   maternal_mortality_ratio_per_100k?: number;
   low_birth_weight_prevalence_pct?: number;
-  [key: string]: unknown; // Allow for other fields in the dataset
+  [key: string]: unknown;
 }
 
 interface Dataset {
   Nutrition_Data: HealthOutcomeData[];
 }
 
-// Define available metrics for the bar chart
 type HealthOutcomeMetric =
   | 'child_obesity_prevalence_pct'
   | 'maternal_mortality_ratio_per_100k'
   | 'low_birth_weight_prevalence_pct';
 
 export default function HealthOutcomesPage() {
-  // Get dynamic country parameter from URL
+  const { t } = useTranslation('common');
   const { country } = useParams();
-  // State for country-specific data, selected metric, selected year, loading, error
   const [countryData, setCountryData] = useState<HealthOutcomeData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<HealthOutcomeMetric>('child_obesity_prevalence_pct');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
   const healthOutcomeFields = [
-    { key: 'child_obesity_prevalence_pct', label: 'Child Obesity Prevalence (%)', format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'maternal_mortality_ratio_per_100k', label: 'Maternal Mortality Ratio (per 100,000)', format: (v: number) => `${v.toFixed(0)}` },
-    { key: 'low_birth_weight_prevalence_pct', label: 'Low Birth Weight Prevalence (%)', format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'child_obesity_prevalence_pct', label: t('healthOutcomes.childObesity'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'maternal_mortality_ratio_per_100k', label: t('healthOutcomes.maternalMortality'), format: (v: number) => `${v.toFixed(0)}` },
+    { key: 'low_birth_weight_prevalence_pct', label: t('healthOutcomes.lowBirthWeight'), format: (v: number) => `${v.toFixed(1)}%` },
   ];
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('healthOutcomes.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the health outcomes dataset
-        // Path: /public/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json
         const response = await fetch('/data/nutrition/WestAfrica_Nutrition_Simulated_Expanded_2006_2025.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch health outcomes data: ${response.status} ${response.statusText}`);
+          throw new Error(t('healthOutcomes.errors.fetchFailed', { status: response.status, text: response.statusText }));
         }
         const jsonData = (await response.json()) as Dataset;
 
-        // Log sample data to verify fields
         console.log('Sample dataset record:', jsonData.Nutrition_Data[0]);
 
-        // Validate dataset structure
         if (!jsonData.Nutrition_Data || !Array.isArray(jsonData.Nutrition_Data)) {
-          throw new Error('Invalid dataset format: Nutrition_Data is missing or not an array');
+          throw new Error(t('healthOutcomes.errors.invalidFormat'));
         }
 
-        // Calculate the latest year dynamically
         const years = jsonData.Nutrition_Data.map((d) => d.year).filter((y) => typeof y === 'number');
         const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
         setSelectedYear(maxYear);
 
-        // Filter data for the selected country
         const filteredCountryData = jsonData.Nutrition_Data.filter(
           (d) => d.country && d.country.toLowerCase() === (country as string).toLowerCase()
         );
 
-        // Log filtered data to check values
         console.log(`Filtered data for ${country}:`, filteredCountryData);
 
         if (filteredCountryData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('healthOutcomes.errors.noData', { country }));
           setLoading(false);
           return;
         }
@@ -107,28 +94,25 @@ export default function HealthOutcomesPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading health outcomes data: ${(err as Error).message}`);
+        setError(t('healthOutcomes.errors.loadingError', { message: (err as Error).message }));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('healthOutcomes.year')]: data.year };
       healthOutcomeFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('healthOutcomes.na');
       });
       return row;
     });
@@ -141,11 +125,10 @@ export default function HealthOutcomesPage() {
     link.click();
   };
 
-  // Function to handle PDF download
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
+      console.error(t('healthOutcomes.errors.dashboardNotFound'));
       return;
     }
 
@@ -159,27 +142,25 @@ export default function HealthOutcomesPage() {
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`${country}_health_outcomes_dashboard.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(t('healthOutcomes.errors.pdfError'), err);
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Health Outcomes Data...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('healthOutcomes.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('healthOutcomes.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -188,40 +169,37 @@ export default function HealthOutcomesPage() {
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
       <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
-        {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Health Outcomes Overview for ${country}`}
+          aria-label={t('healthOutcomes.overview', { country })}
         >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> Health Outcomes -{' '}
+          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('healthOutcomes.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('healthOutcomes.simulatedNote')}
         </p>
 
-        {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download health outcomes data as CSV"
+            aria-label={t('healthOutcomes.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('healthOutcomes.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
             className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
-            aria-label="Download health outcomes dashboard as PDF"
+            aria-label={t('healthOutcomes.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('healthOutcomes.downloadPDF')}
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
         <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('healthOutcomes.selectYear')}
           </label>
           <select
             id="year-select"
@@ -237,28 +215,25 @@ export default function HealthOutcomesPage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
           {healthOutcomeFields.map((field) => (
             <div
               key={field.key}
               className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              aria-label={t('healthOutcomes.cardLabel', { label: field.label, year: selectedYear })}
             >
               <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
               <p className="text-[var(--wine)] text-base sm:text-lg">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('healthOutcomes.na')}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Health Outcomes Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Health Outcomes Trends Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('healthOutcomes.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Health Outcomes Trends (2006–{selectedYear})
+              {t('healthOutcomes.trendsTitle', { start: 2006, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -284,34 +259,33 @@ export default function HealthOutcomesPage() {
                   type="monotone"
                   dataKey="child_obesity_prevalence_pct"
                   stroke="var(--olive-green)"
-                  name="Child Obesity Prevalence (%)"
+                  name={t('healthOutcomes.childObesity')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="maternal_mortality_ratio_per_100k"
                   stroke="var(--wine)"
-                  name="Maternal Mortality Ratio (per 100,000)"
+                  name={t('healthOutcomes.maternalMortality')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="low_birth_weight_prevalence_pct"
                   stroke="var(--yellow)"
-                  name="Low Birth Weight Prevalence (%)"
+                  name={t('healthOutcomes.lowBirthWeight')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('healthOutcomes.comparisonChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
+              {t('healthOutcomes.comparisonTitle', { country: (country as string).charAt(0).toUpperCase() + (country as string).slice(1) })}
             </h2>
             <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison
+              {t('healthOutcomes.selectMetric')}
             </label>
             <select
               id="metric-select"
