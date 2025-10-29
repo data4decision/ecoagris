@@ -1,47 +1,77 @@
 'use client';
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams, usePathname } from 'next/navigation';
-import { FaSeedling, FaChartLine, FaDollarSign, FaUsers, FaGlobe, FaChevronCircleRight,  FaChartBar, FaChevronCircleLeft, FaSignOutAlt} from 'react-icons/fa';
-// Add the logout function implementation (imported or defined)
-const logout = () => {
-  // Implement your logout logic here
-  console.log('Logging out...');
-  // Example: redirect to login page
-  window.location.href = '/login';
-};
+import {
+  FaSeedling,
+  FaChartLine,
+  FaDollarSign,
+  FaUsers,
+  FaGlobe,
+  FaChevronCircleRight,
+  FaChevronCircleLeft,
+  FaSignOutAlt,
+  FaChartBar,
+} from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 interface MacroSidebarProps {
   onCollapseChange: (collapsed: boolean) => void;
 }
 
 const MacroSidebar = ({ onCollapseChange }: MacroSidebarProps) => {
+  const { t } = useTranslation('common');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const { country } = useParams();
+  const { country } = useParams<{ country: string }>();
   const pathname = usePathname();
 
- const nav = [
-  {label: 'Overview', href: `/${country}/dashboard/macroeconomics-indices/Overview`,  icon: FaChartBar,}, 
-  {label: 'Economic Output', href: `/${country}/dashboard/macroeconomics-indices/economic-output`, icon: FaChartLine,},
-  {label: 'Fiscal and Monetary Policy', href: `/${country}/dashboard/macroeconomics-indices/fiscal-monetary`, icon: FaDollarSign,},
-  {label: 'Labor and Poverty', href: `/${country}/dashboard/macroeconomics-indices/labor-poverty`, icon: FaUsers,},
-  {label: 'Trade and Investment', href: `/${country}/dashboard/macroeconomics-indices/trade-investment`, icon: FaGlobe,},
-  {label: 'Agriculture', href: `/${country}/dashboard/macroeconomics-indices/agriculture`, icon: FaSeedling, },
-];
+  const nav = [
+    {
+      label: t('macroSidebar.overview'),
+      href: `/${country}/dashboard/macroeconomics-indices/Overview`,
+      icon: FaChartBar,
+    },
+    {
+      label: t('macroSidebar.economicOutput'),
+      href: `/${country}/dashboard/macroeconomics-indices/economic-output`,
+      icon: FaChartLine,
+    },
+    {
+      label: t('macroSidebar.fiscalMonetary'),
+      href: `/${country}/dashboard/macroeconomics-indices/fiscal-monetary`,
+      icon: FaDollarSign,
+    },
+    {
+      label: t('macroSidebar.laborPoverty'),
+      href: `/${country}/dashboard/macroeconomics-indices/labor-poverty`,
+      icon: FaUsers,
+    },
+    {
+      label: t('macroSidebar.tradeInvestment'),
+      href: `/${country}/dashboard/macroeconomics-indices/trade-investment`,
+      icon: FaGlobe,
+    },
+    {
+      label: t('macroSidebar.agriculture'),
+      href: `/${country}/dashboard/macroeconomics-indices/agriculture`,
+      icon: FaSeedling,
+    },
+  ];
 
   // Detect active path
   const isActive = (href: string) => pathname === href;
 
-  // Detect screen size for mobile and handle collapse
+  // Handle screen size & auto-collapse on mobile
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      const collapsed = mobile ? true : false;
-      setIsCollapsed(collapsed);
-      onCollapseChange(collapsed);
+      const shouldCollapse = mobile;
+      setIsCollapsed(shouldCollapse);
+      onCollapseChange(shouldCollapse);
     };
 
     handleResize();
@@ -49,38 +79,59 @@ const MacroSidebar = ({ onCollapseChange }: MacroSidebarProps) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [onCollapseChange]);
 
-  // Handle collapse toggle
+  // Toggle collapse
   const toggleCollapse = () => {
-    setIsCollapsed(prev => {
+    if (isMobile) return; // Prevent manual toggle on mobile
+    setIsCollapsed((prev) => {
       const newState = !prev;
       onCollapseChange(newState);
       return newState;
     });
   };
 
+  // Logout (replace with real auth later)
+  const logout = () => {
+    console.log('Logging out...');
+    window.location.href = '/login';
+  };
+
   return (
-    <aside 
-      className={`fixed top-0 left-0 h-screen bg-[var(--dark-green)] text-[var(--white)] flex flex-col z-40 transition-all duration-300 ${isCollapsed ? 'w-13' : 'w-44'}`} 
-      aria-label="User Navigation"
+    <aside
+      className={`fixed top-0 left-0 h-screen bg-[var(--dark-green)] text-[var(--white)] flex flex-col z-40 transition-all duration-300 ${
+        isCollapsed ? 'w-13' : 'w-44'
+      }`}
+      aria-label={t('macroSidebar.ariaLabel')}
     >
+      {/* Logo & Brand */}
       <div className="px-4 h-16 flex items-center gap-2 font-semibold border-b border-[var(--wine)]">
-        <div className="h-9 w-9 grid place-items-center rounded-full font-bold bg-[var(--white)]">
-          <Image src="/logo.png" width={30} height={30} alt="ECOAGRIS LOGO" />
+        <div className="h-9 w-9 grid place-items-center rounded-full bg-[var(--white)] overflow-hidden">
+          <Image
+            src="/logo.png"
+            width={30}
+            height={30}
+            alt={t('macroSidebar.logoAlt')}
+            className="object-contain"
+          />
         </div>
-        {!isCollapsed && <span>ECOAGRIS</span>}
+        {!isCollapsed && <span className="text-sm sm:text-base">{t('macroSidebar.brand')}</span>}
       </div>
 
-      <nav className="flex-1">
-        <ul className="py-2">
+      {/* Navigation */}
+      <nav className="flex-1 py-2">
+        <ul>
           {nav.map(({ href, icon: Icon, label }) => (
             <li key={href}>
-              <Link 
-                href={href} 
-                className={`flex items-center gap-3 px-4 py-3 transition-colors ${isActive(href) ? ' text-sm sm:text-[15px] bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow' : 'hover:bg-[var(--yellow)]/90 '}`}
+              <Link
+                href={href}
+                className={`flex items-center gap-3 px-4 py-3 transition-colors text-sm sm:text-base ${
+                  isActive(href)
+                    ? 'bg-[var(--wine)] text-[var(--yellow)] font-semibold shadow-inner'
+                    : 'hover:bg-[var(--yellow)]/20'
+                }`}
                 aria-current={isActive(href) ? 'page' : undefined}
               >
-                <Icon className="shrink-0" />
-                {!isCollapsed && <span className=" text-sm sm:text-[12px]">{label}</span>}
+                <Icon className="shrink-0 text-lg" />
+                {!isCollapsed && <span>{label}</span>}
               </Link>
             </li>
           ))}
@@ -88,21 +139,27 @@ const MacroSidebar = ({ onCollapseChange }: MacroSidebarProps) => {
       </nav>
 
       {/* Logout Button */}
-      <button 
-        onClick={logout} 
-        className="flex items-center gap-3 px-4 py-3 text-left text-[var(--white)] hover:text-[var(--yellow)] hover:bg-[var(--wine)]/90 transition-colors"
+      <button
+        onClick={logout}
+        className="flex items-center gap-3 px-4 py-3 text-left text-sm sm:text-base hover:bg-[var(--wine)]/20 transition-colors"
+        aria-label={t('macroSidebar.logout')}
       >
-        <FaSignOutAlt />
-        {!isCollapsed && <span>Logout</span>}
+        <FaSignOutAlt className="text-lg" />
+        {!isCollapsed && <span>{t('macroSidebar.logout')}</span>}
       </button>
 
-      {/* Toggle Collapse Button */}
-      <button 
-        className={`absolute top-21 ${isCollapsed ? 'left-17' : 'left-47'} transform -translate-x-full text-[var(--white)] bg-[var(--wine)] p-2 rounded-full`} 
-        onClick={toggleCollapse}
-      >
-        {isCollapsed ? <FaChevronCircleRight /> : <FaChevronCircleLeft />}
-      </button>
+      {/* Collapse Toggle (Desktop Only) */}
+      {!isMobile && (
+        <button
+          className={`absolute top-20 ${
+            isCollapsed ? 'left-12' : 'left-44'
+          } -translate-x-1/2 bg-[var(--wine)] text-[var(--white)] p-2 rounded-full hover:bg-[var(--wine)]/80 transition-colors`}
+          onClick={toggleCollapse}
+          aria-label={isCollapsed ? t('macroSidebar.expand') : t('macroSidebar.collapse')}
+        >
+          {isCollapsed ? <FaChevronCircleRight /> : <FaChevronCircleLeft />}
+        </button>
+      )}
     </aside>
   );
 };

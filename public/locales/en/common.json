@@ -858,6 +858,7 @@
     "dietary": "Dietary & Nutrient Intake",
     "micronutrient": "Micronutrient Deficiencies",
     "healthOutcomes": "Health Outcomes",
+    "riceProduction": "Rice Production",
     "interventions": "Nutrition Interventions",
     "policyFunding": "Policy & Funding",
     "coverage": "Program Coverage & Surveillance",
@@ -1140,13 +1141,250 @@
       "dashboardNotFound": "Dashboard content not found for PDF generation",
       "pdfError": "PDF generation error:"
     }
+  },
+  "rice": {
+    "yearTrend": {
+      "title": "Rice Production Year Trend",
+      "overview": "Rice Production Year Trend for {{country}}",
+      "loading": "Loading Rice Production Year Trend...",
+      "simulatedNote": "Simulated data for planning purposes. Validate before operational use.",
+      "downloadCSV": "Download CSV",
+      "downloadPDF": "Download PDF",
+      "selectYear": "Select Year",
+      "year": "Year",
+      "na": "N/A",
+      "production": "Rice Production (Tonnes)",
+      "trendsTitle": "Rice Production Trends (2005–{{end}})",
+      "trendsChart": "Rice Production Trends Chart",
+      "cardLabel": "{{label}} Card for {{year}}",
+      "errors": {
+        "invalidCountry": "Invalid country parameter",
+        "fetchFailed": "Failed to fetch rice production data: {{status}} {{text}}",
+        "invalidFormat": "Invalid dataset format: Data is missing or not an array",
+        "noData": "No data available for {{country}}",
+        "loadingError": "Error loading rice production data: {{message}}",
+        "dashboardNotFound": "Dashboard content not found for PDF generation",
+        "pdfError": "PDF generation error:"
+      }
+    }
+  },
+  "macro": {
+    "overview": {
+      "title": "Macroeconomic Indices Overview - {{countryName}}",
+      "loading": "Loading macroeconomic data...",
+      "simulatedDataNote": "Simulated data for planning purposes. Explore categories for detailed trends.",
+      "exploreCategories": "Explore Macroeconomic Categories",
+      "navigateTo": "Navigate to {{title}}",
+      "yearSelectLabel": "Select Year",
+      "downloadCSV": "Download CSV",
+      "downloadPNG": "Download PNG",
+      "downloadPDF": "Download PDF",
+      "na": "N/A",
+
+      "nav": {
+        "economicOutput": "Economic Output",
+        "economicOutputDesc": "GDP, GDP per capita, and economic growth trends.",
+        "fiscalMonetary": "Fiscal and Monetary Policy",
+        "fiscalMonetaryDesc": "Inflation, public debt, and monetary policy metrics.",
+        "laborPoverty": "Labor and Poverty",
+        "laborPovertyDesc": "Unemployment, poverty rates, and labor force participation.",
+        "tradeInvestment": "Trade and Investment",
+        "tradeInvestmentDesc": "Exports, imports, trade balance, FDI, and remittances.",
+        "agriculture": "Agriculture",
+        "agricultureDesc": "Agricultural value added and rice production trends."
+      },
+
+      "csv": {
+        "country": "Country",
+        "year": "Year",
+        "population": "Population"
+      },
+
+      "pdf": {
+        "title": "Macroeconomic Report - {{country}}",
+        "metrics": "Metrics: Country, Year, Population",
+        "exported": "Exported on: {{date}}"
+      },
+
+      "errors": {
+        "invalidCountry": "Invalid country parameter",
+        "fetchFailed": "Failed to fetch data",
+        "invalidFormat": "Invalid data format",
+        "noData": "No data available for {{country}}",
+        "loadingError": "Error loading data",
+        "pngFailed": "PNG download failed",
+        "pdfFailed": "PDF download failed",
+        "invalidImageData": "Failed to generate image"
+      }
+    }
+  },
+  "macroSidebar": {
+    "ariaLabel": "User Navigation",
+    "logoAlt": "ECOAGRIS LOGO",
+    "brand": "ECOAGRIS",
+    "overview": "Overview",
+    "economicOutput": "Economic Output",
+    "fiscalMonetary": "Fiscal and Monetary Policy",
+    "laborPoverty": "Labor and Poverty",
+    "tradeInvestment": "Trade and Investment",
+    "agriculture": "Agriculture",
+    "logout": "Logout",
+    "expand": "Expand Sidebar",
+    "collapse": "Collapse Sidebar"
+  },
+  
+  "economicOutput": {
+    "title": "Economic Output of {{countryName}}",
+    "simulatedNote": "Note: This is simulated macroeconomic data for demonstration purposes.",
+    "downloadCSV": "Download CSV",
+    "downloadPDF": "Download PDF",
+    "yearSelectLabel": "Select Year",
+    "metricSelectLabel": "Select Metric",
+    "loading": "Loading economic data...",
+    "na": "N/A",
+    "gdpUsd": "GDP (USD)",
+    "gdpPerCapita": "GDP per Capita (USD)",
+    "gdpGrowth": "GDP Growth (%)",
+    "lineChartTitle": "Economic Trends up to {{year}}",
+    "barChartTitle": "Economic Indicators for {{countryName}}",
+    "csv": {
+      "year": "Year"
+    },
+    "pdf": {
+      "title": "{{country}} Economic Output Report",
+      "exported": "Exported on {{date}}"
+    },
+    "errors": {
+      "invalidCountry": "Invalid country specified.",
+      "fetchFailed": "Failed to fetch economic data.",
+      "invalidFormat": "Invalid dataset format.",
+      "noData": "No data available for {{country}}.",
+      "loadingError": "An error occurred while loading data.",
+      "pdfFailed": "Failed to generate PDF report."
+    }
+  },
+  "fiscalMonetaryYearTrend": {
+    "title": "Fiscal & Monetary Policy Year Trend - {{countryName}}",
+    "simulatedNote": "Simulated data for planning purposes. Validate before operational use.",
+    "downloadCSV": "Download CSV",
+    "downloadPDF": "Download PDF",
+    "yearSelectLabel": "Select Year for Metrics",
+    "metricSelectLabel": "Select Metric for Year Comparison",
+    "loading": "Loading fiscal and monetary policy year trend...",
+    "na": "N/A",
+    "cards": {
+      "cpiInflation": "CPI Inflation (%)",
+      "fiscalDeficit": "Fiscal Deficit (% of GDP)",
+      "publicDebt": "Public Debt (% of GDP)",
+      "exchangeRate": "Exchange Rate (Local/USD)"
+    },
+    "lineChartTitle": "Fiscal & Monetary Policy Trends (2006–{{year}})",
+    "barChartTitle": "Year Comparison ({{countryName}})",
+    "csv": {
+      "year": "Year"
+    },
+    "errors": {
+      "invalidCountry": "Invalid country parameter.",
+      "fetchFailed": "Failed to fetch fiscal/monetary data.",
+      "invalidFormat": "Invalid dataset format.",
+      "noData": "No data available for {{country}}.",
+      "loadingError": "An error occurred while loading data.",
+      "pdfFailed": "Failed to generate PDF report."
+    }
+  },
+  "laborPovertyYearTrend": {
+  "title": "Labor & Poverty Trends - {{countryName}}",
+  "loading": "Loading Labor & Poverty Trends...",
+  "simulatedNote": "Simulated data for planning purposes. Validate before operational use.",
+  "downloadCSV": "Download CSV",
+  "downloadPDF": "Download PDF",
+  "yearSelectLabel": "Select Year",
+  "metricSelectLabel": "Select Metric",
+  "na": "N/A",
+  "lineChartTitle": "Labor & Poverty Trends (2006–{{year}})",
+  "barChartTitle": "Year Comparison ({{countryName}})",
+  "pdf": {
+    "title": "Labor & Poverty Report - {{country}}",
+    "exported": "Exported on: {{date}}"
+  },
+  "csv": {
+    "year": "Year"
+  },
+  "cards": {
+    "population": "Total Population",
+    "unemployment": "Unemployment Rate (%)",
+    "poverty": "Poverty Headcount Ratio (%)"
+  },
+  "errors": {
+    "invalidCountry": "Invalid country parameter",
+    "fetchFailed": "Failed to fetch data",
+    "invalidFormat": "Invalid data format",
+    "noData": "No data available for {{country}}",
+    "loadingError": "Error loading data",
+    "pdfFailed": "PDF download failed"
+  }
+},
+"tradeInvestment": {
+  "title": "Trade & Investment - {{countryName}}",
+  "loading": "Loading Trade & Investment Data...",
+  "simulatedNote": "Simulated data for planning purposes. Validate before operational use.",
+  "downloadCSV": "Download CSV",
+  "downloadPDF": "Download PDF",
+  "yearSelectLabel": "Select Year",
+  "metricSelectLabel": "Select Metric",
+  "na": "N/A",
+  "lineChartTitle": "Trade & Investment Trends (2006–{{year}})",
+  "barChartTitle": "Year Comparison ({{countryName}})",
+  "pdf": {
+    "title": "Trade & Investment Report - {{country}}",
+    "exported": "Exported on: {{date}}"
+  },
+  "csv": { "year": "Year" },
+  "cards": {
+    "exports": "Exports (USD)",
+    "imports": "Imports (USD)",
+    "tradeBalance": "Trade Balance (USD)",
+    "fdi": "FDI Inflows (USD M)",
+    "remittances": "Remittances (USD)",
+    "currentAccount": "Current Account (USD)"
+  },
+  "errors": {
+    "invalidCountry": "Invalid country parameter",
+    "fetchFailed": "Failed to fetch data",
+    "invalidFormat": "Invalid data format",
+    "noData": "No data available for {{country}}",
+    "loadingError": "Error loading data",
+    "pdfFailed": "PDF download failed"
+  }
+},
+"agricultureYearTrend": {
+  "title": "Agriculture Trends - {{countryName}}",
+  "loading": "Loading Agriculture Trends...",
+  "simulatedNote": "Simulated data for planning purposes. Validate before operational use.",
+  "downloadCSV": "Download CSV",
+  "downloadPDF": "Download PDF",
+  "yearSelectLabel": "Select Year",
+  "na": "N/A",
+  "lineChartTitle": "Agriculture Trends (2006–{{year}})",
+  "barChartTitle": "Year Comparison ({{countryName}})",
+  "pdf": {
+    "title": "Agriculture Report - {{country}}",
+    "exported": "Exported on: {{date}}"
+  },
+  "csv": { "year": "Year" },
+  "cards": {
+    "agriValue": "Agriculture Value Added (% of GDP)"
+  },
+  "errors": {
+    "invalidCountry": "Invalid country parameter",
+    "fetchFailed": "Failed to fetch data",
+    "invalidFormat": "Invalid data format",
+    "noData": "No data available for {{country}}",
+    "loadingError": "Error loading data",
+    "pdfFailed": "PDF download failed"
   }
 }
-
-
-
-
-
+}
 
 
 

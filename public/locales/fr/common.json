@@ -856,7 +856,10 @@
     "malnutrition": "Indicateurs de malnutrition",
     "dietary": "Apport alimentaire et nutritionnel",
     "micronutrient": "Carences en micronutriments",
+    "ariaLabel": "Navigation Utilisateur",
+    "logoAlt": "LOGO ECOAGRIS",
     "healthOutcomes": "Résultats sanitaires",
+    "riceProduction": "Produção de Arroz",
     "interventions": "Interventions nutritionnelles",
     "policyFunding": "Politique et financement",
     "coverage": "Couverture des programmes et surveillance",
@@ -1138,8 +1141,257 @@
       "dashboardNotFound": "Contenu du tableau de bord non trouvé pour le PDF",
       "pdfError": "Erreur de génération PDF :"
     }
+  },
+  "rice": {
+    "yearTrend": {
+      "title": "Tendance de Production de Riz par Année",
+      "overview": "Tendance de Production de Riz pour {{country}}",
+      "loading": "Chargement des données de production de riz...",
+      "simulatedNote": "Données simulées à des fins de planification. Valider avant usage opérationnel.",
+      "downloadCSV": "Télécharger CSV",
+      "downloadPDF": "Télécharger PDF",
+      "selectYear": "Sélectionner l'année",
+      "year": "Année",
+      "na": "N/D",
+      "production": "Production de Riz (Tonnes)",
+      "trendsTitle": "Tendances de Production de Riz (2005–{{end}})",
+      "trendsChart": "Graphique des Tendances de Production",
+      "cardLabel": "Carte {{label}} pour {{year}}",
+      "errors": {
+        "invalidCountry": "Paramètre de pays invalide",
+        "fetchFailed": "Échec du chargement : {{status}} {{text}}",
+        "invalidFormat": "Format invalide : Data manquant ou non tableau",
+        "noData": "Aucune donnée pour {{country}}",
+        "loadingError": "Erreur de chargement : {{message}}",
+        "dashboardNotFound": "Contenu du tableau de bord non trouvé",
+        "pdfError": "Erreur de génération PDF :"
+      }
+    
+
+}
+},
+  
+  "macro": {
+    "overview": {
+      "title": "Aperçu des Indices Macroéconomiques - {{countryName}}",
+      "loading": "Chargement des données macroéconomiques...",
+      "simulatedDataNote": "Données simulées à des fins de planification. Explorez les catégories pour des tendances détaillées.",
+      "exploreCategories": "Explorer les Catégories Macroéconomiques",
+      "navigateTo": "Aller à {{title}}",
+      "yearSelectLabel": "Sélectionner l'année",
+      "downloadCSV": "Télécharger CSV",
+      "downloadPNG": "Télécharger PNG",
+      "downloadPDF": "Télécharger PDF",
+      "na": "N/D",
+
+      "nav": {
+        "economicOutput": "Production Économique",
+        "economicOutputDesc": "PIB, PIB par habitant et tendances de croissance économique.",
+        "fiscalMonetary": "Politique Fiscale et Monétaire",
+        "fiscalMonetaryDesc": "Inflation, dette publique et indicateurs de politique monétaire.",
+        "laborPoverty": "Travail et Pauvreté",
+        "laborPovertyDesc": "Chômage, taux de pauvreté et participation à la population active.",
+        "tradeInvestment": "Commerce et Investissement",
+        "tradeInvestmentDesc": "Exportations, importations, balance commerciale, IDE et transferts de fonds.",
+        "agriculture": "Agriculture",
+        "agricultureDesc": "Valeur ajoutée agricole et tendances de production de riz."
+      },
+
+      "csv": {
+        "country": "Pays",
+        "year": "Année",
+        "population": "Population"
+      },
+
+      "pdf": {
+        "title": "Rapport Macroéconomique - {{country}}",
+        "metrics": "Indicateurs : Pays, Année, Population",
+        "exported": "Exporté le : {{date}}"
+      },
+
+      "errors": {
+        "invalidCountry": "Paramètre de pays invalide",
+        "fetchFailed": "Échec du chargement des données",
+        "invalidFormat": "Format de données invalide",
+        "noData": "Aucune donnée disponible pour {{country}}",
+        "loadingError": "Erreur de chargement des données",
+        "pngFailed": "Échec du téléchargement PNG",
+        "pdfFailed": "Échec du téléchargement PDF",
+        "invalidImageData": "Échec de génération de l'image"
+      }
+    }
+  },
+  
+  "macroSidebar": {
+    "ariaLabel": "Navigation Utilisateur",
+    "logoAlt": "LOGO ECOAGRIS",
+    "brand": "ECOAGRIS",
+    "overview": "Aperçu",
+    "economicOutput": "Production Économique",
+    "fiscalMonetary": "Politique Fiscale et Monétaire",
+    "laborPoverty": "Travail et Pauvreté",
+    "tradeInvestment": "Commerce et Investissement",
+    "agriculture": "Agriculture",
+    "logout": "Déconnexion",
+    "expand": "Agrandir la barre latérale",
+    "collapse": "Réduire la barre latérale"
+  },
+  "economicOutput": {
+    "title": "Production économique de {{countryName}}",
+    "simulatedNote": "Remarque : Il s'agit de données macroéconomiques simulées à des fins de démonstration.",
+    "downloadCSV": "Télécharger CSV",
+    "downloadPDF": "Télécharger PDF",
+    "yearSelectLabel": "Sélectionner l'année",
+    "metricSelectLabel": "Sélectionner l'indicateur",
+    "loading": "Chargement des données économiques...",
+    "na": "N/D",
+    "gdpUsd": "PIB (USD)",
+    "gdpPerCapita": "PIB par habitant (USD)",
+    "gdpGrowth": "Croissance du PIB (%)",
+    "lineChartTitle": "Tendances économiques jusqu'en {{year}}",
+    "barChartTitle": "Indicateurs économiques pour {{countryName}}",
+    "csv": {
+      "year": "Année"
+    },
+    "pdf": {
+      "title": "Rapport sur la production économique de {{country}}",
+      "exported": "Exporté le {{date}}"
+    },
+    "errors": {
+      "invalidCountry": "Pays spécifié non valide.",
+      "fetchFailed": "Échec du chargement des données économiques.",
+      "invalidFormat": "Format de jeu de données invalide.",
+      "noData": "Aucune donnée disponible pour {{country}}.",
+      "loadingError": "Une erreur s'est produite lors du chargement des données.",
+      "pdfFailed": "Échec de la génération du rapport PDF."
+    }
+  },
+  "fiscalMonetaryYearTrend": {
+    "title": "Tendance des politiques fiscales et monétaires – {{countryName}}",
+    "simulatedNote": "Données simulées à des fins de planification. Validez avant l’usage opérationnel.",
+    "downloadCSV": "Télécharger CSV",
+    "downloadPDF": "Télécharger PDF",
+    "yearSelectLabel": "Sélectionner l’année pour les indicateurs",
+    "metricSelectLabel": "Sélectionner l’indicateur pour la comparaison annuelle",
+    "loading": "Chargement de la tendance annuelle des politiques fiscales et monétaires...",
+    "na": "N/D",
+    "cards": {
+      "cpiInflation": "Inflation IPC (%)",
+      "fiscalDeficit": "Déficit fiscal (% du PIB)",
+      "publicDebt": "Dette publique (% du PIB)",
+      "exchangeRate": "Taux de change (local/USD)"
+    },
+    "lineChartTitle": "Tendances des politiques fiscales et monétaires (2006–{{year}})",
+    "barChartTitle": "Comparaison annuelle ({{countryName}})",
+    "csv": {
+      "year": "Année"
+    },
+    "errors": {
+      "invalidCountry": "Paramètre pays non valide.",
+      "fetchFailed": "Échec de récupération des données fiscales/monétaires.",
+      "invalidFormat": "Format du jeu de données invalide.",
+      "noData": "Aucune donnée disponible pour {{country}}.",
+      "loadingError": "Une erreur s’est produite lors du chargement des données.",
+      "pdfFailed": "Échec de génération du rapport PDF."
+    }
+  },
+  "laborPovertyYearTrend": {
+    "title": "Tendances Emploi et Pauvreté - {{countryName}}",
+    "loading": "Chargement des Tendances Emploi et Pauvreté...",
+    "simulatedNote": "Données simulées à des fins de planification. Valider avant utilisation opérationnelle.",
+    "downloadCSV": "Télécharger CSV",
+    "downloadPDF": "Télécharger PDF",
+    "yearSelectLabel": "Sélectionner l'année",
+    "metricSelectLabel": "Sélectionner la métrique",
+    "na": "N/D",
+    "lineChartTitle": "Tendances Emploi et Pauvreté (2006–{{year}})",
+    "barChartTitle": "Comparaison Annuelle ({{countryName}})",
+    "pdf": {
+      "title": "Rapport Emploi et Pauvreté - {{country}}",
+      "exported": "Exporté le : {{date}}"
+    },
+    "csv": {
+      "year": "Année"
+    },
+    "cards": {
+      "population": "Population Totale",
+      "unemployment": "Taux de Chômage (%)",
+      "poverty": "Taux de Pauvreté (%)"
+    },
+    "errors": {
+      "invalidCountry": "Paramètre de pays invalide",
+      "fetchFailed": "Échec du chargement des données",
+      "invalidFormat": "Format de données invalide",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "loadingError": "Erreur de chargement des données",
+      "pdfFailed": "Échec du téléchargement PDF"
+    }
+  },
+  "tradeInvestment": {
+    "title": "Commerce et Investissement - {{countryName}}",
+    "loading": "Chargement des Données de Commerce et Investissement...",
+    "simulatedNote": "Données simulées à des fins de planification. Valider avant utilisation opérationnelle.",
+    "downloadCSV": "Télécharger CSV",
+    "downloadPDF": "Télécharger PDF",
+    "yearSelectLabel": "Sélectionner l'année",
+    "metricSelectLabel": "Sélectionner la métrique",
+    "na": "N/D",
+    "lineChartTitle": "Tendances Commerce et Investissement (2006–{{year}})",
+    "barChartTitle": "Comparaison Annuelle ({{countryName}})",
+    "pdf": {
+      "title": "Rapport Commerce et Investissement - {{country}}",
+      "exported": "Exporté le : {{date}}"
+    },
+    "csv": { "year": "Année" },
+    "cards": {
+      "exports": "Exportations (USD)",
+      "imports": "Importations (USD)",
+      "tradeBalance": "Balance Commerciale (USD)",
+      "fdi": "Entrées d'IDE (USD M)",
+      "remittances": "Envois de fonds (USD)",
+      "currentAccount": "Compte Courant (USD)"
+    },
+    "errors": {
+      "invalidCountry": "Paramètre de pays invalide",
+      "fetchFailed": "Échec du chargement des données",
+      "invalidFormat": "Format de données invalide",
+      "noData": "Aucune donnée disponible pour {{country}}",
+      "loadingError": "Erreur de chargement des données",
+      "pdfFailed": "Échec du téléchargement PDF"
+    }
+  },
+  "agricultureYearTrend": {
+  "title": "Tendances Agricoles - {{countryName}}",
+  "loading": "Chargement des Tendances Agricoles...",
+  "simulatedNote": "Données simulées à des fins de planification. Valider avant utilisation opérationnelle.",
+  "downloadCSV": "Télécharger CSV",
+  "downloadPDF": "Télécharger PDF",
+  "yearSelectLabel": "Sélectionner l'année",
+  "na": "N/D",
+  "lineChartTitle": "Tendances Agricoles (2006–{{year}})",
+  "barChartTitle": "Comparaison Annuelle ({{countryName}})",
+  "pdf": {
+    "title": "Rapport Agricole - {{country}}",
+    "exported": "Exporté le : {{date}}"
+  },
+  "csv": { "year": "Année" },
+  "cards": {
+    "agriValue": "Valeur Ajoutée Agricole (% du PIB)"
+  },
+  "errors": {
+    "invalidCountry": "Paramètre de pays invalide",
+    "fetchFailed": "Échec du chargement des données",
+    "invalidFormat": "Format de données invalide",
+    "noData": "Aucune donnée disponible pour {{country}}",
+    "loadingError": "Erreur de chargement des données",
+    "pdfFailed": "Échec du téléchargement PDF"
   }
 }
+}
+
+
+
+
 
 
 

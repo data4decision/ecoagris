@@ -1,6 +1,5 @@
 'use client';
 
-// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -17,68 +16,58 @@ import { FaDownload, FaSeedling } from 'react-icons/fa';
 import { stringify } from 'csv-stringify/sync';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useTranslation } from 'react-i18next';
 
-// Define TypeScript interfaces directly in the file
 interface RiceProductionData {
   country: string;
   year: number;
   production_tonnes: number;
-  [key: string]: unknown; 
+  [key: string]: unknown;
 }
 
 interface Dataset {
   Data: { Column1: string; [year: string]: number | string }[];
 }
 
-// Define available metrics for the bar chart (only one metric for rice production)
 type RiceProductionMetric = 'production_tonnes';
 
 export default function YearTrendPage() {
-  // Get dynamic country parameter from URL
+  const { t } = useTranslation('common');
   const { country } = useParams();
-  // State for country-specific data, selected metric, selected year, loading, error
   const [countryData, setCountryData] = useState<RiceProductionData[]>([]);
-  const [selectedMetric] = useState<RiceProductionMetric>('production_tonnes'); 
+  const [selectedMetric] = useState<RiceProductionMetric>('production_tonnes');
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
   const riceProductionFields = [
     {
       key: 'production_tonnes',
-      label: 'Rice Production (Tonnes)',
+      label: t('rice.yearTrend.production'),
       format: (v: number) => v.toLocaleString(),
       icon: <FaSeedling className="text-[var(--dark-green)] text-lg" />,
     },
   ];
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
-      setError('Invalid country parameter');
+      setError(t('rice.yearTrend.errors.invalidCountry'));
       setLoading(false);
       return;
     }
 
     async function fetchData() {
       try {
-        // Data Fetch Location: Load the rice production dataset
         const response = await fetch('/data/rice/ecowas_rice_production_2005_2024_simulated.json');
         if (!response.ok) {
-          throw new Error(`Failed to fetch rice production data: ${response.status} ${response.statusText}`);
+          throw new Error(t('rice.yearTrend.errors.fetchFailed', { status: response.status, text: response.statusText }));
         }
         const jsonData = (await response.json()) as Dataset;
 
-        // Log sample data to verify fields
-        console.log('Sample dataset record:', jsonData.Data[0]);
-
-        // Validate dataset structure
         if (!jsonData.Data || !Array.isArray(jsonData.Data)) {
-          throw new Error('Invalid dataset format: Data is missing or not an array');
+          throw new Error(t('rice.yearTrend.errors.invalidFormat'));
         }
 
-        // Normalize data into RiceProductionData format
         const normalizedData: RiceProductionData[] = [];
         jsonData.Data.forEach((countryObj) => {
           const countryName = countryObj.Column1;
@@ -95,16 +84,12 @@ export default function YearTrendPage() {
           }
         });
 
-        // Log filtered data to check values
-        console.log(`Filtered data for ${country}:`, normalizedData);
-
         if (normalizedData.length === 0) {
-          setError(`No data available for ${country}`);
+          setError(t('rice.yearTrend.errors.noData', { country }));
           setLoading(false);
           return;
         }
 
-        // Calculate the latest year dynamically
         const years = normalizedData.map((d) => d.year).filter((y) => typeof y === 'number');
         const maxYear = years.length > 0 ? Math.max(...years, 2024) : 2024;
         setSelectedYear(maxYear);
@@ -113,28 +98,25 @@ export default function YearTrendPage() {
         setLoading(false);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError(`Error loading rice production data: ${(err as Error).message}`);
+        setError(t('rice.yearTrend.errors.loadingError', { message: (err as Error).message }));
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [country]);
+  }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
     return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
+      const row: { [key: string]: string | number } = { [t('rice.yearTrend.year')]: data.year };
       riceProductionFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : 'N/A';
+        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('rice.yearTrend.na');
       });
       return row;
     });
@@ -147,11 +129,11 @@ export default function YearTrendPage() {
     link.click();
   };
 
-  // Function to handle PDF download
+  // Same as MalnutritionPage — 100% working
   const handlePDFDownload = async () => {
     const dashboard = document.getElementById('dashboard-content');
     if (!dashboard) {
-      console.error('Dashboard content not found for PDF generation');
+      console.error(t('rice.yearTrend.errors.dashboardNotFound'));
       return;
     }
 
@@ -165,27 +147,25 @@ export default function YearTrendPage() {
       pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       pdf.save(`${country}_rice_production_year_trend.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(t('rice.yearTrend.errors.pdfError'), err);
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">Loading Rice Production Year Trend...</p>
+          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('rice.yearTrend.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (!selectedData) {
     return (
       <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
         <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || 'No data available for this country'}</p>
+          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('rice.yearTrend.errors.noData', { country })}</p>
         </div>
       </div>
     );
@@ -193,47 +173,47 @@ export default function YearTrendPage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content">
+      <div className="flex-1 p-4 sm:p-2 min-w-0" id="dashboard-content">
         {/* Page Header */}
         <h1
           className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={`Rice Production Year Trend for ${country}`}
+          aria-label={t('rice.yearTrend.overview', { country })}
         >
-          <FaSeedling aria-hidden="true" className="text-lg sm:text-xl" /> Rice Production Year Trend -{' '}
+          <FaSeedling aria-hidden="true" className="text-lg sm:text-xl" /> {t('rice.yearTrend.title')} -{' '}
           {(country as string).charAt(0).toUpperCase() + (country as string).slice(1)}
         </h1>
         <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">
-          Simulated data for planning purposes. Validate before operational use.
+          {t('rice.yearTrend.simulatedNote')}
         </p>
 
         {/* Download Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
           <button
             onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download rice production year trend data as CSV"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
+            aria-label={t('rice.yearTrend.downloadCSV')}
           >
-            <FaDownload /> Download CSV
+            <FaDownload /> {t('rice.yearTrend.downloadCSV')}
           </button>
           <button
             onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto transition-colors duration-200"
-            aria-label="Download rice production year trend dashboard as PDF"
+            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto"
+            aria-label={t('rice.yearTrend.downloadPDF')}
           >
-            <FaDownload /> Download PDF
+            <FaDownload /> {t('rice.yearTrend.downloadPDF')}
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
-        <div className="mb-6 max-w-full">
+        {/* Year Selection */}
+        <div className="mb-4 max-w-full">
           <label htmlFor="year-select" className="sr-only">
-            Select Year for Metrics
+            {t('rice.yearTrend.selectYear')}
           </label>
           <select
             id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
+            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -243,32 +223,32 @@ export default function YearTrendPage() {
           </select>
         </div>
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 max-w-full">
+        {/* Metric Card — Same as MalnutritionPage */}
+        <div className="grid grid-cols-1 sm:grid-cols-1 gap-3 sm:gap-4 mb-6 max-w-full">
           {riceProductionFields.map((field) => (
             <div
               key={field.key}
-              className="bg-gradient-to-br from-[var(--white)] to-[var(--yellow)]/70 p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)]/20 min-w-0"
-              aria-label={`${field.label} Card for ${selectedYear}`}
+              className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
+              aria-label={t('rice.yearTrend.cardLabel', { label: field.label, year: selectedYear })}
             >
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 mb-1">
                 {field.icon}
-                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base leading-tight">{field.label}</h3>
+                <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">
+                  {field.label} ({selectedYear})
+                </h3>
               </div>
-              <p className="text-[var(--wine)] text-lg sm:text-2xl font-bold">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : 'N/A'}
+              <p className="text-[var(--wine)] text-base sm:text-lg">
+                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('rice.yearTrend.na')}
               </p>
-              <p className="text-[var(--olive-green)] text-xs sm:text-sm mt-1">Year: {selectedYear}</p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
+        {/* Line Chart — Same as MalnutritionPage */}
         <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Rice Production Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Rice Production Trends Chart">
+          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden" aria-label={t('rice.yearTrend.trendsChart')}>
             <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Rice Production Trends (2005–{selectedYear})
+              {t('rice.yearTrend.trendsTitle', { start: 2005, end: selectedYear })}
             </h2>
             <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
               <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
@@ -294,55 +274,14 @@ export default function YearTrendPage() {
                   type="monotone"
                   dataKey="production_tonnes"
                   stroke="var(--olive-green)"
-                  name="Rice Production (Tonnes)"
+                  name={t('rice.yearTrend.production')}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          {/* <div className="bg-[var(--white)] p-3 sm:p-4 rounded-lg shadow min-w-0 overflow-x-hidden" aria-label="Year Comparison Chart">
-            <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              Year Comparison ({(country as string).charAt(0).toUpperCase() + (country as string).slice(1)})
-            </h2>
-            {/* Metric dropdown (kept for consistency, but only one option */}
-            {/* <label htmlFor="metric-select" className="sr-only">
-              Select Metric for Year Comparison */}
-            {/* </label> */} 
-            {/* <select
-              id="metric-select"
-              value={selectedMetric}
-              onChange={() => {}} // Disabled since only one metric
-              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-[var(--olive-green)]"
-              disabled
-            >
-              {riceProductionFields.map((field) => (
-                <option key={field.key} value={field.key}>
-                  {field.label}
-                </option>
-              ))}
-            </select> */}
-            {/* <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
-              <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }} barGap={2} barCategoryGap="10%">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  fontSize={10}
-                  angle={-45}
-                  textAnchor="end"
-                  interval="preserveStartEnd"
-                  height={50}
-                  className="sm:text-[12px] sm:angle-0 sm:text-anchor-middle"
-                />
-                <YAxis fontSize={10} className="sm:text-[12px]" />
-                <Tooltip contentStyle={{ fontSize: 12 }} />
-                <Bar dataKey={selectedMetric} fill="var(--olive-green)" minPointSize={5} />
-              </BarChart>
-            </ResponsiveContainer> */}
-          </div>
         </div>
       </div>
-   
+    </div>
   );
 }
