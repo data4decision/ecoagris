@@ -11,15 +11,15 @@ import { useTranslation } from 'react-i18next';
 
 const products = [
   { nameKey: 'agric_input', slug: 'agric' },
-  { nameKey: 'agro_hydro_meteorology', slug: 'agro-hydro-meteorology' },
-  { nameKey: 'agricultural_production', slug: 'agricultural-production' },
-  { nameKey: 'agricultural_market', slug: 'agricultural-market' },
-  { nameKey: 'food_stocks', slug: 'food-stocks' },
+  // { nameKey: 'agro_hydro_meteorology', slug: 'agro-hydro-meteorology' },
+  // { nameKey: 'agricultural_production', slug: 'agricultural-production' },
+  // { nameKey: 'agricultural_market', slug: 'agricultural-market' },
+  // { nameKey: 'food_stocks', slug: 'food-stocks' },
   { nameKey: 'nutrition', slug: 'nutrition' },
   { nameKey: 'livestock', slug: 'livestock' },
-  { nameKey: 'fishery', slug: 'fishery' },
-  { nameKey: 'aquaculture', slug: 'aquaculture' },
-  { nameKey: 'agric_research_results', slug: 'agric-research-results' },
+  // { nameKey: 'fishery', slug: 'fishery' },
+  // { nameKey: 'aquaculture', slug: 'aquaculture' },
+  // { nameKey: 'agric_research_results', slug: 'agric-research-results' },
   { nameKey: 'macroeconomics_indices', slug: 'macroeconomics-indices' },
   { nameKey: 'rice_production', slug: 'rice' }
 ];
