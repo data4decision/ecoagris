@@ -1,9 +1,9 @@
 import { adminFirestore } from '@/app/lib/firebaseAdmin';
-import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp } from 'firebase-admin/firestore';
 import { format } from 'date-fns';
 import DashboardClient from './DashboardClient';
 
-export const dynamic = 'force-dynamic'; // Optional: revalidate on every request
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardHome() {
   let stats = null;
@@ -27,7 +27,12 @@ export default async function DashboardHome() {
       getDocs(collection(adminFirestore, 'data_livestock')),
       getDocs(collection(adminFirestore, 'data_nutrition')),
       getDocs(collection(adminFirestore, 'data_rice')),
-      getDocs(query(collection(adminFirestore, 'admin_logs'), where('timestamp', '>', Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000))))),
+      getDocs(
+        query(
+          collection(adminFirestore, 'admin_logs'),
+          where('timestamp', '>', Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000)))
+        )
+      ),
     ]);
 
     const totalProducts =
@@ -37,23 +42,30 @@ export default async function DashboardHome() {
       nutritionSnap.size +
       riceSnap.size;
 
-    const lastUploadDoc = uploadsSnap.docs
-      .sort((a, b) => (b.data().timestamp?.toDate() || 0) - (a.data().timestamp?.toDate() || 0))[0];
+    // Safely get the most recent upload
+    const uploadDocs = uploadsSnap.docs;
+    const lastUploadDoc = uploadDocs
+      .filter((doc) => doc.data()?.timestamp instanceof Timestamp)
+      .sort((a, b) => {
+        const aTime = a.data().timestamp?.toMillis() || 0;
+        const bTime = b.data().timestamp?.toMillis() || 0;
+        return bTime - aTime;
+      })[0];
 
     stats = {
       totalUsers: usersSnap.size,
-      activeAdmins: usersSnap.docs.filter((d) => d.data().role === 'admin').length,
+      activeAdmins: usersSnap.docs.filter((d) => d.data()?.role === 'admin').length,
       totalUploads: uploadsSnap.size,
-      pendingUploads: uploadsSnap.docs.filter((d) => d.data().status === 'pending').length,
+      pendingUploads: uploadsSnap.docs.filter((d) => d.data()?.status === 'pending').length,
       totalProducts,
       recentLogs: logsSnap.size,
       lastUpload: lastUploadDoc
         ? format(lastUploadDoc.data().timestamp.toDate(), 'PPP p')
-        : null,
+        : 'No uploads yet',
     };
   } catch (err: unknown) {
     console.error('Dashboard fetch error:', err);
-    error = 'Failed to load dashboard data';
+    error = 'Failed to load dashboard data. Please try again later.';
   }
 
   return <DashboardClient stats={stats} error={error} />;
