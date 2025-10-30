@@ -1,5 +1,4 @@
 import { adminFirestore } from '@/app/lib/firebaseAdmin';
-import { collection, getDocs, query, where, Timestamp } from 'firebase-admin/firestore';
 import { format } from 'date-fns';
 import DashboardClient from './DashboardClient';
 
@@ -10,6 +9,7 @@ export default async function DashboardHome() {
   let error = null;
 
   try {
+    // Use .collection() and .get() methods on Firestore instance
     const [
       usersSnap,
       uploadsSnap,
@@ -18,21 +18,20 @@ export default async function DashboardHome() {
       livestockSnap,
       nutritionSnap,
       riceSnap,
-      logsSnap,
+      logsQuery,
     ] = await Promise.all([
-      getDocs(collection(adminFirestore, 'users')),
-      getDocs(collection(adminFirestore, 'uploads')),
-      getDocs(collection(adminFirestore, 'data_macro')),
-      getDocs(collection(adminFirestore, 'data_agric')),
-      getDocs(collection(adminFirestore, 'data_livestock')),
-      getDocs(collection(adminFirestore, 'data_nutrition')),
-      getDocs(collection(adminFirestore, 'data_rice')),
-      getDocs(
-        query(
-          collection(adminFirestore, 'admin_logs'),
-          where('timestamp', '>', Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000)))
-        )
-      ),
+      adminFirestore.collection('users').get(),
+      adminFirestore.collection('uploads').get(),
+      adminFirestore.collection('data_macro').get(),
+      adminFirestore.collection('data_agric').get(),
+      adminFirestore.collection('data_livestock').get(),
+      adminFirestore.collection('data_nutrition').get(),
+      adminFirestore.collection('data_rice').get(),
+      // Last 24 hours logs
+      adminFirestore
+        .collection('admin_logs')
+        .where('timestamp', '>', new Date(Date.now() - 24 * 60 * 60 * 1000))
+        .get(),
     ]);
 
     const totalProducts =
@@ -42,25 +41,25 @@ export default async function DashboardHome() {
       nutritionSnap.size +
       riceSnap.size;
 
-    // Safely get the most recent upload
+    // Find latest upload
     const uploadDocs = uploadsSnap.docs;
     const lastUploadDoc = uploadDocs
-      .filter((doc) => doc.data()?.timestamp instanceof Timestamp)
+      .filter((doc) => doc.get('timestamp')?.toDate?.() instanceof Date)
       .sort((a, b) => {
-        const aTime = a.data().timestamp?.toMillis() || 0;
-        const bTime = b.data().timestamp?.toMillis() || 0;
+        const aTime = a.get('timestamp')?.toMillis() || 0;
+        const bTime = b.get('timestamp')?.toMillis() || 0;
         return bTime - aTime;
       })[0];
 
     stats = {
       totalUsers: usersSnap.size,
-      activeAdmins: usersSnap.docs.filter((d) => d.data()?.role === 'admin').length,
+      activeAdmins: usersSnap.docs.filter((d) => d.get('role') === 'admin').length,
       totalUploads: uploadsSnap.size,
-      pendingUploads: uploadsSnap.docs.filter((d) => d.data()?.status === 'pending').length,
+      pendingUploads: uploadsSnap.docs.filter((d) => d.get('status') === 'pending').length,
       totalProducts,
-      recentLogs: logsSnap.size,
+      recentLogs: logsQuery.size,
       lastUpload: lastUploadDoc
-        ? format(lastUploadDoc.data().timestamp.toDate(), 'PPP p')
+        ? format(lastUploadDoc.get('timestamp').toDate(), 'PPP p')
         : 'No uploads yet',
     };
   } catch (err: unknown) {
