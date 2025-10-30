@@ -1383,10 +1383,48 @@
     "loadingError": "Error loading data",
     "pdfFailed": "PDF download failed"
   }
+},
+
+  "adminSidebar": {
+    "ariaLabel": "Admin Navigation",
+    "logoAlt": "ECOAGRIS Logo",
+    "brand": "ECOAGRIS Admin",
+    "expand": "Expand Sidebar",
+    "collapse": "Collapse Sidebar",
+    "logout": "Logout",
+    "nav": {
+      "dashboard": "Dashboard",
+      "users": "User Management",
+      "upload": "Data Upload",
+      "productsEditor": "Products Editor",
+      "macro": "Macro Data",
+      "agric": "Agriculture",
+      "livestock": "Livestock",
+      "nutrition": "Nutrition",
+      "rice": "Rice",
+      "logs": "Audit Logs",
+      "settings": "Settings",
+      "apiKeys": "API Keys"
+    }
+  },
+
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "subtitle": "Overview of system activity and data",
+    "error": "Failed to load dashboard data",
+    "noData": "No data available",
+    "noUploads": "No recent uploads",
+    "lastUpload": "Last upload",
+    "activeAdmins": "Active admins",
+    "recentActivity": "Recent Activity",
+    "stats": {
+      "users": "Total Users",
+      "uploads": "Data Uploads",
+      "products": "Products Edited",
+      "logs": "Recent Logs"
+    }
+  },
+  "common": {
+    "retry": "Retry"
+  }
 }
-}
-
-
-
-
-

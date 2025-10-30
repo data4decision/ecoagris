@@ -1386,14 +1386,47 @@
     "loadingError": "Erreur de chargement des données",
     "pdfFailed": "Échec du téléchargement PDF"
   }
+},
+  "adminSidebar": {
+    "ariaLabel": "Navigation Admin",
+    "logoAlt": "Logo ECOAGRIS",
+    "brand": "Admin ECOAGRIS",
+    "expand": "Agrandir la barre latérale",
+    "collapse": "Réduire la barre latérale",
+    "logout": "Déconnexion",
+    "nav": {
+      "dashboard": "Tableau de bord",
+      "users": "Gestion des utilisateurs",
+      "upload": "Téléversement de données",
+      "productsEditor": "Éditeur de produits",
+      "macro": "Données macro",
+      "agric": "Agriculture",
+      "livestock": "Bétail",
+      "nutrition": "Nutrition",
+      "rice": "Riz",
+      "logs": "Journaux d'audit",
+      "settings": "Paramètres",
+      "apiKeys": "Clés API"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord Admin",
+    "subtitle": "Aperçu de l'activité et des données",
+    "error": "Échec du chargement des données",
+    "noData": "Aucune donnée disponible",
+    "noUploads": "Aucun téléversement récent",
+    "lastUpload": "Dernier téléversement",
+    "activeAdmins": "Admins actifs",
+    "recentActivity": "Activité récente",
+    "stats": {
+      "users": "Utilisateurs totaux",
+      "uploads": "Téléversements",
+      "products": "Produits modifiés",
+      "logs": "Journaux récents"
+    }
+  },
+  "common": {
+    "retry": "Réessayer"
+  }
 }
-}
-
-
-
-
-
-
-
-
 
