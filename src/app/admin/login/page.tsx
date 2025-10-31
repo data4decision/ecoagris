@@ -1,13 +1,15 @@
 'use client';
 
-// This prevents prerendering — MUST BE AT THE TOP
+// Prevent ALL static rendering and prerendering
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const dynamicParams = true;
 
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
-
+import Link from 'next/link';
 import { loginAction } from './action';
 
 export default function AdminLogin() {
@@ -102,7 +104,7 @@ export default function AdminLogin() {
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center">
+            <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm text-center">
               {error}
             </div>
           )}
@@ -112,7 +114,28 @@ export default function AdminLogin() {
             disabled={loading}
             className="w-full bg-[var(--dark-green)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--olive-green)] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Login'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
 
@@ -125,7 +148,19 @@ export default function AdminLogin() {
           </p>
         </div>
 
-       
+        {/* CRITICAL FIX: Use <a> instead of <Link> to avoid prerender error */}
+        <div className="mt-4 text-center">
+          {/* <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              router.push('/');
+            }}
+            className="text-sm text-[var(--olive-green)] hover:text-[var(--dark-green)] transition cursor-pointer"
+          >
+            ← Back to ECOAGRIS
+          </a> */}
+        </div>
       </div>
     </div>
   );
