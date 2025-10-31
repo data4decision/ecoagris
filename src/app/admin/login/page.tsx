@@ -14,16 +14,8 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  // Optional: Test auth on mount (remove in prod)
-  useEffect(() => {
-    // Remove this in production
-    // signInWithEmailAndPassword(auth, 'test@ecoagris.org', 'test123')
-    //   .then(u => console.log('Test auth success:', u.user.uid))
-    //   .catch(e => console.error('Test auth failed:', e));
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // Critical: Prevent page reload
+    e.preventDefault();
     if (!email || !password) return;
 
     setLoading(true);
@@ -46,15 +38,19 @@ export default function AdminLogin() {
     } catch (err: unknown) {
       console.error('Login error:', err);
 
-      // Friendly error messages
-      if (err.code === 'auth/network-request-failed') {
+      // Safely extract Firebase error code and message
+      const firebaseError = err as { code?: string; message?: string };
+      const code = firebaseError.code;
+      const message = firebaseError.message || 'Login failed. Please try again.';
+
+      if (code === 'auth/network-request-failed') {
         setError('Network error. Check your internet connection.');
-      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      } else if (code === 'auth/user-not-found' || code === 'auth/wrong-password') {
         setError('Invalid email or password');
-      } else if (err.code === 'auth/too-many-requests') {
+      } else if (code === 'auth/too-many-requests') {
         setError('Too many attempts. Try again later.');
       } else {
-        setError(err.message || 'Login failed. Please try again.');
+        setError(message);
       }
     } finally {
       setLoading(false);
