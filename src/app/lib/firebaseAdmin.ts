@@ -7,11 +7,11 @@ let app: App | undefined;
 
 // Reuse existing app if already initialized
 if (!getApps().length) {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT; // ← FIXED: Correct name
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
 
   if (!serviceAccountJson) {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT is missing. Add it to your .env.local file.'
+      'FIREBASE_SERVICE_ACCOUNT is missing. Add it to Vercel Environment Variables (and .env.local for local dev).'
     );
   }
 
@@ -20,13 +20,18 @@ if (!getApps().length) {
     serviceAccount = JSON.parse(serviceAccountJson);
   } catch (error) {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT is invalid JSON. Ensure it is a single-line, valid JSON string.'
+      'FIREBASE_SERVICE_ACCOUNT is invalid JSON. Must be a one-line JSON string. Validate at https://jsonlint.com'
     );
   }
 
-  app = initializeApp({
-    credential: cert(serviceAccount),
-  });
+  try {
+    app = initializeApp({
+      credential: cert(serviceAccount),
+    });
+  } catch (error) {
+    console.error('Failed to initialize Firebase Admin SDK:', error);
+    throw new Error('Firebase Admin initialization failed. Check service account JSON.');
+  }
 } else {
   app = getApps()[0];
 }
