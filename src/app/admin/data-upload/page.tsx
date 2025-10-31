@@ -1,15 +1,13 @@
+// src/app/admin/data-upload/page.tsx
+
 'use client';
 
 // ────────────────────────────────────────────────────────────────
-// 1. Force this page to be rendered **only at request time**
+// 1. NO PRERENDERING — This page is rendered on every request
 // ────────────────────────────────────────────────────────────────
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;          // never cache
-export const dynamicParams = true;   // allow any param
+export const revalidate = 0;
 
-// ────────────────────────────────────────────────────────────────
-// 2. Imports
-// ────────────────────────────────────────────────────────────────
 import { useState, useRef, useEffect } from 'react';
 import { read, utils } from 'xlsx';
 import { useRouter } from 'next/navigation';
@@ -23,9 +21,6 @@ import {
   Info,
 } from 'lucide-react';
 
-// ────────────────────────────────────────────────────────────────
-// 3. Types
-// ────────────────────────────────────────────────────────────────
 interface ParsedRow {
   [key: string]: unknown;
 }
@@ -44,7 +39,6 @@ interface UploadResult {
   reason?: string;
 }
 
-// Allowed sheets – keep this in sync with the backend
 const ALLOWED_SHEETS = new Set([
   'Agric input',
   'Rice',
@@ -53,9 +47,6 @@ const ALLOWED_SHEETS = new Set([
   'Livestock',
 ]);
 
-// ────────────────────────────────────────────────────────────────
-// 4. Page component
-// ────────────────────────────────────────────────────────────────
 export default function DataUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -65,21 +56,22 @@ export default function DataUploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // ────── Protect the route (admin only) ──────
+  // Protect route
   useEffect(() => {
     const auth = localStorage.getItem('admin-auth');
     if (!auth) router.replace('/admin/login');
   }, [router]);
 
-  // ────── Drag & Drop handlers ──────
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
+
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
   };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -91,6 +83,7 @@ export default function DataUploadPage() {
       toast.error('Please upload a valid .xlsx file');
     }
   };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) {
@@ -99,7 +92,6 @@ export default function DataUploadPage() {
     }
   };
 
-  // ────── Excel parsing ──────
   const parseExcel = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -117,7 +109,7 @@ export default function DataUploadPage() {
             name: sheetName,
             data: [],
             valid: false,
-            errors: ['Not an allowed dataset (will be skipped)'],
+            errors: ['Not allowed (will be skipped)'],
             allowed: false,
           });
           return;
@@ -149,7 +141,6 @@ export default function DataUploadPage() {
     reader.readAsArrayBuffer(file);
   };
 
-  // ────── Row validation ──────
   const validateSheet = (sheetName: string, rows: ParsedRow[]) => {
     const errors: string[] = [];
     const validRows: ParsedRow[] = [];
@@ -191,7 +182,6 @@ export default function DataUploadPage() {
     return { validRows, errors };
   };
 
-  // ────── Upload to API ──────
   const uploadData = async () => {
     if (!file) return;
 
@@ -241,7 +231,6 @@ export default function DataUploadPage() {
     }
   };
 
-  // ────── UI ──────
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -253,7 +242,7 @@ export default function DataUploadPage() {
           </div>
         </div>
 
-        {/* Drag Zone */}
+        {/* Drag & Drop Zone */}
         <div
           className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
             isDragging ? 'border-green-500 bg-green-50' : 'border-gray-300 bg-white'
@@ -289,7 +278,7 @@ export default function DataUploadPage() {
           )}
         </div>
 
-        {/* Sheets preview */}
+        {/* Sheets Preview */}
         {file && sheets.length > 0 && (
           <div className="mt-8 space-y-6">
             {sheets.map((s) => (
@@ -377,7 +366,7 @@ export default function DataUploadPage() {
               </div>
             ))}
 
-            {/* Upload button + progress */}
+            {/* Upload Button */}
             <div className="flex items-center justify-between">
               <div className="flex-1 mr-4">
                 {isUploading && (
@@ -392,13 +381,9 @@ export default function DataUploadPage() {
               <button
                 type="button"
                 onClick={uploadData}
-                disabled={
-                  isUploading ||
-                  sheets.filter((s) => s.allowed).every((s) => !s.valid)
-                }
+                disabled={isUploading || sheets.filter((s) => s.allowed).every((s) => !s.valid)}
                 className={`px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition ${
-                  isUploading ||
-                  sheets.filter((s) => s.allowed).every((s) => !s.valid)
+                  isUploading || sheets.filter((s) => s.allowed).every((s) => !s.valid)
                     ? 'bg-gray-400 cursor-not-allowed text-white'
                     : 'bg-green-600 hover:bg-green-700 text-white'
                 }`}
