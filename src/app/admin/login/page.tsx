@@ -2,17 +2,12 @@
 
 'use client';
 
-// ────────────────────────────────────────────────────────────────
-// 1. Disable prerendering completely
-// ────────────────────────────────────────────────────────────────
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { loginAction } from './action';
+import Link from 'next/link';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -41,6 +36,7 @@ export default function AdminLogin() {
       const code = firebaseError.code;
       const message = firebaseError.message || 'Login failed. Please try again.';
 
+      // Handle error cases
       if (code === 'auth/network-request-failed') {
         setError('Network error. Check your internet connection.');
       } else if (code === 'auth/user-not-found' || code === 'auth/wrong-password') {
@@ -67,18 +63,15 @@ export default function AdminLogin() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-center text-[var(--dark-green)] mb-2">
-          Admin Login
-        </h1>
+        <h1 className="text-2xl font-bold text-center text-[var(--dark-green)] mb-2">Admin Login</h1>
         <p className="text-center text-[var(--olive-green)] text-sm mb-6">
           Access the ECOAGRIS Admin Dashboard
         </p>
 
         <form onSubmit={handleLogin} className="space-y-5">
+          {/* Email Input */}
           <div>
-            <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">Email</label>
             <input
               type="email"
               value={email}
@@ -90,10 +83,9 @@ export default function AdminLogin() {
             />
           </div>
 
+          {/* Password Input */}
           <div>
-            <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">Password</label>
             <input
               type="password"
               value={password}
@@ -105,12 +97,14 @@ export default function AdminLogin() {
             />
           </div>
 
+          {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm text-center">
               {error}
             </div>
           )}
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -119,14 +113,7 @@ export default function AdminLogin() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path
                     className="opacity-75"
                     fill="currentColor"
@@ -141,6 +128,7 @@ export default function AdminLogin() {
           </button>
         </form>
 
+        {/* Contact Info */}
         <div className="mt-6 text-center text-xs text-gray-500">
           <p>
             Need access? Contact{' '}
@@ -150,8 +138,9 @@ export default function AdminLogin() {
           </p>
         </div>
 
+        {/* Back Link */}
         <div className="mt-4 text-center">
-          {/* <a
+          <Link
             href="/"
             onClick={(e) => {
               e.preventDefault();
@@ -160,7 +149,7 @@ export default function AdminLogin() {
             className="text-sm text-[var(--olive-green)] hover:text-[var(--dark-green)] transition cursor-pointer"
           >
             ← Back to ECOAGRIS
-          </a> */}
+          </Link>
         </div>
       </div>
     </div>
