@@ -210,9 +210,9 @@ export default function DataUploadPage() {
         if (r.status === 'success' && r.rows !== undefined) {
           uploaded += r.rows;
           setProgress((uploaded / total) * 100);
-          toast.success(`${r.sheet} → ${r.rows} rows`);
+          toast.success(`${r.sheet} to ${r.rows} rows`);
         } else if (r.status === 'skipped') {
-          toast.warning(`${r.sheet}: ${r.reason}`);
+          toast(`${r.sheet}: ${r.reason}`, { icon: 'Warning' });
         }
       });
 
