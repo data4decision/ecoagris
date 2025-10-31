@@ -13,6 +13,8 @@ import {
   Info,
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 interface ParsedRow {
   [key: string]: unknown;
 }
