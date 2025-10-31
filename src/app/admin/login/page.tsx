@@ -7,6 +7,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { loginAction } from './action';
 
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
