@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { loginAction } from './action'; // Replace with your login action, if applicable
+import { loginAction } from './action'; 
 import Link from 'next/link';
 
 export default function AdminLogin() {
