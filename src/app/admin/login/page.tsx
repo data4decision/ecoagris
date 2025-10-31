@@ -3,7 +3,7 @@
 // This prevents prerendering — MUST BE AT THE TOP
 export const dynamic = 'force-dynamic';
 
-import { useState } from 'hi 'react';
+import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -127,12 +127,12 @@ export default function AdminLogin() {
 
         {/* Use <a> instead of <Link> to avoid prerender issues */}
         <div className="mt-4 text-center">
-          <a
+          <Link
             href="/"
             className="text-sm text-[var(--olive-green)] hover:text-[var(--dark-green)] transition"
           >
             Back to ECOAGRIS
-          </a>
+          </Link>
         </div>
       </div>
     </div>
