@@ -1,9 +1,9 @@
 'use client';
 
-// ADD THIS LINE — prevents static prerendering
+// This prevents prerendering — MUST BE AT THE TOP
 export const dynamic = 'force-dynamic';
 
-import { useState } from 'react';
+import { useState } from 'hi 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -25,23 +25,14 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      // Step 1: Client-side Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
-
-      // Step 2: Server Action to set HttpOnly cookie
       const result = await loginAction(idToken);
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
+      if (result.error) throw new Error(result.error);
 
-      // Step 3: Redirect
       router.push('/admin/admin-dashboard');
     } catch (err: unknown) {
-      console.error('Login error:', err);
-
-      // Safely extract Firebase error code and message
       const firebaseError = err as { code?: string; message?: string };
       const code = firebaseError.code;
       const message = firebaseError.message || 'Login failed. Please try again.';
@@ -134,13 +125,14 @@ export default function AdminLogin() {
           </p>
         </div>
 
+        {/* Use <a> instead of <Link> to avoid prerender issues */}
         <div className="mt-4 text-center">
-          <Link
+          <a
             href="/"
             className="text-sm text-[var(--olive-green)] hover:text-[var(--dark-green)] transition"
           >
             Back to ECOAGRIS
-          </Link>
+          </a>
         </div>
       </div>
     </div>
