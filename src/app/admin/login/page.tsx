@@ -1,15 +1,17 @@
+// src/app/admin/login/page.tsx
+
 'use client';
 
-// Prevent ALL static rendering and prerendering
+// ────────────────────────────────────────────────────────────────
+// 1. Disable prerendering completely
+// ────────────────────────────────────────────────────────────────
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-export const dynamicParams = true;
 
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { loginAction } from './action';
 
 export default function AdminLogin() {
@@ -148,7 +150,6 @@ export default function AdminLogin() {
           </p>
         </div>
 
-        {/* CRITICAL FIX: Use <a> instead of <Link> to avoid prerender error */}
         <div className="mt-4 text-center">
           {/* <a
             href="/"
