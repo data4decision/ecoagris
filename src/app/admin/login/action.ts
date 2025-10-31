@@ -4,17 +4,14 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 /**
- * Server Action: Sets HttpOnly session cookie after Firebase ID token verification
+ * Server Action: Secure login with HttpOnly cookie
  */
 export async function loginAction(idToken: string) {
-  const cookieStore = cookies();
+  // MUST AWAIT cookies() — it returns a Promise!
+  const cookieStore = await cookies();
 
   try {
-    // Optional: Verify Firebase ID token on the server (recommended for production)
-    // Skip for now if you're using Firebase Admin SDK elsewhere
-    // Or add verification using Firebase Admin SDK
-
-    // Set secure HttpOnly cookie
+    // Set secure HttpOnly session cookie
     cookieStore.set('admin-session', idToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -26,15 +23,15 @@ export async function loginAction(idToken: string) {
     return { success: true };
   } catch (error) {
     console.error('Login action failed:', error);
-    return { error: 'Failed to authenticate. Please try again.' };
+    return { error: 'Authentication failed. Please try again.' };
   }
 }
 
 /**
- * Optional: Logout action (call from client)
+ * Logout action
  */
 export async function logoutAction() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete('admin-session');
   redirect('/admin/login');
 }
