@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+
 import { loginAction } from './action';
 
 export default function AdminLogin() {
@@ -125,15 +125,7 @@ export default function AdminLogin() {
           </p>
         </div>
 
-        {/* Use <a> instead of <Link> to avoid prerender issues */}
-        <div className="mt-4 text-center">
-          <Link
-            href="/"
-            className="text-sm text-[var(--olive-green)] hover:text-[var(--dark-green)] transition"
-          >
-            Back to ECOAGRIS
-          </Link>
-        </div>
+       
       </div>
     </div>
   );
