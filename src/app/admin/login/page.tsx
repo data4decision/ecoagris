@@ -1,12 +1,10 @@
-// src/app/admin/login/page.tsx
-
 'use client';
 
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
-import { loginAction } from './action';
+import { loginAction } from './action'; // Replace with your login action, if applicable
 import Link from 'next/link';
 
 export default function AdminLogin() {
@@ -24,12 +22,16 @@ export default function AdminLogin() {
     setError('');
 
     try {
+      // Firebase SignIn
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
+      
+      // Assuming loginAction is your function to verify the token and proceed
       const result = await loginAction(idToken);
 
       if (result.error) throw new Error(result.error);
 
+      // Redirect to Admin Dashboard
       router.push('/admin/admin-dashboard');
     } catch (err: unknown) {
       const firebaseError = err as { code?: string; message?: string };
