@@ -44,7 +44,7 @@ export default function DashboardClient({ stats, error }: { stats: Stats | null;
         <StatCard icon={<FaFileAlt />} label={t('dashboard.stats.logs')} value={stats.recentLogs.toString()} color="bg-[var(--yellow)] text-[var(--dark-green)]" />
       </div>
 
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-[var(--yellow)]/20">
+      <div className="bg-[var(--wine)] backdrop-blur-sm rounded-xl p-6 border border-[var(--yellow)]/20">
         <h2 className="text-lg font-semibold text-[var(--white)] mb-4">
           {t('dashboard.recentActivity')}
         </h2>
