@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { loginAction } from './action';
-import { redirect } from 'next/navigation'; // ← Critical fix
+import { FirebaseError } from 'firebase/app'; // ← Add this
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -24,35 +24,37 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      // 1. Firebase Sign-In
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
-      // 2. Set HttpOnly cookie via server action
       const result = await loginAction(idToken);
 
       if (result?.error) {
         throw new Error(result.error);
       }
 
-      // 3. FULL SERVER-SIDE REDIRECT (fixes Vercel loop)
-      redirect('/admin/admin-dashboard');
+      // Server action handles redirect
     } catch (err: unknown) {
-      const firebaseError = err as { code?: string; message?: string };
-      const code = firebaseError.code;
+      if (err instanceof FirebaseError) {
+        const code = err.code;
 
-      if (code === 'auth/network-request-failed') {
-        setError('Network error. Check your internet connection.');
-      } else if (
-        code === 'auth/user-not-found' ||
-        code === 'auth/wrong-password' ||
-        code === 'auth/invalid-credential'
-      ) {
-        setError('Invalid email or password.');
-      } else if (code === 'auth/too-many-requests') {
-        setError('Too many attempts. Try again later.');
+        if (code === 'auth/network-request-failed') {
+          setError('Network error. Check your internet connection.');
+        } else if (
+          code === 'auth/user-not-found' ||
+          code === 'auth/wrong-password' ||
+          code === 'auth/invalid-credential'
+        ) {
+          setError('Invalid email or password.');
+        } else if (code === 'auth/too-many-requests') {
+          setError('Too many attempts. Try again later.');
+        } else {
+          setError(err.message || 'Login failed. Please try again.');
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
-        setError(firebaseError.message || 'Login failed. Please try again.');
+        setError('An unexpected error occurred.');
       }
     } finally {
       setLoading(false);
