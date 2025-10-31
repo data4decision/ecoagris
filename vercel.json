@@ -1,14 +1,12 @@
-
 {
-  "builds": [
-    {
-      "src": "next.config.js",
-      "use": "@vercel/next"
-    }
-  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "app/api/**/*.ts": {
+    "app/api/admin/**/*.ts": {
       "memory": 1024,
+      "maxDuration": 30
+    },
+    "app/api/**/*.ts": {
+      "memory": 512,
       "maxDuration": 10
     }
   }
