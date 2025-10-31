@@ -6,7 +6,6 @@ import { adminAuth } from '@/app/lib/firebaseAdmin';
 
 type LoginResult = { error?: string };
 
-// Define Firebase Admin error shape
 interface FirebaseAdminError extends Error {
   code?: string;
 }
@@ -14,13 +13,23 @@ interface FirebaseAdminError extends Error {
 export async function loginAction(idToken: string): Promise<LoginResult> {
   const cookieStore = await cookies();
 
+  console.log('Login action started');
+  console.log('idToken exists:', !!idToken);
+  console.log('idToken length:', idToken?.length);
+
   try {
+    console.log('Verifying ID token with Firebase Admin...');
     const decodedToken = await adminAuth.verifyIdToken(idToken);
 
+    console.log('Token verified. UID:', decodedToken.uid);
+    console.log('Email:', decodedToken.email);
+
     if (decodedToken.email !== 'admin@ecoagris.org') {
+      console.log('Access denied: not admin email');
       return { error: 'Access denied. Admin only.' };
     }
 
+    console.log('Setting HttpOnly cookie...');
     cookieStore.set('admin-session', idToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -29,10 +38,16 @@ export async function loginAction(idToken: string): Promise<LoginResult> {
       path: '/',
     });
 
+    console.log('Redirecting to dashboard...');
     redirect('/admin/admin-dashboard');
   } catch (error: unknown) {
-    // Type-safe error handling
+    // LOG THE ACTUAL ERROR
+    console.error('LOGIN ACTION FAILED:', error);
     if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+
       const firebaseError = error as FirebaseAdminError;
       const code = firebaseError.code;
 
@@ -47,7 +62,6 @@ export async function loginAction(idToken: string): Promise<LoginResult> {
       }
     }
 
-    console.error('Login action failed:', error);
     return { error: 'Authentication failed. Please try again.' };
   }
 }
