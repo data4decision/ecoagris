@@ -24,6 +24,15 @@ interface SheetData {
   allowed: boolean;
 }
 
+// Expected response from /api/admin/upload-data
+interface UploadResult {
+  sheet: string;
+  status: 'success' | 'skipped';
+  rows?: number;
+  file?: string;
+  reason?: string;
+}
+
 // Allowed sheets
 const ALLOWED_SHEETS = new Set([
   'Agric input',
@@ -127,12 +136,11 @@ export default function DataUploadPage() {
     reader.readAsArrayBuffer(file);
   };
 
-  // Validation (customize per sheet if needed later)
+  // Validation
   const validateSheet = (sheetName: string, rows: ParsedRow[]) => {
     const errors: string[] = [];
     const validRows: ParsedRow[] = [];
 
-    // Base required fields
     const required = ['state', 'lga', 'year'];
     if (sheetName === 'Rice' || sheetName === 'Agric input') {
       required.push('yield_kg', 'area_ha');
@@ -147,7 +155,6 @@ export default function DataUploadPage() {
         }
       });
 
-      // Numeric fields
       ['yield_kg', 'area_ha', 'price_per_kg', 'gdp', 'inflation'].forEach((f) => {
         if (row[f] && isNaN(Number(row[f]))) {
           rowErr.push(`Row ${idx + 2}: ${f} must be a number`);
@@ -194,18 +201,18 @@ export default function DataUploadPage() {
       });
 
       const json = await res.json();
-      if (!json.ok) throw new Error(json.error);
+      if (!json.ok) throw new Error(json.error || 'Upload failed');
 
       const total = validSheets.reduce((a, s) => a + s.data.length, 0);
       let uploaded = 0;
 
-      json.results.forEach((r: unknown) => {
-        if (r.status === 'success') {
+      (json.results as UploadResult[]).forEach((r) => {
+        if (r.status === 'success' && r.rows !== undefined) {
           uploaded += r.rows;
           setProgress((uploaded / total) * 100);
           toast.success(`${r.sheet} → ${r.rows} rows`);
-        } else {
-          toast.error(`${r.sheet}: ${r.reason}`);
+        } else if (r.status === 'skipped') {
+          toast.warning(`${r.sheet}: ${r.reason}`);
         }
       });
 
@@ -214,7 +221,8 @@ export default function DataUploadPage() {
         window.location.href = '/admin';
       }, 1500);
     } catch (err: unknown) {
-      toast.error(err.message);
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }
@@ -354,7 +362,7 @@ export default function DataUploadPage() {
               </div>
             ))}
 
-            {/* Upload */}
+            {/* Upload Button */}
             <div className="flex items-center justify-between">
               <div className="flex-1 mr-4">
                 {isUploading && (
