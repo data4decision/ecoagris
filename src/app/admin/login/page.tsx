@@ -4,14 +4,13 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { loginAction } from './action';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation'; // ← Critical fix
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,26 +24,30 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      // Firebase SignIn
+      // 1. Firebase Sign-In
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await userCredential.user.getIdToken();
 
-      // Server-side token verification
+      // 2. Set HttpOnly cookie via server action
       const result = await loginAction(idToken);
 
       if (result?.error) {
         throw new Error(result.error);
       }
 
-      // Redirect to Admin Dashboard
-      router.push('/admin/admin-dashboard');
+      // 3. FULL SERVER-SIDE REDIRECT (fixes Vercel loop)
+      redirect('/admin/admin-dashboard');
     } catch (err: unknown) {
       const firebaseError = err as { code?: string; message?: string };
       const code = firebaseError.code;
 
       if (code === 'auth/network-request-failed') {
         setError('Network error. Check your internet connection.');
-      } else if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      } else if (
+        code === 'auth/user-not-found' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/invalid-credential'
+      ) {
         setError('Invalid email or password.');
       } else if (code === 'auth/too-many-requests') {
         setError('Too many attempts. Try again later.');
@@ -58,7 +61,10 @@ const AdminLogin: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-[var(--dark-green)] mb-6 text-center">Admin Login</h2>
+      <h2 className="text-2xl font-bold text-[var(--dark-green)] mb-6 text-center">
+        Admin Login
+      </h2>
+
       <form onSubmit={handleLogin} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">
