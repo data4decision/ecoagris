@@ -1,5 +1,8 @@
 'use client';
 
+// ADD THIS LINE — prevents prerendering
+export const dynamic = 'force-dynamic';
+
 import { useState, useRef, useEffect } from 'react';
 import { read, utils } from 'xlsx';
 import { useRouter } from 'next/navigation';
@@ -12,8 +15,6 @@ import {
   Loader2,
   Info,
 } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
 
 interface ParsedRow {
   [key: string]: unknown;
@@ -212,7 +213,7 @@ export default function DataUploadPage() {
         if (r.status === 'success' && r.rows !== undefined) {
           uploaded += r.rows;
           setProgress((uploaded / total) * 100);
-          toast.success(`${r.sheet} to ${r.rows} rows`);
+          toast.success(`${r.sheet} → ${r.rows} rows`);
         } else if (r.status === 'skipped') {
           toast(`${r.sheet}: ${r.reason}`, { icon: 'Warning' });
         }
