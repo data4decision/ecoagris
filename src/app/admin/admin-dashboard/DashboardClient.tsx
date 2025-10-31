@@ -20,6 +20,9 @@ export default function DashboardClient({ stats, error }: { stats: Stats | null;
     return <ErrorState message={error || t('dashboard.noData')} />;
   }
 
+  const admin = JSON.parse(localStorage.getItem('admin-auth') || '{}');
+<h1>Welcome, {admin.name || 'Admin'}!</h1>
+
   return (
     <div className="space-y-8">
       <div>

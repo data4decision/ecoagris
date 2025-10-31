@@ -1,3 +1,4 @@
+// src/app/admin/layout.tsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -17,114 +18,124 @@ interface AdminUser {
   role?: string;
 }
 
-const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  const [isSideBarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+/* ------------------------------------------------------------------ */
+/*  Admin Layout – client component                                   */
+/* ------------------------------------------------------------------ */
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Fetch admin user from Firestore
-  const fetchAdminData = async () => {
+  /* -------------------------------------------------------------- */
+  /*  1. Fetch admin profile from Firestore                         */
+  /* -------------------------------------------------------------- */
+  const fetchAdmin = async (uid: string) => {
     try {
-      if (!auth.currentUser) {
-        setUser(null);
-        return;
-      }
-
-      const adminDoc = doc(db, 'admins', auth.currentUser.uid);
-      const snapshot = await getDoc(adminDoc);
-
-      if (snapshot.exists()) {
-        setUser(snapshot.data() as AdminUser);
+      const snap = await getDoc(doc(db, 'admins', uid));
+      if (snap.exists()) {
+        setAdminUser(snap.data() as AdminUser);
       } else {
-        console.log('Admin not found in Firestore');
-        setUser(null);
+        console.warn('Admin doc not found');
+        setAdminUser(null);
       }
-    } catch (error) {
-      console.error('Error fetching admin:', error);
-      setUser(null);
+    } catch (err) {
+      console.error('fetchAdmin error', err);
+      setAdminUser(null);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Auth state listener
+  /* -------------------------------------------------------------- */
+  /*  2. Firebase auth listener – redirect if not signed in       */
+  /* -------------------------------------------------------------- */
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (currentUser) {
-        fetchAdminData();
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchAdmin(user.uid);
       } else {
-        setUser(null);
-        setIsLoading(false);
-        router.push('/admin/login');
+        setAdminUser(null);
+        setLoading(false);
+        router.replace('/admin/login');
       }
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, [router]);
 
-  // Mobile detection + auto-collapse
+  /* -------------------------------------------------------------- */
+  /*  3. Mobile detection & auto-collapse                           */
+  /* -------------------------------------------------------------- */
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      setIsSidebarCollapsed(mobile);
+    const onResize = () => {
+      const isMobile = window.innerWidth < 1024;
+      setMobile(isMobile);
+      setCollapsed(isMobile);
     };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Close dropdown on outside click
+  /* -------------------------------------------------------------- */
+  /*  4. Close dropdown on outside click                           */
+  /* -------------------------------------------------------------- */
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Logout: clear Firebase + session cookie
-  const handleLogout = async () => {
+  /* -------------------------------------------------------------- */
+  /*  5. Logout – clear Firebase + http-only cookie (client side) */
+  /* -------------------------------------------------------------- */
+  const logout = async () => {
     try {
       await auth.signOut();
-      // Clear session cookie
-      document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      router.push('/admin/login');
-    } catch (error) {
-      console.error('Logout error:', error);
+      // Clear the http-only cookie by expiring it
+      document.cookie = 'admin-token=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      router.replace('/admin/login');
+    } catch (err) {
+      console.error('Logout error', err);
     }
   };
 
+  /* -------------------------------------------------------------- */
+  /*  Render                                                       */
+  /* -------------------------------------------------------------- */
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <AdminSidebar onCollapseChange={setIsSidebarCollapsed} />
+      {/* Sidebar */}
+      <AdminSidebar onCollapseChange={setCollapsed} />
 
+      {/* Main panel */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 overflow-x-hidden ${
-          isSideBarCollapsed ? 'lg:ml-13' : 'lg:ml-44'
+          collapsed ? 'lg:ml-13' : 'lg:ml-44'
         } text-[var(--dark-green)] min-w-0`}
       >
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--wine)] bg-[var(--dark-green)] shadow-sm w-full">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--wine)] bg-[var(--dark-green)] shadow-sm">
           <h1 className="text-xl font-semibold text-[var(--white)]">
-            {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
+            {loading ? 'Loading…' : adminUser?.firstName ?? 'Admin'}
           </h1>
 
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
 
+            {/* Profile dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
+                onClick={() => setDropdownOpen((v) => !v)}
                 className="flex items-center gap-2 hover:bg-[var(--wine)]/70 p-2 rounded-md transition-colors"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                aria-label="Admin Profile"
+                aria-label="Admin profile"
               >
                 <div className="h-9 w-9 rounded-full bg-[var(--yellow)] overflow-hidden border-2 border-white shadow">
                   <Image
@@ -135,27 +146,32 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     className="object-cover"
                   />
                 </div>
-                {!isMobile && (
+
+                {!mobile && (
                   <span className="text-sm font-medium text-[var(--white)]">
-                    {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
+                    {loading ? 'Loading…' : adminUser?.firstName ?? 'Admin'}
                   </span>
                 )}
+
                 <FaCaretDown
-                  className={`transition-transform text-sm ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`transition-transform text-sm ${
+                    dropdownOpen ? 'rotate-180' : ''
+                  }`}
                 />
               </button>
 
-              {/* Dropdown */}
-              {isDropdownOpen && (
+              {/* Dropdown menu */}
+              {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
                   <div className="p-4 border-b">
-                    <p className="font-semibold text-[var(--white)]">
-                      {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
+                    <p className="font-semibold text-[var(--dark-green)]">
+                      {loading ? 'Loading…' : adminUser?.firstName ?? 'Admin'}
                     </p>
                     <p className="text-sm text-[var(--olive-green)]">
-                      {isLoading ? 'Loading...' : user?.email || 'admin@ecoagris.org'}
+                      {loading ? 'Loading…' : adminUser?.email ?? 'admin@ecoagris.org'}
                     </p>
                   </div>
+
                   <ul className="py-1">
                     <li>
                       <Link
@@ -177,7 +193,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                     </li>
                     <li>
                       <button
-                        onClick={handleLogout}
+                        onClick={logout}
                         className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-red-600 transition-colors text-sm text-left"
                       >
                         <FaSignOutAlt />
@@ -191,13 +207,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6 overflow-x-auto">
-          {children}
-        </main>
+        {/* Page content */}
+        <main className="flex-1 p-6 overflow-x-auto">{children}</main>
       </div>
     </div>
   );
-};
-
-export default AdminLayout;
+}
