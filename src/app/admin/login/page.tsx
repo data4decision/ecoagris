@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+// ADD THIS LINE — prevents static prerendering
+export const dynamic = 'force-dynamic';
+
+import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -136,7 +139,7 @@ export default function AdminLogin() {
             href="/"
             className="text-sm text-[var(--olive-green)] hover:text-[var(--dark-green)] transition"
           >
-            ← Back to ECOAGRIS
+            Back to ECOAGRIS
           </Link>
         </div>
       </div>
