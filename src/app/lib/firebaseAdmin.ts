@@ -1,27 +1,3 @@
-
-// import { initializeApp, cert, getApps } from 'firebase-admin/app';
-// import { getAuth } from 'firebase-admin/auth';
-// import { getFirestore } from 'firebase-admin/firestore'; // ← Add this
-
-// if (!getApps().length) {
-//   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-//     ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-//     : null;
-
-//   if (!serviceAccount) {
-//     throw new Error('FIREBASE_SERVICE_ACCOUNT is missing or invalid in .env.local');
-//   }
-
-//   initializeApp({
-//     credential: cert(serviceAccount),
-//   });
-// }
-
-// export const adminAuth = getAuth();
-// export const adminFirestore = getFirestore(); // ← Export this
-
-
-
 // src/app/lib/firebaseAdmin.ts
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
@@ -31,11 +7,11 @@ let app: App | undefined;
 
 // Reuse existing app if already initialized
 if (!getApps().length) {
-  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT; // ← FIXED: Correct name
 
   if (!serviceAccountJson) {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT_KEY is missing. Add it to your environment variables.'
+      'FIREBASE_SERVICE_ACCOUNT is missing. Add it to your .env.local file.'
     );
   }
 
@@ -44,7 +20,7 @@ if (!getApps().length) {
     serviceAccount = JSON.parse(serviceAccountJson);
   } catch (error) {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT_KEY is invalid JSON. Check your environment variable.'
+      'FIREBASE_SERVICE_ACCOUNT is invalid JSON. Ensure it is a single-line, valid JSON string.'
     );
   }
 

@@ -108,12 +108,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
       <div
         className={`flex-1 flex flex-col transition-all duration-300 overflow-x-hidden ${
-          isSideBarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
+          isSideBarCollapsed ? 'lg:ml-13' : 'lg:ml-44'
         } text-[var(--dark-green)] min-w-0`}
       >
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--yellow)] bg-white shadow-sm w-full">
-          <h1 className="text-xl font-semibold">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--wine)] bg-[var(--dark-green)] shadow-sm w-full">
+          <h1 className="text-xl font-semibold text-[var(--white)]">
             {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
           </h1>
 
@@ -122,7 +122,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
             <div className="relative" ref={dropdownRef}>
               <button
-                className="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-md transition-colors"
+                className="flex items-center gap-2 hover:bg-[var(--wine)]/70 p-2 rounded-md transition-colors"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 aria-label="Admin Profile"
               >
@@ -136,7 +136,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   />
                 </div>
                 {!isMobile && (
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-[var(--white)]">
                     {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
                   </span>
                 )}
@@ -149,7 +149,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
                   <div className="p-4 border-b">
-                    <p className="font-semibold text-[var(--dark-green)]">
+                    <p className="font-semibold text-[var(--white)]">
                       {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
                     </p>
                     <p className="text-sm text-[var(--olive-green)]">

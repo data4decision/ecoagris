@@ -23,10 +23,10 @@ export default function DashboardClient({ stats, error }: { stats: Stats | null;
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-[var(--white)]">
+        <h1 className="text-2xl md:text-3xl font-bold text-[var(--olive-green)]">
           {t('dashboard.title')}
         </h1>
-        <p className="text-sm text-[var(--white)]/70 mt-1">
+        <p className="text-sm text-[var(--olive-green)] mt-1">
           {t('dashboard.subtitle')}
         </p>
       </div>
