@@ -37,7 +37,7 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
   const { t } = useTranslation('common');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [isProductsOpen, setIsProductsOpen] = useState<boolean>(true);
+  const [isProductsOpen, setIsProductsOpen] = useState<boolean>(false);
   const pathname = usePathname();
 
   // Define submenu items
