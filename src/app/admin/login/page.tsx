@@ -12,32 +12,26 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const isNavigating = useRef(false); // Prevent double navigation
+  const isNavigating = useRef(false);
 
-  const decodeTokenPayload = (idToken: string): { email?: string } | null => {
-    try {
-      const payload = idToken.split('.')[1];
-      return JSON.parse(atob(payload)) as { email?: string };
-    } catch {
-      return null;
-    }
-  };
-
-  // Auto-redirect ONLY if not already navigating
+  // Auto-redirect if already logged in as admin
   useEffect(() => {
     if (isNavigating.current) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user && !isNavigating.current) {
         isNavigating.current = true;
-        const idToken = await user.getIdToken();
-        const payload = decodeTokenPayload(idToken);
+        try {
+          const idTokenResult = await user.getIdTokenResult();
+          const payload = idTokenResult.claims;
 
-        if (payload?.email === 'admin@ecoagris.org') {
-          localStorage.setItem('admin-token', idToken);
-          // Use router.push for SPA navigation (no full reload)
-          router.push('/admin/admin-dashboard');
-        } else {
+          if (payload.email === 'admin@ecoagris.org') {
+            router.push('/admin/admin-dashboard');
+          } else {
+            await auth.signOut();
+            isNavigating.current = false;
+          }
+        } catch {
           await auth.signOut();
           isNavigating.current = false;
         }
@@ -48,7 +42,7 @@ export default function AdminLogin() {
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // Critical!
+    e.preventDefault();
     if (loading || isNavigating.current) return;
 
     setLoading(true);
@@ -57,10 +51,10 @@ export default function AdminLogin() {
 
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await cred.user.getIdToken();
-      const payload = decodeTokenPayload(idToken);
+      const idTokenResult = await cred.user.getIdTokenResult();
+      const payload = idTokenResult.claims;
 
-      if (!payload || payload.email !== 'admin@ecoagris.org') {
+      if (payload.email !== 'admin@ecoagris.org') {
         await auth.signOut();
         setError('Access denied. Admin only.');
         isNavigating.current = false;
@@ -68,8 +62,8 @@ export default function AdminLogin() {
         return;
       }
 
-      localStorage.setItem('admin-token', idToken);
-      router.push('/admin/admin-dashboard'); // SPA navigation
+      // Firebase handles session — no localStorage!
+      router.push('/admin/admin-dashboard');
     } catch (err: unknown) {
       isNavigating.current = false;
       if (err instanceof Error) {
@@ -108,7 +102,7 @@ export default function AdminLogin() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-yellow-700 text-white py-2 rounded-lg disabled:opacity-50"
+          className="w-full bg-green-300 text-white py-2 rounded-lg disabled:opacity-50"
         >
           {loading ? 'Logging in…' : 'Login'}
         </button>
