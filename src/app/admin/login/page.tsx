@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
 
@@ -13,17 +13,28 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // Helper: safely decode JWT payload
+  const decodeTokenPayload = (idToken: string): { email?: string } | null => {
+    try {
+      const payload = idToken.split('.')[1];
+      return JSON.parse(atob(payload)) as { email?: string };
+    } catch {
+      return null;
+    }
+  };
+
   // Auto-redirect if already logged in
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
         const idToken = await user.getIdToken();
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
-        if (payload.email === 'admin@ecoagris.org') {
+        const payload = decodeTokenPayload(idToken);
+
+        if (payload?.email === 'admin@ecoagris.org') {
           localStorage.setItem('admin-token', idToken);
           router.replace('/admin/admin-dashboard');
         } else {
-          auth.signOut();
+          await auth.signOut();
         }
       }
     });
@@ -38,9 +49,9 @@ export default function AdminLogin() {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const idToken = await cred.user.getIdToken();
-      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      const payload = decodeTokenPayload(idToken);
 
-      if (payload.email !== 'admin@ecoagris.org') {
+      if (!payload || payload.email !== 'admin@ecoagris.org') {
         await auth.signOut();
         setError('Access denied. Admin only.');
         setLoading(false);
@@ -49,8 +60,13 @@ export default function AdminLogin() {
 
       localStorage.setItem('admin-token', idToken);
       router.push('/admin/admin-dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      // Properly handle unknown error
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }
