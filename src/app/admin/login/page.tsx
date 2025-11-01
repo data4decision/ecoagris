@@ -17,8 +17,8 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await userCred.user.getIdToken();
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await cred.user.getIdToken();
 
       const res = await fetch('/admin/login/api', {
         method: 'POST',
@@ -31,10 +31,12 @@ export default function AdminLogin() {
       if (data.error) {
         setError(data.error);
       } else {
+        // server already redirected, but we force a client navigation just in case
         window.location.href = '/admin/admin-dashboard';
       }
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -68,8 +70,9 @@ export default function AdminLogin() {
           disabled={loading}
           className="w-full bg-green-700 text-white py-2 rounded-lg disabled:opacity-50"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Logging in…' : 'Login'}
         </button>
+
         {error && <p className="text-red-600 text-sm text-center">{error}</p>}
       </form>
     </div>
