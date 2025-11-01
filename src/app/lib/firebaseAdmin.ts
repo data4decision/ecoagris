@@ -1,40 +1,60 @@
+
+// import { initializeApp, cert, getApps } from 'firebase-admin/app';
+// import { getAuth } from 'firebase-admin/auth';
+// import { getFirestore } from 'firebase-admin/firestore'; // ← Add this
+
+// if (!getApps().length) {
+//   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+//     ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+//     : null;
+
+//   if (!serviceAccount) {
+//     throw new Error('FIREBASE_SERVICE_ACCOUNT is missing or invalid in .env.local');
+//   }
+
+//   initializeApp({
+//     credential: cert(serviceAccount),
+//   });
+// }
+
+// export const adminAuth = getAuth();
+// export const adminFirestore = getFirestore(); // ← Export this
+
+
+
 // src/app/lib/firebaseAdmin.ts
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
+import { getAuth, type Auth } from 'firebase-admin/auth';
+import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 
-let app;
+let app: App | undefined;
 
+// Reuse existing app if already initialized
 if (!getApps().length) {
-  const json = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
-  if (!json) {
+  if (!serviceAccountJson) {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT is missing. Add it to Vercel Environment Variables (and .env.local for local dev).'
+      'FIREBASE_SERVICE_ACCOUNT_KEY is missing. Add it to your environment variables.'
     );
   }
 
   let serviceAccount;
   try {
-    serviceAccount = JSON.parse(json);
+    serviceAccount = JSON.parse(serviceAccountJson);
   } catch (error) {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT is invalid JSON. Must be a one-line JSON string. Validate at https://jsonlint.com'
+      'FIREBASE_SERVICE_ACCOUNT_KEY is invalid JSON. Check your environment variable.'
     );
   }
 
-  try {
-    app = initializeApp({
-      credential: cert(serviceAccount),
-    });
-  } catch (error) {
-    console.error('Failed to initialize Firebase Admin SDK:', error);
-    throw new Error('Firebase Admin initialization failed. Check service account JSON.');
-  }
+  app = initializeApp({
+    credential: cert(serviceAccount),
+  });
 } else {
   app = getApps()[0];
 }
 
-// Export auth and firestore
-export const git appadminAuth = getAuth(app);
-export const adminFirestore = getFirestore(app);
+// Export typed Admin SDK instances
+export const adminAuth: Auth = getAuth(app);
+export const adminFirestore: Firestore = getFirestore(app);
