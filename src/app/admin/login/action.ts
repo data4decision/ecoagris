@@ -1,7 +1,7 @@
 // src/app/admin/login/action.ts
 'use server';
 
-export const runtime = 'nodejs'; // ← THIS IS THE FIX
+export const runtime = 'nodejs'; // ← CRITICAL: Enables fs, child_process
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -13,10 +13,10 @@ interface AuthError extends Error {
 }
 
 export async function loginAction(idToken: string) {
-  headers(); // Force server
+  headers(); // Force server-only
 
-  if (!idToken || idToken.length < 50) {
-    return { error: 'Invalid session. Please log in again.' };
+  if (!idToken || typeof idToken !== 'string' || idToken.length < 100) {
+    return { error: 'Invalid token. Please log in again.' };
   }
 
   const cookieStore = await cookies();
@@ -39,12 +39,7 @@ export async function loginAction(idToken: string) {
     redirect('/admin/admin-dashboard');
   } catch (error: unknown) {
     const err = error as AuthError;
-
-    if (err.code?.startsWith('auth/')) {
-      return { error: 'Invalid session. Please log in again.' };
-    }
-
-    console.error('Login failed:', err);
+    console.error('Login failed:', err.message, err.code);
     return { error: 'Authentication failed. Please try again.' };
   }
 }

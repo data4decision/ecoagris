@@ -1,12 +1,11 @@
+// src/app/admin/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
-import { loginAction } from './action';
-import { FirebaseError } from 'firebase/app'; 
 
-const AdminLogin: React.FC = () => {
+export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,106 +13,65 @@ const AdminLogin: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await userCredential.user.getIdToken();
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await userCred.user.getIdToken();
 
-      const result = await loginAction(idToken);
+      const res = await fetch('/admin/login/api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
 
-      if (result?.error) {
-        throw new Error(result.error);
-      }
+      const data = await res.json();
 
-      // Server action handles redirect
-    } catch (err: unknown) {
-      if (err instanceof FirebaseError) {
-        const code = err.code;
-
-        if (code === 'auth/network-request-failed') {
-          setError('Network error. Check your internet connection.');
-        } else if (
-          code === 'auth/user-not-found' ||
-          code === 'auth/wrong-password' ||
-          code === 'auth/invalid-credential'
-        ) {
-          setError('Invalid email or password.');
-        } else if (code === 'auth/too-many-requests') {
-          setError('Too many attempts. Try again later.');
-        } else {
-          setError(err.message || 'Login failed. Please try again.');
-        }
-      } else if (err instanceof Error) {
-        setError(err.message);
+      if (data.error) {
+        setError(data.error);
       } else {
-        setError('An unexpected error occurred.');
+        window.location.href = '/admin/admin-dashboard';
       }
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-[var(--dark-green)] mb-6 text-center">
-        Admin Login
-      </h2>
+    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg mt-20">
+      <h2 className="text-2xl font-bold text-center mb-6">Admin Login</h2>
 
-      <form onSubmit={handleLogin} className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--yellow)] focus:border-transparent transition"
-            placeholder="admin@ecoagris.org"
-            required
-            disabled={loading}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[var(--dark-green)] mb-1">
-            Password
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--yellow)] focus:border-transparent transition"
-            placeholder="••••••••"
-            required
-            disabled={loading}
-          />
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm text-center">
-            {error}
-          </div>
-        )}
-
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="admin@ecoagris.org"
+          className="w-full px-4 py-2 border rounded-lg"
+          required
+          disabled={loading}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          className="w-full px-4 py-2 border rounded-lg"
+          required
+          disabled={loading}
+        />
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[var(--dark-green)] text-white py-3 rounded-lg font-semibold hover:bg-[var(--olive-green)] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-green-700 text-white py-2 rounded-lg disabled:opacity-50"
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>
+        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
       </form>
     </div>
   );
-};
-
-export default AdminLogin;
+}
