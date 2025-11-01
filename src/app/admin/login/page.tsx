@@ -4,12 +4,14 @@
 import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   // Helper: safely decode JWT payload
   const decodeTokenPayload = (idToken: string): { email?: string } | null => {
@@ -30,15 +32,14 @@ export default function AdminLogin() {
 
         if (payload?.email === 'admin@ecoagris.org') {
           localStorage.setItem('admin-token', idToken);
-          // FORCE HARD NAVIGATION
-          window.location.href = '/admin/admin-dashboard';
+          router.replace('/admin/admin-dashboard');
         } else {
           await auth.signOut();
         }
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +59,9 @@ export default function AdminLogin() {
       }
 
       localStorage.setItem('admin-token', idToken);
-      // FORCE HARD NAVIGATION
-      window.location.href = '/admin/admin-dashboard';
+      router.push('/admin/admin-dashboard');
     } catch (err: unknown) {
+      // Properly handle unknown error
       if (err instanceof Error) {
         setError(err.message);
       } else {
