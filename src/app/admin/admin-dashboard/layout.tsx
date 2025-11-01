@@ -5,10 +5,10 @@ import AdminSidebar from './AdminSidebar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaCaretDown, FaCog, FaUser, FaSignOutAlt } from 'react-icons/fa';
-import { auth } from '@/app/lib/firebase';
+import { auth, db } from '@/app/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase'; // or your firebase.ts
 import { useRouter } from 'next/navigation';
+import { onAuthStateChanged } from 'firebase/auth';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface AdminUser {
@@ -26,25 +26,21 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Fetch admin user from Firestore (admins collection)
-  const fetchAdminData = async () => {
+  // Fetch admin data from Firestore
+  const fetchAdminData = async (uid: string) => {
     try {
-      if (!auth.currentUser) {
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-      const adminDoc = doc(db, 'admins', auth.currentUser.uid);
+      const adminDoc = doc(db, 'admins', uid);
       const snapshot = await getDoc(adminDoc);
 
       if (snapshot.exists()) {
-        setUser(snapshot.data() as AdminUser);
+        const data = snapshot.data() as AdminUser;
+        setUser(data);
       } else {
-        console.log('Admin not found');
+        console.log('Admin document not found');
         setUser(null);
       }
     } catch (error) {
-      console.error('Error fetching admin:', error);
+      console.error('Error fetching admin data:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -53,19 +49,37 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   // Auth state listener
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        fetchAdminData();
+        try {
+          const idTokenResult = await currentUser.getIdTokenResult();
+          const email = idTokenResult.claims.email as string;
+
+          if (email === 'admin@ecoagris.org') {
+            // Valid admin → fetch Firestore data
+            await fetchAdminData(currentUser.uid);
+          } else {
+            // Not admin → force logout
+            await auth.signOut();
+            router.replace('/admin/login');
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          await auth.signOut();
+          router.replace('/admin/login');
+        }
       } else {
+        // No user → redirect to login
         setUser(null);
         setIsLoading(false);
-        router.push('/admin/login');
+        router.replace('/admin/login');
       }
     });
+
     return () => unsubscribe();
   }, [router]);
 
-  // Mobile detection + auto-collapse
+  // Mobile detection
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 1024;
@@ -89,29 +103,30 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Logout: clear Firebase + cookie
+  // Logout
   const handleLogout = async () => {
     try {
       await auth.signOut();
+      // Clear any session cookie
       document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      router.push('/admin/login');
+      router.replace('/admin/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout failed:', error);
     }
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar onCollapseChange={setIsSidebarCollapsed} />
 
       <div
         className={`flex-1 flex flex-col transition-all duration-300 overflow-x-hidden ${
           isSideBarCollapsed ? 'lg:ml-13' : 'lg:ml-44'
-        } text-[var(--white)] min-w-0`}
+        } min-w-0`}
       >
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--yellow)] bg-[var(--medium-green)] text-[var(--white)] shadow-sm w-full">
-          <h1 className="text-lg font-semibold sm:ml-0 ml-10">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-[var(--yellow)] bg-[var(--medium-green)] text-white shadow-sm">
+          <h1 className="text-lg font-semibold">
             {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
           </h1>
 
@@ -123,8 +138,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               aria-label="Admin Profile"
             >
-              <div className="h-8 w-8 rounded-full bg-[var(--white)] overflow-hidden">
-                <Image src="/user.png" width={32} height={32} alt="Admin avatar" />
+              <div className="h-8 w-8 rounded-full bg-white overflow-hidden border-2 border-white">
+                <Image
+                  src="/user.png"
+                  width={32}
+                  height={32}
+                  alt="Admin avatar"
+                  className="object-cover"
+                />
               </div>
               {!isMobile && (
                 <span className="text-sm font-medium">
@@ -138,12 +159,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
             {/* Dropdown */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-[var(--white)] text-[var(--medium-green)] rounded-md shadow-lg z-50">
-                <div className="p-3 border-b">
-                  <p className="font-semibold">
+              <div className="absolute right-0 mt-2 w-48 bg-white text-[var(--medium-green)] rounded-md shadow-lg z-50 overflow-hidden">
+                <div className="p-3 border-b border-gray-200">
+                  <p className="font-semibold text-sm">
                     {isLoading ? 'Loading...' : user?.firstName || 'Admin'}
                   </p>
-                  <p className="text-sm text-[var(--green)]">
+                  <p className="text-xs text-[var(--green)] truncate">
                     {isLoading ? 'Loading...' : user?.email || 'admin@ecoagris.org'}
                   </p>
                 </div>
@@ -151,7 +172,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   <li>
                     <Link
                       href="/admin/profile"
-                      className="flex items-center gap-2 px-4 py-2 hover:bg-[var(--wine)]/90"
+                      className="flex items-center gap-2 px-4 py-2 hover:bg-[var(--wine)]/10 text-sm"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaUser />
                       Profile
@@ -160,7 +182,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   <li>
                     <Link
                       href="/admin/dashboard/settings"
-                      className="flex items-center gap-2 px-4 py-2 hover:bg-[var(--wine)]/90"
+                      className="flex items-center gap-2 px-4 py-2 hover:bg-[var(--wine)]/10 text-sm"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       <FaCog />
                       Settings
@@ -169,7 +192,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   <li>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 hover:bg-[var(--wine)]/90 text-left"
+                      className="w-full flex items-center gap-2 px-4 py-2 hover:bg-[var(--wine)]/10 text-left text-sm text-red-600"
                     >
                       <FaSignOutAlt />
                       Logout
@@ -182,8 +205,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 ml-10 sm:ml-0 p-6 w-full overflow-x-hidden bg-slate-50">
-          {children}
+        <main className="flex-1 p-6 bg-slate-50 overflow-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--medium-green)]"></div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>

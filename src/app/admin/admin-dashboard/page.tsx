@@ -1,50 +1,71 @@
-// src/app/admin/admin-dashboard/page.tsx
-'use client';
+import { adminFirestore } from '@/app/lib/firebaseAdmin';
+import { format } from 'date-fns';
+import DashboardClient from './DashboardClient';
 
-import { useEffect, useRef } from 'react';
-import { auth } from '@/app/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
 
-export default function AdminDashboard() {
-  const router = useRouter();
-  const checked = useRef(false);
 
-  useEffect(() => {
-    if (checked.current) return;
-    checked.current = true;
+export default async function DashboardHome() {
+  let stats = null;
+  let error = null;
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.replace('/admin/login');
-        return;
-      }
+  try {
+    // Use .collection() and .get() methods on Firestore instance
+    const [
+      usersSnap,
+      uploadsSnap,
+      macroSnap,
+      agricSnap,
+      livestockSnap,
+      nutritionSnap,
+      riceSnap,
+      logsQuery,
+    ] = await Promise.all([
+      adminFirestore.collection('users').get(),
+      adminFirestore.collection('uploads').get(),
+      adminFirestore.collection('data_macro').get(),
+      adminFirestore.collection('data_agric').get(),
+      adminFirestore.collection('data_livestock').get(),
+      adminFirestore.collection('data_nutrition').get(),
+      adminFirestore.collection('data_rice').get(),
+      // Last 24 hours logs
+      adminFirestore
+        .collection('admin_logs')
+        .where('timestamp', '>', new Date(Date.now() - 24 * 60 * 60 * 1000))
+        .get(),
+    ]);
 
-      try {
-        const idTokenResult = await user.getIdTokenResult();
-        if (idTokenResult.claims.email !== 'admin@ecoagris.org') {
-          await auth.signOut();
-          router.replace('/admin/login');
-        }
-      } catch {
-        await auth.signOut();
-        router.replace('/admin/login');
-      }
-    });
+    const totalProducts =
+      macroSnap.size +
+      agricSnap.size +
+      livestockSnap.size +
+      nutritionSnap.size +
+      riceSnap.size;
 
-    return () => unsubscribe();
-  }, [router]);
+    // Find latest upload
+    const uploadDocs = uploadsSnap.docs;
+    const lastUploadDoc = uploadDocs
+      .filter((doc) => doc.get('timestamp')?.toDate?.() instanceof Date)
+      .sort((a, b) => {
+        const aTime = a.get('timestamp')?.toMillis() || 0;
+        const bTime = b.get('timestamp')?.toMillis() || 0;
+        return bTime - aTime;
+      })[0];
 
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">Welcome, Admin!</h1>
-      {/* <p className="mt-4">You are logged in via Firebase.</p>
-      <button
-        onClick={() => auth.signOut().then(() => router.push('/admin/login'))}
-        className="mt-6 px-4 py-2 bg-red-600 text-white rounded"
-      >
-        Logout
-      </button> */}
-    </div>
-  );
+    stats = {
+      totalUsers: usersSnap.size,
+      activeAdmins: usersSnap.docs.filter((d) => d.get('role') === 'admin').length,
+      totalUploads: uploadsSnap.size,
+      pendingUploads: uploadsSnap.docs.filter((d) => d.get('status') === 'pending').length,
+      totalProducts,
+      recentLogs: logsQuery.size,
+      lastUpload: lastUploadDoc
+        ? format(lastUploadDoc.get('timestamp').toDate(), 'PPP p')
+        : 'No uploads yet',
+    };
+  } catch (err: unknown) {
+    console.error('Dashboard fetch error:', err);
+    error = 'Failed to load dashboard data. Please try again later.';
+  }
+
+  return <DashboardClient stats={stats} error={error} />;
 }

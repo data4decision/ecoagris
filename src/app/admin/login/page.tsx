@@ -1,10 +1,10 @@
-// src/app/admin/login/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { signInWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
+import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { FirebaseError } from 'firebase/app';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -14,25 +14,25 @@ export default function AdminLogin() {
   const router = useRouter();
   const isNavigating = useRef(false);
 
-  // Auto-redirect if already logged in as admin
+  // Listen to auth state changes (initial load + post-login)
   useEffect(() => {
-    if (isNavigating.current) return;
-
-    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && !isNavigating.current) {
         isNavigating.current = true;
         try {
           const idTokenResult = await user.getIdTokenResult();
-          const payload = idTokenResult.claims;
+          const adminEmail = idTokenResult.claims.email;
 
-          if (payload.email === 'admin@ecoagris.org') {
-            router.push('/admin/admin-dashboard');
+          if (adminEmail === 'admin@ecoagris.org') {
+            router.replace('/admin/admin-dashboard');
           } else {
             await auth.signOut();
-            isNavigating.current = false;
+            setError('Access denied. Admin account required.');
           }
-        } catch {
+        } catch (err) {
           await auth.signOut();
+          setError('Authentication failed. Please try again.');
+        } finally {
           isNavigating.current = false;
         }
       }
@@ -41,74 +41,101 @@ export default function AdminLogin() {
     return () => unsubscribe();
   }, [router]);
 
+  // Handle form submission
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading || isNavigating.current) return;
 
     setLoading(true);
     setError('');
-    isNavigating.current = true;
 
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const idTokenResult = await cred.user.getIdTokenResult();
-      const payload = idTokenResult.claims;
-
-      if (payload.email !== 'admin@ecoagris.org') {
-        await auth.signOut();
-        setError('Access denied. Admin only.');
-        isNavigating.current = false;
-        setLoading(false);
-        return;
-      }
-
-      // Firebase handles session — no localStorage!
-      router.push('/admin/admin-dashboard');
+      // Firebase login — no redirect here!
+      await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged will handle redirect
     } catch (err: unknown) {
-      isNavigating.current = false;
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Login failed');
+      let errorMessage = 'Login failed. Please try again.';
+
+      if (err instanceof FirebaseError) {
+        switch (err.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            errorMessage = 'Invalid email or password.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Too many failed attempts. Try again later.';
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = 'Network error. Check your connection.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Please enter a valid email address.';
+            break;
+          default:
+            errorMessage = 'An unexpected error occurred.';
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
       }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg mt-20">
-      <h2 className="text-2xl font-bold text-center mb-6">Admin Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg">
+        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Admin Login</h2>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="admin@ecoagris.org"
-          className="w-full px-4 py-2 border rounded-lg"
-          required
-          disabled={loading}
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          className="w-full px-4 py-2 border rounded-lg"
-          required
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-green-300 text-white py-2 rounded-lg disabled:opacity-50"
-        >
-          {loading ? 'Logging in…' : 'Login'}
-        </button>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@ecoagris.org"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              required
+              disabled={loading}
+              autoComplete="email"
+            />
+          </div>
 
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-      </form>
+          <div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              required
+              disabled={loading}
+              autoComplete="current-password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+          >
+            {loading ? 'Logging in…' : 'Login'}
+          </button>
+
+          {error && (
+            <p className="text-red-600 text-sm text-center mt-3 bg-red-50 py-2 px-4 rounded-md">
+              {error}
+            </p>
+          )}
+        </form>
+
+        <p className="text-xs text-gray-500 text-center mt-6">
+          Only <span className="font-medium">admin@ecoagris.org</span> can access this panel.
+        </p>
+      </div>
     </div>
   );
 }
