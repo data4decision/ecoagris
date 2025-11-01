@@ -1,5 +1,5 @@
 // src/app/admin/login/api/route.ts
-import { loginAction } from './action';
+import { loginAction } from '@/app/admin/login/action';
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
