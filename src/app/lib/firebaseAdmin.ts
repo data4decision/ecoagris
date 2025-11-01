@@ -36,5 +36,5 @@ if (!getApps().length) {
 }
 
 // Export auth and firestore
-export const adminAuth = getAuth(app);
+export const git appadminAuth = getAuth(app);
 export const adminFirestore = getFirestore(app);
