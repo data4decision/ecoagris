@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { loginAction } from './action';
-import { FirebaseError } from 'firebase/app'; // ← Add this
+import { FirebaseError } from 'firebase/app'; 
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
