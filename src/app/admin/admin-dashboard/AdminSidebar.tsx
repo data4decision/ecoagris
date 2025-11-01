@@ -24,10 +24,10 @@ import {
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
-const logout = () => {
-  document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-  window.location.href = '/admin/login';
-};
+// const logout = () => {
+//   document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+//   window.location.href = '/admin/login';
+// };
 
 interface AdminSidebarProps {
   onCollapseChange: (collapsed: boolean) => void;
@@ -195,13 +195,14 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
       </nav>
 
       {/* Logout */}
-      <button
-        onClick={logout}
+      {/* <Link href="/"
+        
         className="flex items-center gap-3 px-4 py-3 text-left text-[var(--white)] hover:text-[var(--yellow)] hover:bg-[var(--wine)]/90 transition-colors"
       >
+
         <FaSignOutAlt />
         {!isCollapsed && <span>{t('adminSidebar.logout')}</span>}
-      </button>
+      </Link> */}
 
       {/* Collapse Toggle */}
       <button
