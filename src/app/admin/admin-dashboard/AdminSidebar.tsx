@@ -52,7 +52,7 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
   const topNav = [
     { label: t('adminSidebar.nav.dashboard'), href: '/admin/dashboard', icon: FaChartBar },
     { label: t('adminSidebar.nav.users'), href: '/admin/dashboard/users', icon: FaUsers },
-    { label: t('adminSidebar.nav.upload'), href: '/admin/dashboard/data/upload', icon: FaUpload },
+    { label: t('adminSidebar.nav.upload'), href: '/admin/data-upload', icon: FaUpload },
   ];
 
   const bottomNav = [
