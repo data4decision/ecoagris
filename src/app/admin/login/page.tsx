@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
+import { FaSpinner } from 'react-icons/fa';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -86,31 +87,48 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Admin Login</h2>
-
+    <div className="min-h-screen bg-gradient-to-br from-[var(--yellow)] to-[var(--dark-green)] flex items-center justify-center p-4 ">
+      <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+            <div className='flex justify-center mb-6'>
+              <div className="bg-[var(--yellow)] p-3 rounded-full ">
+                <div className="bg-white p-2 rounded-full">
+                  <span className='text-2xl font-bold text-[var(--dark-green)]'>ECOAGRIS</span>
+                </div>
+              </div>
+            </div>
+            <h1 className='text-2xl font-bold text-center text-[var(--dark-green)] mb-2'>
+              Admin
+            </h1>
+            <p className='text-2xl font-bold text-center text-[var(--olive-green)] text-sm mb-6'>
+              Access the ECOAGRIS Admin Dashboard
+            </p>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
+            <label className='block text-sm font-medium text-[var(--dark-green)] mb-1'>
+              Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@ecoagris.org"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              placeholder="admin@gmail.com"
+              className="w-full px-4 py-3 border border-[var(--wine)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--yellow)] focus:border-transparent transition"
               required
               disabled={loading}
               autoComplete="email"
             />
           </div>
-
+             
           <div>
+            <label className='block text-sm font-medium text-[var(--dark-green)] mb-1'>
+              Password
+             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-[var(--wine)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--yellow)] focus:border-transparent transition"
               required
               disabled={loading}
               autoComplete="current-password"
@@ -120,20 +138,21 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            className="w-full bg-[var(--dark-green)] hover:bg-[var(--yellow)] cursor-pointer text-[var(--white)] py-3 rounded-lg font-semibold hover:bg-[var(--olive-green)] disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
           >
-            {loading ? 'Logging in…' : 'Login'}
+            {loading ?( <span className="flex items-center justify-center gap-2">
+              <FaSpinner className="animate-spin h-5 w-5"/>Signing In...</span>) : ("Login")}
           </button>
 
           {error && (
-            <p className="text-red-600 text-sm text-center mt-3 bg-red-50 py-2 px-4 rounded-md">
+            <p className="text-[var(--red)] text-sm text-center mt-3 bg-red-50 py-2 px-4 rounded-md">
               {error}
             </p>
           )}
         </form>
 
-        <p className="text-xs text-gray-500 text-center mt-6">
-          Only <span className="font-medium">admin@ecoagris.org</span> can access this panel.
+        <p className="text-xs text-[var(--wine)] text-center mt-6">
+          Only <span className="font-medium">admin</span> can access this panel.
         </p>
       </div>
     </div>
