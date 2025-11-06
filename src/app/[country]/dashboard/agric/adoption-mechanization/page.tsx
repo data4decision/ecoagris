@@ -37,14 +37,18 @@ interface InputData {
   [key: string]: unknown;
 }
 
+// Define allowed metric keys
+type AdoptionMetric =
+  | 'improved_seed_use_pct'
+  | 'fertilizer_kg_per_ha'
+  | 'mechanization_units_per_1000_farms';
+
 export default function AdoptionMechanizationPage() {
   const { country } = useParams<{ country: string }>();
   const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [countryData, setCountryData] = useState<InputData[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<
-    'improved_seed_use_pct' | 'fertilizer_kg_per_ha' | 'mechanization_units_per_1000_farms'
-  >('improved_seed_use_pct');
+  const [selectedMetric, setSelectedMetric] = useState<AdoptionMetric>('improved_seed_use_pct');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +56,10 @@ export default function AdoptionMechanizationPage() {
   const EXCEL_FILE_URL =
     'https://res.cloudinary.com/dmuvs05yp/raw/upload/v1738770665/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx';
 
-  // FIXED: Removed space in key
   const adoptionMechanizationFields = [
-    { key: 'improved_seed_use_pct', label: t('adoptionMechanization.improvedSeed'), format: (v: number) => `${v.toFixed(1)}%` },
-    { key: 'fertilizer_kg_per_ha', label: t('adoptionMechanization.fertilizerIntensity'), format: (v: number) => `${v.toFixed(1)} kg/ha` },
-    { key: 'mechanization_units_per_1000_farms', label: t('adoptionMechanization.mechanization'), format: (v: number) => `${v.toFixed(1)} units/1,000 farms` },
+    { key: 'improved_seed_use_pct' as const, label: t('adoptionMechanization.improvedSeed'), format: (v: number) => `${v.toFixed(1)}%` },
+    { key: 'fertilizer_kg_per_ha' as const, label: t('adoptionMechanization.fertilizerIntensity'), format: (v: number) => `${v.toFixed(1)} kg/ha` },
+    { key: 'mechanization_units_per_1000_farms' as const, label: t('adoptionMechanization.mechanization'), format: (v: number) => `${v.toFixed(1)} units/1,000 farms` },
   ];
 
   useEffect(() => {
@@ -110,7 +113,6 @@ export default function AdoptionMechanizationPage() {
 
   const selectedData = countryData.find((d) => d.year === selectedYear);
 
-  // Safe formatting with fallback
   const safeFormat = (value: unknown, formatter: (v: number) => string) => {
     if (typeof value === 'number' && !isNaN(value)) {
       return formatter(value);
@@ -270,7 +272,16 @@ export default function AdoptionMechanizationPage() {
             <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">Yearly Comparison</h2>
             <select
               value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value as unknown)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (
+                  value === 'improved_seed_use_pct' ||
+                  value === 'fertilizer_kg_per_ha' ||
+                  value === 'mechanization_units_per_1000_farms'
+                ) {
+                  setSelectedMetric(value);
+                }
+              }}
               className="mb-4 p-3 border rounded text-[var(--dark-green)]"
             >
               {adoptionMechanizationFields.map(f => (
