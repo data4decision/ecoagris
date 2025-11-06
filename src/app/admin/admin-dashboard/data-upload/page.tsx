@@ -5,7 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { FaSpinner, FaCheckCircle, FaExclamationCircle, FaTrash, FaDownload } from 'react-icons/fa';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
-import { collection, addDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, serverTimestamp, DocumentData, QuerySnapshot } from 'firebase/firestore';
 
 interface CloudinaryFile {
   id?: string;
@@ -53,18 +53,21 @@ const UploadFile = () => {
   useEffect(() => {
     const unsub = onSnapshot(
       collection(db, 'uploads'),
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          public_id: doc.data().public_id,
-          secure_url: doc.data().url,
-          format: doc.data().title.split('.').pop()?.toLowerCase() || 'unknown',
-          created_at: doc.data().uploadedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-          bytes: doc.data().size || 0,
-        } as CloudinaryFile));
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const data: CloudinaryFile[] = snapshot.docs.map((doc) => {
+          const docData = doc.data();
+          return {
+            id: doc.id,
+            public_id: docData.public_id || '',
+            secure_url: docData.url || '',
+            format: (docData.title?.split('.').pop()?.toLowerCase() as string) || 'unknown',
+            created_at: docData.uploadedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            bytes: docData.size || 0,
+          };
+        });
         setFiles(data);
       },
-      (err) => {
+      (err: Error) => {
         console.error('onSnapshot error:', err);
         setError('Failed to sync files in real time.');
       }
@@ -130,15 +133,19 @@ const UploadFile = () => {
         uploadedAt: serverTimestamp(),
         uploadedBy: 'admin@ecoagris.org',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('Error saving metadata:', err);
-      setError(`Failed to save: ${err.message}`);
+      setError(`Failed to save: ${errorMessage}`);
     }
   };
 
   // Delete file from Cloudinary
   const deleteFile = async (public_id: string) => {
-    if (!process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || !process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET) {
+    const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+    const apiSecret = process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET;
+
+    if (!apiKey || !apiSecret) {
       setError('Cloudinary API credentials missing.');
       return;
     }
@@ -147,26 +154,26 @@ const UploadFile = () => {
       const res = await fetch(`https://api.cloudinary.com/v1_1/dmuvs05yp/resources/raw/upload/${public_id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Basic ${btoa(`${process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY}:${process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET}`)}`,
+          Authorization: `Basic ${btoa(`${apiKey}:${apiSecret}`)}`,
         },
       });
-      const data = await res.json();
-      if (data.result === 'ok') {
-        // List auto-updates via onSnapshot
-      } else {
+      const data: { result: string } = await res.json();
+      if (data.result !== 'ok') {
         setError('Delete failed on Cloudinary.');
       }
-    } catch (err) {
+      // List auto-updates via onSnapshot
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.error('Delete error:', err);
-      setError('Failed to delete file.');
+      setError(`Failed to delete file: ${errorMessage}`);
     }
   };
 
-  const formatBytes = (bytes: number) => {
+  const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
   };
 
   return (
@@ -270,7 +277,10 @@ const UploadFile = () => {
                     >
                       <FaDownload className="mr-1" /> Download
                     </Link>
-                    <button onClick={() => deleteFile(f.public_id)} className="bg-red-600 text-white px-2 py-1 rounded text-xs flex items-center">
+                    <button
+                      onClick={() => deleteFile(f.public_id)}
+                      className="bg-red-600 text-white px-2 py-1 rounded text-xs flex items-center"
+                    >
                       <FaTrash className="mr-1" /> Delete
                     </button>
                   </td>
