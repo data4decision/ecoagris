@@ -19,6 +19,7 @@ import { stringify } from 'csv-stringify/sync';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useTranslation } from 'react-i18next';
+import * as XLSX from 'xlsx';
 import '@/styles/dashboard-styles.css';
 
 interface InputData {
@@ -34,10 +35,6 @@ interface InputData {
   improved_seed_use_pct: number;
   mechanization_units_per_1000_farms: number;
   [key: string]: unknown;
-}
-
-interface Dataset {
-  Simulated_Input_Data: InputData[];
 }
 
 interface GrowthData {
@@ -56,30 +53,34 @@ export default function ForecastSimulationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const EXCEL_FILE_URL =
+    'https://res.cloudinary.com/dmuvs05yp/raw/upload/v1738770665/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx';
+
   const forecastFields = [
     { key: 'input_subsidy_budget_usd', label: t('forecastSimulation.inputSubsidy'), format: (v: number) => `$${v.toLocaleString()}` },
     { key: 'credit_access_pct', label: t('forecastSimulation.creditAccess'), format: (v: number) => `${v.toFixed(1)}%` },
-  ];
+  ] as const;
 
   const growthData: GrowthData[] = useMemo(() => {
-    return countryData
-      .sort((a, b) => a.year - b.year)
-      .map((data, index, array) => {
-        if (index === 0) {
-          return { year: data.year, seedGrowthRate: 0, mechanizationGrowthRate: 0 };
-        }
-        const prevData = array[index - 1];
-        const seedGrowthRate =
-          ((data.improved_seed_use_pct - prevData.improved_seed_use_pct) / prevData.improved_seed_use_pct) * 100;
-        const mechanizationGrowthRate =
-          ((data.mechanization_units_per_1000_farms - prevData.mechanization_units_per_1000_farms) /
-            prevData.mechanization_units_per_1000_farms) * 100;
-        return {
-          year: data.year,
-          seedGrowthRate: Number.isFinite(seedGrowthRate) ? seedGrowthRate : 0,
-          mechanizationGrowthRate: Number.isFinite(mechanizationGrowthRate) ? mechanizationGrowthRate : 0,
-        };
-      });
+    const sorted = [...countryData].sort((a, b) => a.year - b.year);
+    return sorted.map((data, i, arr) => {
+      if (i === 0) return { year: data.year, seedGrowthRate: 0, mechanizationGrowthRate: 0 };
+
+      const prev = arr[i - 1];
+      const prevSeed = prev.improved_seed_use_pct;
+      const currSeed = data.improved_seed_use_pct;
+      const prevMech = prev.mechanization_units_per_1000_farms;
+      const currMech = data.mechanization_units_per_1000_farms;
+
+      const seedGrowthRate = prevSeed > 0 ? ((currSeed - prevSeed) / prevSeed) * 100 : 0;
+      const mechGrowthRate = prevMech > 0 ? ((currMech - prevMech) / prevMech) * 100 : 0;
+
+      return {
+        year: data.year,
+        seedGrowthRate: Number.isFinite(seedGrowthRate) ? Number(seedGrowthRate.toFixed(2)) : 0,
+        mechanizationGrowthRate: Number.isFinite(mechGrowthRate) ? Number(mechGrowthRate.toFixed(2)) : 0,
+      };
+    });
   }, [countryData]);
 
   useEffect(() => {
@@ -89,170 +90,127 @@ export default function ForecastSimulationPage() {
       return;
     }
 
-    async function fetchData() {
+    const fetchExcelData = async () => {
       try {
-        const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('forecastSimulation.errors.fetchFailed'));
-        const jsonData = (await response.json()) as Dataset;
+        setLoading(true);
+        setError(null);
 
-        const years = jsonData.Simulated_Input_Data.map((d) => d.year);
-        const maxYear = Math.max(...years, 2025);
-        setSelectedYear(maxYear);
+        const response = await fetch(EXCEL_FILE_URL);
+        if (!response.ok) throw new Error('Failed to download file');
 
-        const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === country.toLowerCase()
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData: InputData[] = XLSX.utils.sheet_to_json(worksheet);
+
+        const filtered = jsonData.filter(
+          (row) => row.country?.toString().toLowerCase() === country.toLowerCase()
         );
 
-        if (filteredCountryData.length === 0) {
+        if (filtered.length === 0) {
           setError(t('forecastSimulation.errors.noData', { country }));
           setLoading(false);
           return;
         }
 
-        setCountryData(filteredCountryData);
-        setLoading(false);
-      } catch (error) {
+        const maxYear = Math.max(...filtered.map(d => d.year), 2025);
+        setSelectedYear(maxYear);
+        setCountryData(filtered);
+      } catch (err) {
+        console.error('Excel fetch error:', err);
         setError(t('forecastSimulation.errors.fetchFailed'));
+      } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchData();
+    fetchExcelData();
   }, [country, t]);
 
   const availableYears = useMemo(() => {
-    return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
+    return Array.from(new Set(countryData.map(d => d.year))).sort((a, b) => a - b);
   }, [countryData]);
 
-  const selectedData = countryData.find((d) => d.year === selectedYear);
+  const selectedData = countryData.find(d => d.year === selectedYear);
   const totalInputUsage = selectedData
     ? selectedData.cereal_seeds_tons + selectedData.fertilizer_tons + selectedData.pesticide_liters
     : 0;
 
+  const safeFormat = (value: unknown, formatter: (v: number) => string): string => {
+    return typeof value === 'number' && !isNaN(value) ? formatter(value) : 'N/A';
+  };
+
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => {
-      const growth = growthData.find((g) => g.year === data.year);
+    const csvData = countryData.map(data => {
+      const growth = growthData.find(g => g.year === data.year);
       return {
         Year: data.year,
         [t('forecastSimulation.cerealSeeds')]: data.cereal_seeds_tons.toLocaleString(),
         [t('forecastSimulation.fertilizer')]: data.fertilizer_tons.toLocaleString(),
         [t('forecastSimulation.pesticides')]: data.pesticide_liters.toLocaleString(),
-        [t('forecastSimulation.inputSubsidy')]: data.input_subsidy_budget_usd.toLocaleString(),
-        [t('forecastSimulation.creditAccess')]: data.credit_access_pct.toFixed(2),
-        [t('forecastSimulation.seedGrowthRate')]: growth?.seedGrowthRate.toFixed(2) || '0',
-        [t('forecastSimulation.mechanizationGrowthRate')]: growth?.mechanizationGrowthRate.toFixed(2) || '0',
+        [t('forecastSimulation.inputSubsidy')]: `$${data.input_subsidy_budget_usd.toLocaleString()}`,
+        [t('forecastSimulation.creditAccess')]: `${data.credit_access_pct.toFixed(1)}%`,
+        [t('forecastSimulation.seedGrowthRate')]: `${growth?.seedGrowthRate ?? 0}%`,
+        [t('forecastSimulation.mechanizationGrowthRate')]: `${growth?.mechanizationGrowthRate ?? 0}%`,
       };
     });
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${country}_forecast_simulation_data.csv`;
-    link.click();
-    console.log('CSV downloaded successfully');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${country}_forecast_simulation_data.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handlePNGDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PNG generation');
-      alert(t('forecastSimulation.errors.pngFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      console.log('Starting PNG download...');
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
-
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('forecastSimulation.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('forecastSimulation.errors.invalidImageData'));
-      }
-
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `${country}_forecast_simulation_dashboard.png`;
-      link.click();
-      console.log('PNG downloaded successfully');
-    } catch (err) {
-      console.error('PNG generation error:', err);
+      canvas.toBlob(blob => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${country}_forecast_simulation_dashboard.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+    } catch {
       alert(t('forecastSimulation.errors.pngFailed'));
     }
   };
 
   const handlePDFDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PDF generation');
-      alert(t('forecastSimulation.errors.pdfFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      console.log('Starting PDF download...');
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
 
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('forecastSimulation.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('forecastSimulation.errors.invalidImageData'));
-      }
-
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-      const imgWidth = 190;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.setFontSize(12);
-      pdf.text(t('forecastSimulation.title', { countryName: country.toUpperCase() }), 10, 10);
-      pdf.text(t('forecastSimulation.metrics'), 10, 18);
-      pdf.text(t('forecastSimulation.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-      pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
+      const width = pdf.internal.pageSize.getWidth() - 20;
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 30, width, height);
+      pdf.setFontSize(16);
+      pdf.text(t('forecastSimulation.title', { countryName: country.toUpperCase() }), 10, 15);
+      pdf.setFontSize(10);
+      pdf.text(t('forecastSimulation.report_exported', { date: new Date().toLocaleDateString() }), 10, 22);
       pdf.save(`${country}_forecast_simulation_dashboard.pdf`);
-      console.log('PDF downloaded successfully');
-    } catch (err) {
-      console.error('PDF generation error:', err);
+    } catch {
       alert(t('forecastSimulation.errors.pdfFailed'));
     }
   };

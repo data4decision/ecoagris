@@ -453,6 +453,7 @@
       "invalidCanvas": "Canvas is empty or invalid",
       "invalidImageData": "Failed to generate image data from canvas"
     },
+     "totalInput": "Total Input Usage",
     "totalInputCard": "Total Input Usage Card for {{year}}",
     "inputSubsidyCard": "Input Subsidy Budget Card for {{year}}",
     "creditAccessCard": "Credit Access Card for {{year}}",

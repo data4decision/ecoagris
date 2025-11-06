@@ -450,6 +450,7 @@
       "invalidCanvas": "Canvas está vazio ou inválido",
       "invalidImageData": "Falha ao gerar dados de imagem a partir do canvas"
     },
+    "totalInput": "Uso Total de Insumos",
     "totalInputCard": "Cartão de Uso Total de Insumos para {{year}}",
     "inputSubsidyCard": "Cartão de Orçamento de Subsídios para {{year}}",
     "creditAccessCard": "Cartão de Acesso ao Crédito para {{year}}",

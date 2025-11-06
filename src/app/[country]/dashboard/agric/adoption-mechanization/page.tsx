@@ -212,9 +212,7 @@ export default function AdoptionMechanizationPage() {
         <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2">
           <FaTractor /> {t('adoptionMechanization.title', { countryName })}
         </h1>
-        <p className="text-[var(--olive-green)] mb-6 text-sm">
-          Source: APMD_ECOWAS_Input_Simulated_2006_2025.xlsx 
-        </p>
+        
 
         <div className="flex flex-wrap gap-3 mb-6">
           <button onClick={handleCSVDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
@@ -253,7 +251,7 @@ export default function AdoptionMechanizationPage() {
 
         <div className="space-y-10">
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">Trends (2006–2025)</h2>
+            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">{t('adoptionMechanization.trendsTitle', {year: '2006–2025'})}</h2>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={countryData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -269,7 +267,7 @@ export default function AdoptionMechanizationPage() {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">Yearly Comparison</h2>
+            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">{t('adoptionMechanization.comparisonChart')}</h2>
             <select
               value={selectedMetric}
               onChange={(e) => {

@@ -452,6 +452,7 @@
       "invalidCanvas": "Le canvas est vide ou invalide",
       "invalidImageData": "Échec de la génération des données d'image à partir du canvas"
     },
+    "totalInput": "Utilisation Totale des Intrants",
     "totalInputCard": "Carte d'utilisation totale des intrants pour {{year}}",
     "inputSubsidyCard": "Carte du budget de subventions pour {{year}}",
     "creditAccessCard": "Carte d'accès au crédit pour {{year}}",

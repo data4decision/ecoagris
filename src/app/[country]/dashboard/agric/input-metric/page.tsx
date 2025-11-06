@@ -18,6 +18,7 @@ import { stringify } from 'csv-stringify/sync';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useTranslation } from 'react-i18next';
+import * as XLSX from 'xlsx';
 import '@/styles/dashboard-styles.css';
 
 interface InputData {
@@ -31,10 +32,6 @@ interface InputData {
   [key: string]: unknown;
 }
 
-interface Dataset {
-  Simulated_Input_Data: InputData[];
-}
-
 export default function InputMetricsPage() {
   const { country } = useParams<{ country: string }>();
   const { t } = useTranslation('common');
@@ -46,13 +43,33 @@ export default function InputMetricsPage() {
   const [showPercentageChart, setShowPercentageChart] = useState(true);
   const [showValueChart, setShowValueChart] = useState(true);
 
+  const EXCEL_FILE_URL =
+    'https://res.cloudinary.com/dmuvs05yp/raw/upload/v1738770665/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx';
+
+  const columnMap: Record<string, string[]> = {
+    distribution_timeliness_pct: ['distribution_timeliness_pct', 'Distribution Timeliness (%)'],
+    input_price_index_2006_base: ['input_price_index_2006_base', 'Input Price Index (2006=100)'],
+    agro_dealer_count: ['agro_dealer_count', 'Agro-dealer Count'],
+    input_import_value_usd: ['input_import_value_usd', 'Input Import Value (USD)'],
+    local_production_inputs_tons: ['local_production_inputs_tons', 'Local Production (tons)'],
+  };
+
   const inputMetricsFields = [
     { key: 'distribution_timeliness_pct', label: t('inputMetrics.distributionTimeliness'), format: (v: number) => `${v.toFixed(1)}%` },
     { key: 'input_price_index_2006_base', label: t('inputMetrics.inputPriceIndex'), format: (v: number) => v.toFixed(2) },
     { key: 'agro_dealer_count', label: t('inputMetrics.agroDealerCount'), format: (v: number) => v.toLocaleString() },
     { key: 'input_import_value_usd', label: t('inputMetrics.inputImportValue'), format: (v: number) => `$${v.toLocaleString()}` },
     { key: 'local_production_inputs_tons', label: t('inputMetrics.localProductionInputs'), format: (v: number) => v.toLocaleString() },
-  ];
+  ] as const;
+
+  const getValue = (row: InputData, key: string): number | undefined => {
+    const possibles = columnMap[key] || [key];
+    for (const col of possibles) {
+      const val = row[col];
+      if (typeof val === 'number') return val;
+    }
+    return undefined;
+  };
 
   useEffect(() => {
     if (!country || typeof country !== 'string') {
@@ -61,132 +78,116 @@ export default function InputMetricsPage() {
       return;
     }
 
-    async function fetchData() {
+    const fetchExcelData = async () => {
       try {
-        const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('inputMetrics.errors.fetchFailed'));
-        const jsonData = (await response.json()) as Dataset;
+        setLoading(true);
+        setError(null);
 
-        const years = jsonData.Simulated_Input_Data.map((d) => d.year);
-        const maxYear = Math.max(...years, 2025);
-        setSelectedYear(maxYear);
+        const response = await fetch(EXCEL_FILE_URL);
+        if (!response.ok) throw new Error('Failed to download file');
 
-        const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === country.toLowerCase()
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawData: Record<string, unknown>[] = XLSX.utils.sheet_to_json(worksheet);
+
+        const normalizedData = rawData.map(row => {
+          const normalized: Record<string, unknown> = { ...row };
+          Object.keys(row).forEach(k => {
+            normalized[k.toLowerCase().replace(/[^a-z0-9]/g, '')] = row[k];
+          });
+          return normalized as InputData;
+        });
+
+        const filtered = normalizedData.filter(
+          row => row.country?.toString().toLowerCase() === country.toLowerCase()
         );
 
-        if (filteredCountryData.length === 0) {
+        if (filtered.length === 0) {
           setError(t('inputMetrics.errors.noData', { country }));
           setLoading(false);
           return;
         }
 
-        setCountryData(filteredCountryData);
-        setLoading(false);
-      } catch (error) {
+        const maxYear = Math.max(...filtered.map(d => d.year as number), 2025);
+        setSelectedYear(maxYear);
+        setCountryData(filtered as InputData[]);
+      } catch (err) {
+        console.error('Excel fetch error:', err);
         setError(t('inputMetrics.errors.fetchFailed'));
+      } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchData();
+    fetchExcelData();
   }, [country, t]);
 
   const availableYears = useMemo(() => {
-    return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
+    return Array.from(new Set(countryData.map(d => d.year as number))).sort((a, b) => a - b);
   }, [countryData]);
 
-  const selectedData = countryData.find((d) => d.year === selectedYear);
+  const selectedData = countryData.find(d => d.year === selectedYear);
+
+  const safeFormat = (value: unknown, formatter: (v: number) => string): string => {
+    return typeof value === 'number' && !isNaN(value) ? formatter(value) : 'N/A';
+  };
 
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
-      inputMetricsFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('inputMetrics.na');
+    const csvData = countryData.map(data => {
+      const row: Record<string, string | number> = { Year: data.year as number };
+      inputMetricsFields.forEach(field => {
+        row[field.label] = safeFormat(getValue(data, field.key), field.format);
       });
       return row;
     });
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${country}_input_metrics.csv`;
-    link.click();
-    console.log('CSV downloaded successfully');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${country}_input_metrics.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleDownload = async (format: 'png' | 'pdf') => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for', format.toUpperCase(), 'generation');
-      alert(t(`inputMetrics.errors.${format}Failed`));
-      return;
-    }
+    if (!dashboardRef.current) return;
 
     try {
-      console.log(`Starting ${format.toUpperCase()} download...`);
-      // Force chart rendering
       setShowPercentageChart(true);
       setShowValueChart(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay for chart rendering
-
-      // Apply snapshot styles
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay for styles
 
-      // Capture canvas
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log(`${format.toUpperCase()} Canvas dimensions:`, { width: canvas.width, height: canvas.height });
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
 
-      // Validate canvas
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('inputMetrics.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('inputMetrics.errors.invalidImageData'));
-      }
+      const imgData = canvas.toDataURL('image/png');
 
       if (format === 'png') {
-        // PNG download
-        const link = document.createElement('a');
-        link.href = imgData;
-        link.download = `${country}_input_metrics.png`;
-        link.click();
-        console.log('PNG downloaded successfully');
+        const a = document.createElement('a');
+        a.href = imgData;
+        a.download = `${country}_input_metrics.png`;
+        a.click();
       } else {
-        // PDF download
         const pdf = new jsPDF({
           orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
           unit: 'mm',
           format: 'a4',
         });
-
-        const imgWidth = 190;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-        pdf.setFontSize(12);
-        pdf.text(t('inputMetrics.title', { countryName: country.toUpperCase() }), 10, 10);
-        pdf.text(t('inputMetrics.metrics'), 10, 18);
-        pdf.text(t('inputMetrics.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-        pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
+        const width = pdf.internal.pageSize.getWidth() - 20;
+        const height = (canvas.height * width) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 30, width, height);
+        pdf.setFontSize(16);
+        pdf.text(t('inputMetrics.title', { countryName: country.toUpperCase() }), 10, 15);
+        pdf.setFontSize(10);
+        pdf.text(t('inputMetrics.report_exported', { date: new Date().toLocaleDateString() }), 10, 22);
         pdf.save(`${country}_input_metrics.pdf`);
-        console.log('PDF downloaded successfully');
       }
-    } catch (err) {
-      console.error(`${format.toUpperCase()} generation error:`, err);
+    } catch {
       alert(t(`inputMetrics.errors.${format}Failed`));
     }
   };
@@ -297,14 +298,14 @@ export default function InputMetricsPage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="distribution_timeliness_pct"
+                  dataKey={(d) => getValue(d, 'distribution_timeliness_pct')}
                   stroke="var(--medium-green)"
                   name={t('inputMetrics.distributionTimeliness')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="input_price_index_2006_base"
+                  dataKey={(d) => getValue(d, 'input_price_index_2006_base')}
                   stroke="var(--wine)"
                   name={t('inputMetrics.inputPriceIndex')}
                   strokeWidth={2}
@@ -348,21 +349,21 @@ export default function InputMetricsPage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="agro_dealer_count"
+                  dataKey={(d) => getValue(d, 'agro_dealer_count')}
                   stroke="var(--medium-green)"
                   name={t('inputMetrics.agroDealerCount')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="input_import_value_usd"
+                  dataKey={(d) => getValue(d, 'input_import_value_usd')}
                   stroke="var(--wine)"
                   name={t('inputMetrics.inputImportValue')}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
-                  dataKey="local_production_inputs_tons"
+                  dataKey={(d) => getValue(d, 'local_production_inputs_tons')}
                   stroke="var(--olive-green)"
                   name={t('inputMetrics.localProductionInputs')}
                   strokeWidth={2}
@@ -387,14 +388,17 @@ export default function InputMetricsPage() {
                 </tr>
               </thead>
               <tbody>
-                {inputMetricsFields.map((field) => (
-                  <tr key={field.key}>
-                    <td className="border border-[var(--yellow)] p-2">{field.label}</td>
-                    <td className="border border-[var(--yellow)] p-2">
-                      {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('inputMetrics.na')}
-                    </td>
-                  </tr>
-                ))}
+                {inputMetricsFields.map((field) => {
+                  const value = getValue(selectedData, field.key);
+                  return (
+                    <tr key={field.key}>
+                      <td className="border border-[var(--yellow)] p-2">{field.label}</td>
+                      <td className="border border-[var(--yellow)] p-2">
+                        {safeFormat(value, field.format)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

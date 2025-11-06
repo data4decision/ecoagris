@@ -1,6 +1,5 @@
 'use client';
 
-// Import required dependencies
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -20,9 +19,9 @@ import { stringify } from 'csv-stringify/sync';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useTranslation } from 'react-i18next';
+import * as XLSX from 'xlsx';
 import '@/styles/dashboard-styles.css';
 
-// Define TypeScript interface for data structure
 interface InputData {
   country: string;
   year: number;
@@ -30,14 +29,9 @@ interface InputData {
   credit_access_pct?: number;
   input_price_index_2006_base?: number;
   input_import_value_usd?: number;
-  [key: string]: unknown;
+  [key: string]: unknown  | undefined;
 }
 
-interface Dataset {
-  Simulated_Input_Data: InputData[];
-}
-
-// Define available metrics for the bar chart
 type EconomicIndicatorMetric =
   | 'input_subsidy_budget_usd'
   | 'credit_access_pct'
@@ -45,26 +39,25 @@ type EconomicIndicatorMetric =
   | 'input_import_value_usd';
 
 export default function EconomicIndicatorsPage() {
-  // Get dynamic country parameter from URL
   const { country } = useParams<{ country: string }>();
   const { t } = useTranslation('common');
   const dashboardRef = useRef<HTMLDivElement>(null);
-  // State for country-specific data, selected metric, selected year, loading, error, and latest year
   const [countryData, setCountryData] = useState<InputData[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<EconomicIndicatorMetric>('input_subsidy_budget_usd');
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Define field metadata for display and formatting
+  const EXCEL_FILE_URL =
+    'https://res.cloudinary.com/dmuvs05yp/raw/upload/v1738770665/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx';
+
   const economicIndicatorFields = [
     { key: 'input_subsidy_budget_usd', label: t('economicIndicators.subsidyBudget'), format: (v: number) => `$${v.toLocaleString()}` },
     { key: 'credit_access_pct', label: t('economicIndicators.creditAccess'), format: (v: number) => `${v.toFixed(1)}%` },
     { key: 'input_price_index_2006_base', label: t('economicIndicators.inputPriceIndex'), format: (v: number) => v.toFixed(2) },
     { key: 'input_import_value_usd', label: t('economicIndicators.inputImportValue'), format: (v: number) => `$${v.toLocaleString()}` },
-  ];
+  ] as const;
 
-  // Fetch data from JSON file
   useEffect(() => {
     if (!country || typeof country !== 'string') {
       setError(t('economicIndicators.errors.invalidCountry'));
@@ -72,204 +65,139 @@ export default function EconomicIndicatorsPage() {
       return;
     }
 
-    async function fetchData() {
+    const fetchExcelData = async () => {
       try {
-        const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('economicIndicators.errors.fetchFailed'));
-        const jsonData = (await response.json()) as Dataset;
+        setLoading(true);
+        setError(null);
 
-        // Calculate the latest year dynamically
-        const years = jsonData.Simulated_Input_Data.map((d) => d.year);
-        const maxYear = Math.max(...years, 2025);
-        setSelectedYear(maxYear);
+        const response = await fetch(EXCEL_FILE_URL);
+        if (!response.ok) throw new Error('Failed to download Excel file');
 
-        // Filter data for the selected country
-        const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === country.toLowerCase()
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData: InputData[] = XLSX.utils.sheet_to_json(worksheet);
+
+        const filtered = jsonData.filter(
+          (row) => row.country?.toString().toLowerCase() === country.toLowerCase()
         );
 
-        if (filteredCountryData.length === 0) {
+        if (filtered.length === 0) {
           setError(t('economicIndicators.errors.noData', { country }));
           setLoading(false);
           return;
         }
 
-        setCountryData(filteredCountryData);
+        const maxYear = Math.max(...filtered.map(d => d.year), 2025);
+        setSelectedYear(maxYear);
+        setCountryData(filtered);
         setLoading(false);
-      } catch (error) {
+      } catch (err) {
+        console.error('Excel fetch error:', err);
         setError(t('economicIndicators.errors.fetchFailed'));
         setLoading(false);
       }
-    }
+    };
 
-    fetchData();
+    fetchExcelData();
   }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
-    return Array.from(new Set(countryData.map((d) => d.year))).sort((a, b) => a - b);
+    return Array.from(new Set(countryData.map(d => d.year))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
-  const selectedData = countryData.find((d) => d.year === selectedYear);
+  const selectedData = countryData.find(d => d.year === selectedYear);
 
-  // Function to handle CSV download
+  const safeFormat = (value: unknown, formatter: (v: number) => string): string => {
+    if (typeof value === 'number' && !isNaN(value)) {
+      return formatter(value);
+    }
+    return 'N/A';
+  };
+
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => {
-      const row: { [key: string]: string | number } = { Year: data.year };
-      economicIndicatorFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('economicIndicators.na');
+    const csvData = countryData.map(data => {
+      const row: Record<string, string | number> = { Year: data.year };
+      economicIndicatorFields.forEach(field => {
+        row[field.label] = safeFormat(data[field.key], field.format);
       });
       return row;
     });
 
     const csv = stringify(csvData, { header: true });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${country}_economic_indicators_data.csv`;
-    link.click();
-    console.log('CSV downloaded successfully');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${country}_economic_indicators.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  // Function to handle PNG download
   const handlePNGDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PNG generation');
-      alert(t('economicIndicators.errors.pngFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      console.log('Starting PNG download...');
-      // Wait for DOM and charts to render
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
-
-      // Apply snapshot styles
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Capture canvas
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
-
-      // Remove snapshot styles
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
-
-      // Validate canvas
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('economicIndicators.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('economicIndicators.errors.invalidImageData'));
-      }
-
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `${country}_economic_indicators_dashboard.png`;
-      link.click();
-      console.log('PNG downloaded successfully');
+      canvas.toBlob(blob => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${country}_economic_dashboard.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
     } catch (err) {
-      console.error('PNG generation error:', err);
+      console.error(err);
       alert(t('economicIndicators.errors.pngFailed'));
     }
   };
 
-  // Function to handle PDF download
   const handlePDFDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PDF generation');
-      alert(t('economicIndicators.errors.pdfFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      console.log('Starting PDF download...');
-      // Wait for DOM and charts to render
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
-
-      // Apply snapshot styles
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Capture canvas
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
-
-      // Remove snapshot styles
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
 
-      // Validate canvas
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('economicIndicators.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('economicIndicators.errors.invalidImageData'));
-      }
-
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-      const imgWidth = 190;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.setFontSize(12);
-      pdf.text(t('economicIndicators.title', { countryName: country.toUpperCase() }), 10, 10);
-      pdf.text(t('economicIndicators.metrics'), 10, 18);
-      pdf.text(t('economicIndicators.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-      pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
-      pdf.save(`${country}_economic_indicators_dashboard.pdf`);
-      console.log('PDF downloaded successfully');
+      const width = pdf.internal.pageSize.getWidth() - 20;
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 30, width, height);
+      pdf.setFontSize(16);
+      pdf.text(`${country.toUpperCase()} Economic Indicators`, 10, 15);
+      pdf.setFontSize(10);
+      pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 10, 22);
+      pdf.save(`${country}_economic_report.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
+      console.error(err);
       alert(t('economicIndicators.errors.pdfFailed'));
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('economicIndicators.loading')}</p>
-        </div>
+      <div className="flex min-h-screen bg-[var(--white)] p-8">
+        <p className="text-[var(--dark-green)] text-lg">{t('economicIndicators.loading')}</p>
       </div>
     );
   }
 
-  // Render error state
   if (error || !selectedData) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('economicIndicators.errors.noData', { country })}</p>
-        </div>
+      <div className="flex min-h-screen bg-[var(--white)] p-8">
+        <p className="text-[var(--wine)] text-lg">{error || t('economicIndicators.errors.noData', { country })}</p>
       </div>
     );
   }
@@ -278,170 +206,85 @@ export default function EconomicIndicatorsPage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content" ref={dashboardRef}>
-        {/* Page Header */}
-        <h1
-          className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={t('economicIndicators.ariaTitle', { country: countryName })}
-        >
-          <FaChartLine aria-hidden="true" className="text-lg sm:text-xl" /> {t('economicIndicators.title', { countryName })}
+      <div className="flex-1 p-4 sm:p-6 min-w-0" ref={dashboardRef}>
+        <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2">
+          <FaChartLine /> {t('economicIndicators.title', { countryName })}
         </h1>
-        <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">{t('economicIndicators.simulatedDataNote')}</p>
+        
 
-        {/* Download Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
-          <button
-            onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            aria-label={t('economicIndicators.downloadCSVLabel')}
-          >
-            <FaDownload /> {t('economicIndicators.downloadCSV')}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button onClick={handleCSVDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
+            <FaDownload /> CSV
           </button>
-          <button
-            onClick={handlePNGDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            aria-label={t('economicIndicators.downloadPNGLabel')}
-          >
-            <FaDownload /> {t('economicIndicators.downloadPNG')}
+          <button onClick={handlePNGDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
+            <FaDownload /> PNG
           </button>
-          <button
-            onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            aria-label={t('economicIndicators.downloadPDFLabel')}
-          >
-            <FaDownload /> {t('economicIndicators.downloadPDF')}
+          <button onClick={handlePDFDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
+            <FaDownload /> PDF
           </button>
         </div>
 
-        {/* Year Selection for Cards */}
-        <div className="mb-4 max-w-full">
-          <label htmlFor="year-select" className="sr-only">
-            {t('economicIndicators.yearSelectLabel')}
-          </label>
+        <div className="mb-6">
           <select
-            id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
+            className="p-3 border rounded text-[var(--dark-green)]"
           >
-            {availableYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
             ))}
           </select>
         </div>
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 max-w-full">
-          {economicIndicatorFields.map((field) => (
-            <div
-              key={field.key}
-              className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0"
-              aria-label={t('economicIndicators.metricCard', { label: field.label, year: selectedYear })}
-            >
-              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
-              <p className="text-[var(--wine)] text-base sm:text-lg">
-                {selectedData[field.key] != null ? field.format(selectedData[field.key] as number) : t('economicIndicators.na')}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {economicIndicatorFields.map(field => (
+            <div key={field.key} className="bg-[var(--yellow)] p-3 rounded-lg shadow">
+              <h3 className="font-semibold text-[var(--dark-green)] text-sm">{field.label} ({selectedYear})</h3>
+              <p className="text-xl font-bold text-[var(--wine)] mt-2">
+                {safeFormat(selectedData[field.key], field.format)}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Visualizations */}
-        <div className="grid grid-cols-1 gap-6 max-w-full">
-          {/* Line Chart: Economic Trends */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden chart-section" aria-label={t('economicIndicators.trendsChart')}>
-            <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              {t('economicIndicators.trendsTitle', { year: selectedYear })}
+        <div className="space-y-10">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">
+              {t('economicIndicators.trendsTitle', { year: '2006–2025' })}
             </h2>
-            <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
-              <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={countryData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  fontSize={10}
-                  angle={-45}
-                  textAnchor="end"
-                  interval="preserveStartEnd"
-                  height={50}
-                  className="sm:text-[12px] sm:angle-0 sm:text-anchor-middle"
-                />
-                <YAxis fontSize={10} className="sm:text-[12px]" />
-                <Tooltip contentStyle={{ fontSize: 12 }} />
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
-                  className="hidden sm:block"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="input_subsidy_budget_usd"
-                  stroke="var(--olive-green)"
-                  name={t('economicIndicators.subsidyBudget')}
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="credit_access_pct"
-                  stroke="var(--wine)"
-                  name={t('economicIndicators.creditAccess')}
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="input_price_index_2006_base"
-                  stroke="var(--yellow)"
-                  name={t('economicIndicators.inputPriceIndex')}
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="input_import_value_usd"
-                  stroke="var(--medium-green)"
-                  name={t('economicIndicators.inputImportValue')}
-                  strokeWidth={2}
-                />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="input_subsidy_budget_usd" stroke="var(--dark-green)" name="Subsidy Budget ($)" strokeWidth={2} />
+                <Line type="monotone" dataKey="credit_access_pct" stroke="var(--red)" name="Credit Access (%)" strokeWidth={2} />
+                <Line type="monotone" dataKey="input_price_index_2006_base" stroke="var(--yellow)" name="Price Index" strokeWidth={2} />
+                <Line type="monotone" dataKey="input_import_value_usd" stroke="var(--wine)" name="Import Value ($)" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart: Year Comparison for Selected Country */}
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden chart-section" aria-label={t('economicIndicators.comparisonChart')}>
-            <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              {t('economicIndicators.comparisonTitle', { country: countryName })}
-            </h2>
-            <label htmlFor="metric-select" className="sr-only">
-              {t('economicIndicators.metricSelectLabel')}
-            </label>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">{t('economicIndicators.comparisonChart')}</h2>
             <select
-              id="metric-select"
               value={selectedMetric}
               onChange={(e) => setSelectedMetric(e.target.value as EconomicIndicatorMetric)}
-              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
+              className="mb-4 p-3 border rounded text-[var(--dark-green)]"
             >
-              {economicIndicatorFields.map((field) => (
-                <option key={field.key} value={field.key}>
-                  {field.label}
-                </option>
+              {economicIndicatorFields.map(f => (
+                <option key={f.key} value={f.key}>{f.label}</option>
               ))}
             </select>
-            <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
-              <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }} barGap={2} barCategoryGap="10%">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={countryData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  fontSize={10}
-                  angle={-45}
-                  textAnchor="end"
-                  interval="preserveStartEnd"
-                  height={50}
-                  className="sm:text-[12px] sm:angle-0 sm:text-anchor-middle"
-                />
-                <YAxis fontSize={10} className="sm:text-[12px]" />
-                <Tooltip contentStyle={{ fontSize: 12 }} />
-                <Bar dataKey={selectedMetric} fill="var(--olive-green)" minPointSize={5} />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey={selectedMetric} fill="var(--olive-green)" />
               </BarChart>
             </ResponsiveContainer>
           </div>

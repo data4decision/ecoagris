@@ -1,6 +1,5 @@
 'use client';
 
-// Import required dependencies
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { FaChartBar, FaTruck, FaMoneyBillWave, FaSeedling, FaChartLine, FaDatabase, FaDownload } from 'react-icons/fa';
@@ -8,9 +7,9 @@ import { stringify } from 'csv-stringify/sync';
 import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import '@/styles/pdf-styles.css'; // Import CSS for snapshot styling
+import * as XLSX from 'xlsx';
+import '@/styles/pdf-styles.css';
 
-// Define TypeScript interfaces
 interface InputData {
   country: string;
   year: number;
@@ -28,16 +27,7 @@ interface InputData {
   agro_dealer_count?: number;
   input_import_value_usd?: number;
   local_production_inputs_tons?: number;
-  [key: string]: unknown; // Type-safe dynamic keys
-}
-
-interface Dataset {
-  Simulated_Input_Data: InputData[];
-  Methodology_Assumptions?: {
-    data_source?: string;
-    simulation_method?: string;
-    assumptions?: string[];
-  };
+  [key: string]: unknown;
 }
 
 export default function AgricInputOverviewPage() {
@@ -50,7 +40,39 @@ export default function AgricInputOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Navigation cards based on provided nav array
+  const EXCEL_FILE_URL =
+    'https://res.cloudinary.com/dmuvs05yp/raw/upload/v1738770665/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx';
+
+  const columnMap: Record<string, string[]> = {
+    cereal_seeds_tons: ['cereal_seeds_tons', 'Cereal Seeds (tons)'],
+    fertilizer_tons: ['fertilizer_tons', 'Fertilizer (tons)'],
+    pesticide_liters: ['pesticide_liters', 'Pesticide (liters)'],
+    input_subsidy_budget_usd: ['input_subsidy_budget_usd', 'Input Subsidy Budget (USD)'],
+    credit_access_pct: ['credit_access_pct', 'Credit Access (%)'],
+    stockouts_days_per_year: ['stockouts_days_per_year', 'Stockouts (days/year)'],
+    fertilizer_kg_per_ha: ['fertilizer_kg_per_ha', 'Fertilizer (kg/ha)'],
+    improved_seed_use_pct: ['improved_seed_use_pct', 'Improved Seed Use (%)'],
+    mechanization_units_per_1000_farms: ['mechanization_units_per_1000_farms', 'Mechanization Units per 1000 Farms'],
+    distribution_timeliness_pct: ['distribution_timeliness_pct', 'Distribution Timeliness (%)'],
+    input_price_index_2006_base: ['input_price_index_2006_base', 'Input Price Index (2006=100)'],
+    agro_dealer_count: ['agro_dealer_count', 'Agro-dealer Count'],
+    input_import_value_usd: ['input_import_value_usd', 'Input Import Value (USD)'],
+    local_production_inputs_tons: ['local_production_inputs_tons', 'Local Production (tons)'],
+  };
+
+  const getValue = (row: InputData, key: string): number | undefined => {
+    const possibles = columnMap[key] || [key];
+    for (const col of possibles) {
+      const val = row[col];
+      if (typeof val === 'number') return val;
+    }
+    return undefined;
+  };
+
+  const safeFormat = (value: unknown, formatter: (v: number) => string): string => {
+    return typeof value === 'number' && !isNaN(value) ? formatter(value) : 'N/A';
+  };
+
   const nav = [
     { label: t('overview.overview'), href: `/${country}/dashboard/agric`, icon: FaChartBar, description: t('overview.overviewDescription') },
     { label: t('overview.supplyChain'), href: `/${country}/dashboard/agric/supply`, icon: FaTruck, description: t('overview.supplyChainDescription') },
@@ -60,7 +82,6 @@ export default function AgricInputOverviewPage() {
     { label: t('overview.dataMethodology'), href: `/${country}/dashboard/agric/data-methodology`, icon: FaDatabase, description: t('overview.dataMethodologyDescription') },
   ];
 
-  // Fetch data from backend only
   useEffect(() => {
     if (!country || typeof country !== 'string') {
       setError(t('overview.errors.invalidCountry'));
@@ -68,69 +89,76 @@ export default function AgricInputOverviewPage() {
       return;
     }
 
-    async function fetchData() {
+    const fetchExcelData = async () => {
       try {
-        const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('overview.errors.fetchFailed'));
-        const jsonData = (await response.json()) as Dataset;
+        setLoading(true);
+        setError(null);
 
-        if (!jsonData.Simulated_Input_Data || !Array.isArray(jsonData.Simulated_Input_Data)) {
-          throw new Error(t('overview.errors.invalidDataFormat'));
-        }
+        const response = await fetch(EXCEL_FILE_URL);
+        if (!response.ok) throw new Error('Failed to download file');
 
-        const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country && d.country.toLowerCase() === country.toLowerCase()
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawData: Record<string, unknown>[] = XLSX.utils.sheet_to_json(worksheet);
+
+        const normalizedData = rawData.map(row => {
+          const normalized: Record<string, unknown> = { ...row };
+          Object.keys(row).forEach(k => {
+            normalized[k.toLowerCase().replace(/[^a-z0-9]/g, '')] = row[k];
+          });
+          return normalized as InputData;
+        });
+
+        const filtered = normalizedData.filter(
+          row => row.country?.toString().toLowerCase() === country.toLowerCase()
         );
 
-        if (filteredCountryData.length === 0) {
+        if (filtered.length === 0) {
           setError(t('overview.errors.noData', { country }));
           setLoading(false);
           return;
         }
 
-        const years = filteredCountryData.map((d) => d.year).filter((y) => typeof y === 'number');
-        const maxYear = years.length > 0 ? Math.max(...years, 2025) : 2025;
+        const maxYear = Math.max(...filtered.map(d => d.year as number), 2025);
         setSelectedYear(maxYear);
-
-        setCountryData(filteredCountryData);
-        setLoading(false);
+        setCountryData(filtered as InputData[]);
       } catch (err) {
-        console.error('Fetch error:', err);
+        console.error('Excel fetch error:', err);
         setError(t('overview.errors.loadingError'));
+      } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchData();
+    fetchExcelData();
   }, [country, t]);
 
-  // Get unique years for dropdown
   const availableYears = useMemo(() => {
-    return Array.from(new Set(countryData.map((d) => d.year).filter((y) => typeof y === 'number'))).sort((a, b) => a - b);
+    return Array.from(new Set(countryData.map(d => d.year as number))).sort((a, b) => a - b);
   }, [countryData]);
 
-  // Get data for the selected year
-  const selectedData = countryData.find((d) => d.year === selectedYear);
+  const selectedData = countryData.find(d => d.year === selectedYear);
 
-  // Function to handle CSV download
   const handleCSVDownload = () => {
-    const csvData = countryData.map((data) => ({
+    const csvData = countryData.map(data => ({
       Country: data.country,
       Year: data.year,
-      CerealSeedsTons: data.cereal_seeds_tons?.toLocaleString() ?? t('overview.na'),
-      FertilizerTons: data.fertilizer_tons?.toLocaleString() ?? t('overview.na'),
-      PesticideLiters: data.pesticide_liters?.toLocaleString() ?? t('overview.na'),
-      InputSubsidyBudgetUSD: data.input_subsidy_budget_usd ? `$${data.input_subsidy_budget_usd.toLocaleString()}` : t('overview.na'),
-      CreditAccessPct: data.credit_access_pct ? `${data.credit_access_pct.toFixed(1)}%` : t('overview.na'),
-      StockoutsDaysPerYear: data.stockouts_days_per_year?.toLocaleString() ?? t('overview.na'),
-      FertilizerKgPerHa: data.fertilizer_kg_per_ha?.toFixed(1) ?? t('overview.na'),
-      ImprovedSeedUsePct: data.improved_seed_use_pct ? `${data.improved_seed_use_pct.toFixed(1)}%` : t('overview.na'),
-      MechanizationUnitsPer1000Farms: data.mechanization_units_per_1000_farms?.toFixed(1) ?? t('overview.na'),
-      DistributionTimelinessPct: data.distribution_timeliness_pct ? `${data.distribution_timeliness_pct.toFixed(1)}%` : t('overview.na'),
-      InputPriceIndex2006Base: data.input_price_index_2006_base?.toFixed(2) ?? t('overview.na'),
-      AgroDealerCount: data.agro_dealer_count?.toLocaleString() ?? t('overview.na'),
-      InputImportValueUSD: data.input_import_value_usd ? `$${data.input_import_value_usd.toLocaleString()}` : t('overview.na'),
-      LocalProductionInputsTons: data.local_production_inputs_tons?.toLocaleString() ?? t('overview.na'),
+      CerealSeedsTons: safeFormat(getValue(data, 'cereal_seeds_tons'), v => v.toLocaleString()),
+      FertilizerTons: safeFormat(getValue(data, 'fertilizer_tons'), v => v.toLocaleString()),
+      PesticideLiters: safeFormat(getValue(data, 'pesticide_liters'), v => v.toLocaleString()),
+      InputSubsidyBudgetUSD: safeFormat(getValue(data, 'input_subsidy_budget_usd'), v => `$${v.toLocaleString()}`),
+      CreditAccessPct: safeFormat(getValue(data, 'credit_access_pct'), v => `${v.toFixed(1)}%`),
+      StockoutsDaysPerYear: safeFormat(getValue(data, 'stockouts_days_per_year'), v => v.toLocaleString()),
+      FertilizerKgPerHa: safeFormat(getValue(data, 'fertilizer_kg_per_ha'), v => v.toFixed(1)),
+      ImprovedSeedUsePct: safeFormat(getValue(data, 'improved_seed_use_pct'), v => `${v.toFixed(1)}%`),
+      MechanizationUnitsPer1000Farms: safeFormat(getValue(data, 'mechanization_units_per_1000_farms'), v => v.toFixed(1)),
+      DistributionTimelinessPct: safeFormat(getValue(data, 'distribution_timeliness_pct'), v => `${v.toFixed(1)}%`),
+      InputPriceIndex2006Base: safeFormat(getValue(data, 'input_price_index_2006_base'), v => v.toFixed(2)),
+      AgroDealerCount: safeFormat(getValue(data, 'agro_dealer_count'), v => v.toLocaleString()),
+      InputImportValueUSD: safeFormat(getValue(data, 'input_import_value_usd'), v => `$${v.toLocaleString()}`),
+      LocalProductionInputsTons: safeFormat(getValue(data, 'local_production_inputs_tons'), v => v.toLocaleString()),
     }));
 
     const csv = stringify(csvData, { header: true });
@@ -139,89 +167,40 @@ export default function AgricInputOverviewPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `${country}_agric_input_overview.csv`;
     link.click();
-    console.log('CSV downloaded successfully');
   };
 
-  // Function to handle PNG download
-  const handlePNGDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PNG generation');
-      alert(t('overview.errors.pngFailed'));
-      return;
-    }
+  const handleDownload = async (format: 'png' | 'pdf') => {
+    if (!dashboardRef.current) return;
 
     try {
-      // Wait for DOM to be fully rendered
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Increased to 500ms
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true, // Enable logging for debugging
-      });
-
-      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      await new Promise(r => setTimeout(r, 800));
+      dashboardRef.current.classList.add('snapshot');
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
+      dashboardRef.current.classList.remove('snapshot');
 
       const imgData = canvas.toDataURL('image/png');
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('overview.errors.invalidImageData'));
-      }
 
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `${country}_agric_input_overview.png`;
-      link.click();
-      console.log('PNG downloaded successfully');
-    } catch (err) {
-      console.error('PNG generation error:', err);
-      alert(t('overview.errors.pngFailed'));
+      if (format === 'png') {
+        const a = document.createElement('a');
+        a.href = imgData;
+        a.download = `${country}_agric_input_overview.png`;
+        a.click();
+      } else {
+        const pdf = new jsPDF('landscape');
+        const width = pdf.internal.pageSize.getWidth() - 20;
+        const height = (canvas.height * width) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 35, width, height);
+        pdf.setFontSize(16);
+        pdf.text(t('overview.title', { countryName: country.toUpperCase() }), 10, 15);
+        pdf.setFontSize(10);
+        pdf.text(t('overview.report_exported', { date: new Date().toLocaleDateString() }), 10, 25);
+        pdf.save(`${country}_agric_input_overview.pdf`);
+      }
+    } catch {
+      alert(t(`overview.errors.${format}Failed`));
     }
   };
 
-  // Function to handle PDF download
-  const handlePDFDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PDF generation');
-      alert(t('overview.errors.pdfFailed'));
-      return;
-    }
-
-    try {
-      // Wait for DOM to be fully rendered
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Increased to 500ms
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true, // Enable logging for debugging
-      });
-
-      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
-
-      const imgData = canvas.toDataURL('image/png');
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('overview.errors.invalidImageData'));
-      }
-
-      const pdf = new jsPDF('landscape');
-      pdf.setFontSize(12);
-      pdf.text(t('overview.title', { countryName: country.toUpperCase() }), 10, 10);
-      pdf.text(t('overview.metrics'), 10, 18);
-      pdf.text(t('overview.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-      pdf.addImage(imgData, 'PNG', 10, 35, 270, 120);
-      pdf.save(`${country}_agric_input_overview.pdf`);
-      console.log('PDF downloaded successfully');
-    } catch (err) {
-      console.error('PDF generation error:', err);
-      alert(t('overview.errors.pdfFailed'));
-    }
-  };
-
-  // Render loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
@@ -230,7 +209,6 @@ export default function AgricInputOverviewPage() {
     );
   }
 
-  // Render error state
   if (error || !selectedData) {
     return (
       <div className="min-h-screen bg-[var(--white)] flex justify-center items-center">
@@ -243,7 +221,6 @@ export default function AgricInputOverviewPage() {
 
   return (
     <div className="min-h-screen bg-[var(--white)] font-sans">
-      {/* Header */}
       <header className="bg-[var(--medium-green)] text-[var(--white)] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-md">
         <div className="flex items-center gap-2">
           <FaChartBar className="text-2xl sm:text-3xl text-[var(--yellow)]" />
@@ -254,54 +231,47 @@ export default function AgricInputOverviewPage() {
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             className="p-2 rounded bg-[var(--white)] text-[var(--dark-green)] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[var(--yellow)]"
-            aria-label={t('overview.yearSelectLabel')}
           >
             {availableYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
+              <option key={year} value={year}>{year}</option>
             ))}
           </select>
           <button
             onClick={handleCSVDownload}
             className="flex items-center gap-2 cursor-pointer bg-[var(--yellow)] text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
-            aria-label={t('overview.downloadCSV')}
           >
-            <FaDownload className="text-[var(--dark-green)]" /> {t('overview.downloadCSV')}
+            <FaDownload /> {t('overview.downloadCSV')}
           </button>
           <button
-            onClick={handlePNGDownload}
+            onClick={() => handleDownload('png')}
             className="flex items-center gap-2 bg-[var(--yellow)] cursor-pointer text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
-            aria-label={t('overview.downloadPNG')}
           >
-            <FaDownload className="text-[var(--dark-green)]" /> {t('overview.downloadPNG')}
+            <FaDownload /> {t('overview.downloadPNG')}
           </button>
           <button
-            onClick={handlePDFDownload}
+            onClick={() => handleDownload('pdf')}
             className="flex items-center gap-2 bg-[var(--yellow)] cursor-pointer text-[var(--dark-green)] px-4 py-2 rounded hover:bg-[var(--yellow)]/90 transition-colors"
-            aria-label={t('overview.downloadPDF')}
           >
-            <FaDownload className="text-[var(--dark-green)]" /> {t('overview.downloadPDF')}
+            <FaDownload /> {t('overview.downloadPDF')}
           </button>
         </div>
       </header>
 
-      {/* Main Content */}
       <main ref={dashboardRef} className="max-w-7xl mx-auto p-4 sm:p-6" id="dashboard-content">
         <p className="text-[var(--olive-green)] mb-6 text-sm sm:text-base italic">
           {t('overview.simulatedDataNote')}
         </p>
 
-        {/* Navigation Cards */}
         <div className="mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">{t('overview.exploreCategories')}</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--dark-green)] mb-4">
+            {t('overview.exploreCategories')}
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {nav.map((item) => (
               <div
                 key={item.label}
                 className="bg-[var(--white)] p-6 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transform transition-all duration-300 border border-[var(--medium-green)] cursor-pointer"
                 onClick={() => router.push(item.href)}
-                aria-label={t('overview.navigateTo', { title: item.label })}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <item.icon className="text-[var(--dark-green)] text-2xl" />
