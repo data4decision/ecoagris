@@ -127,7 +127,7 @@ const Navbar: React.FC = () => {
 
         <li>
           <Link
-            href="/admin/signup"
+            href="/admin/login"
             className="hover:text-[var(--yellow)] block"
           >
             {t('navbar.adminLogin')}
