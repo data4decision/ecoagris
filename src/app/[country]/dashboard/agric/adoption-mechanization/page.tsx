@@ -19,6 +19,7 @@ import { stringify } from 'csv-stringify/sync';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useTranslation } from 'react-i18next';
+import * as XLSX from 'xlsx';
 import '@/styles/dashboard-styles.css';
 
 interface InputData {
@@ -36,10 +37,6 @@ interface InputData {
   [key: string]: unknown;
 }
 
-interface Dataset {
-  Simulated_Input_Data: InputData[];
-}
-
 export default function AdoptionMechanizationPage() {
   const { country } = useParams<{ country: string }>();
   const { t } = useTranslation('common');
@@ -52,6 +49,10 @@ export default function AdoptionMechanizationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const EXCEL_FILE_URL =
+    'https://res.cloudinary.com/dmuvs05yp/raw/upload/v1738770665/APMD_ECOWAS_Input_Simulated_2006_2025.xlsx';
+
+  // FIXED: Removed space in key
   const adoptionMechanizationFields = [
     { key: 'improved_seed_use_pct', label: t('adoptionMechanization.improvedSeed'), format: (v: number) => `${v.toFixed(1)}%` },
     { key: 'fertilizer_kg_per_ha', label: t('adoptionMechanization.fertilizerIntensity'), format: (v: number) => `${v.toFixed(1)} kg/ha` },
@@ -65,35 +66,42 @@ export default function AdoptionMechanizationPage() {
       return;
     }
 
-    async function fetchData() {
+    async function fetchExcelData() {
       try {
-        const response = await fetch('/data/agric/APMD_ECOWAS_Input_Simulated_2006_2025.json');
-        if (!response.ok) throw new Error(t('adoptionMechanization.errors.fetchFailed'));
-        const jsonData = (await response.json()) as Dataset;
+        setLoading(true);
+        setError(null);
 
-        const years = jsonData.Simulated_Input_Data.map((d) => d.year);
-        const maxYear = Math.max(...years, 2025);
-        setSelectedYear(maxYear);
+        const response = await fetch(EXCEL_FILE_URL);
+        if (!response.ok) throw new Error('Failed to download file');
 
-        const filteredCountryData = jsonData.Simulated_Input_Data.filter(
-          (d) => d.country.toLowerCase() === country.toLowerCase()
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData: InputData[] = XLSX.utils.sheet_to_json(worksheet);
+
+        const filtered = jsonData.filter(
+          (row) => row.country?.toString().toLowerCase() === country.toLowerCase()
         );
 
-        if (filteredCountryData.length === 0) {
+        if (filtered.length === 0) {
           setError(t('adoptionMechanization.errors.noData', { country }));
           setLoading(false);
           return;
         }
 
-        setCountryData(filteredCountryData);
+        const maxYear = Math.max(...filtered.map(d => d.year), 2025);
+        setSelectedYear(maxYear);
+        setCountryData(filtered);
         setLoading(false);
-      } catch (error) {
+      } catch (err) {
+        console.error('Excel fetch error:', err);
         setError(t('adoptionMechanization.errors.fetchFailed'));
         setLoading(false);
       }
     }
 
-    fetchData();
+    fetchExcelData();
   }, [country, t]);
 
   const availableYears = useMemo(() => {
@@ -101,19 +109,24 @@ export default function AdoptionMechanizationPage() {
   }, [countryData]);
 
   const selectedData = countryData.find((d) => d.year === selectedYear);
-  const totalInputUsage = selectedData
-    ? selectedData.cereal_seeds_tons + selectedData.fertilizer_tons + selectedData.pesticide_liters
-    : 0;
+
+  // Safe formatting with fallback
+  const safeFormat = (value: unknown, formatter: (v: number) => string) => {
+    if (typeof value === 'number' && !isNaN(value)) {
+      return formatter(value);
+    }
+    return 'N/A';
+  };
 
   const handleCSVDownload = () => {
     const csvData = countryData.map((data) => {
       const row: { [key: string]: string | number } = { Year: data.year };
       adoptionMechanizationFields.forEach((field) => {
-        row[field.label] = data[field.key] != null ? field.format(data[field.key] as number) : t('adoptionMechanization.na');
+        row[field.label] = safeFormat(data[field.key], field.format);
       });
-      row[t('adoptionMechanization.cerealSeeds')] = data.cereal_seeds_tons.toLocaleString();
-      row[t('adoptionMechanization.fertilizer')] = data.fertilizer_tons.toLocaleString();
-      row[t('adoptionMechanization.pesticides')] = data.pesticide_liters.toLocaleString();
+      row[t('adoptionMechanization.cerealSeeds')] = data.cereal_seeds_tons?.toLocaleString() || 'N/A';
+      row[t('adoptionMechanization.fertilizer')] = data.fertilizer_tons?.toLocaleString() || 'N/A';
+      row[t('adoptionMechanization.pesticides')] = data.pesticide_liters?.toLocaleString() || 'N/A';
       return row;
     });
 
@@ -123,129 +136,68 @@ export default function AdoptionMechanizationPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `${country}_adoption_mechanization_data.csv`;
     link.click();
-    console.log('CSV downloaded successfully');
   };
 
   const handlePNGDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PNG generation');
-      alert(t('adoptionMechanization.errors.pngFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      console.log('Starting PNG download...');
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log('PNG Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
-
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('adoptionMechanization.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('adoptionMechanization.errors.invalidImageData'));
-      }
-
-      const link = document.createElement('a');
-      link.href = imgData;
-      link.download = `${country}_adoption_mechanization_dashboard.png`;
-      link.click();
-      console.log('PNG downloaded successfully');
+      canvas.toBlob(blob => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${country}_dashboard.png`;
+          a.click();
+        }
+      });
     } catch (err) {
-      console.error('PNG generation error:', err);
-      alert(t('adoptionMechanization.errors.pngFailed'));
+      console.error(err);
     }
   };
 
   const handlePDFDownload = async () => {
-    if (!dashboardRef.current) {
-      console.error('Dashboard element not found for PDF generation');
-      alert(t('adoptionMechanization.errors.pdfFailed'));
-      return;
-    }
-
+    if (!dashboardRef.current) return;
     try {
-      console.log('Starting PDF download...');
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1000ms delay
+      await new Promise(r => setTimeout(r, 800));
       dashboardRef.current.classList.add('snapshot');
-      console.log('Applied snapshot styles');
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: true,
-      });
-
-      console.log('PDF Canvas dimensions:', { width: canvas.width, height: canvas.height });
+      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
       dashboardRef.current.classList.remove('snapshot');
-      console.log('Removed snapshot styles');
 
-      if (!canvas || canvas.width === 0 || canvas.height === 0) {
-        console.error('Canvas is empty or invalid:', { width: canvas?.width, height: canvas?.height });
-        throw new Error(t('adoptionMechanization.errors.invalidCanvas'));
-      }
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      if (!imgData || imgData === 'data:,') {
-        console.error('Invalid image data generated');
-        throw new Error(t('adoptionMechanization.errors.invalidImageData'));
-      }
-
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-      const imgWidth = 190;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.setFontSize(12);
-      pdf.text(t('adoptionMechanization.title', { countryName: country.toUpperCase() }), 10, 10);
-      pdf.text(t('adoptionMechanization.metrics'), 10, 18);
-      pdf.text(t('adoptionMechanization.report_exported', { date: new Date().toLocaleDateString() }), 10, 26);
-      pdf.addImage(imgData, 'PNG', 10, 35, imgWidth, imgHeight);
-      pdf.save(`${country}_adoption_mechanization_dashboard.pdf`);
-      console.log('PDF downloaded successfully');
+      const width = pdf.internal.pageSize.getWidth() - 20;
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 30, width, height);
+      pdf.setFontSize(16);
+      pdf.text(`${country.toUpperCase()} - Adoption & Mechanization Report`, 10, 15);
+      pdf.setFontSize(10);
+      pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 10, 22);
+      pdf.save(`${country}_report.pdf`);
     } catch (err) {
-      console.error('PDF generation error:', err);
-      alert(t('adoptionMechanization.errors.pdfFailed'));
+      console.error(err);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--dark-green)] text-base sm:text-lg">{t('adoptionMechanization.loading')}</p>
-        </div>
+      <div className="flex min-h-screen bg-[var(--white)] p-8">
+        <p className="text-[var(--dark-green)] text-lg">{t('adoptionMechanization.loading')}</p>
       </div>
     );
   }
 
   if (error || !selectedData) {
     return (
-      <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-        <div className="flex-1 p-4 sm:p-6 min-w-0">
-          <p className="text-[var(--wine)] text-base sm:text-lg">{error || t('adoptionMechanization.errors.noData', { country })}</p>
-        </div>
+      <div className="flex min-h-screen bg-[var(--white)] p-8">
+        <p className="text-[var(--wine)] text-lg">{error || t('adoptionMechanization.errors.noData', { country })}</p>
       </div>
     );
   }
@@ -254,160 +206,84 @@ export default function AdoptionMechanizationPage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--white)] max-w-full overflow-x-hidden">
-      <div className="flex-1 p-4 sm:p-6 min-w-0" id="dashboard-content" ref={dashboardRef}>
-        <h1
-          className="text-xl sm:text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2"
-          aria-label={t('adoptionMechanization.ariaTitle', { country: countryName })}
-        >
-          <FaTractor aria-hidden="true" className="text-lg sm:text-xl" /> {t('adoptionMechanization.title', { countryName })}
+      <div className="flex-1 p-4 sm:p-6 min-w-0" ref={dashboardRef}>
+        <h1 className="text-2xl font-bold text-[var(--dark-green)] mb-4 flex items-center gap-2">
+          <FaTractor /> {t('adoptionMechanization.title', { countryName })}
         </h1>
-        <p className="text-[var(--olive-green)] mb-4 text-sm sm:text-base">{t('adoptionMechanization.simulatedDataNote')}</p>
+        <p className="text-[var(--olive-green)] mb-6 text-sm">
+          Source: APMD_ECOWAS_Input_Simulated_2006_2025.xlsx 
+        </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 max-w-full">
-          <button
-            onClick={handleCSVDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            aria-label={t('adoptionMechanization.downloadCSVLabel')}
-          >
-            <FaDownload /> {t('adoptionMechanization.downloadCSV')}
+        <div className="flex flex-wrap gap-3 mb-6">
+          <button onClick={handleCSVDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
+            <FaDownload /> CSV
           </button>
-          <button
-            onClick={handlePNGDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            aria-label={t('adoptionMechanization.downloadPNGLabel')}
-          >
-            <FaDownload /> {t('adoptionMechanization.downloadPNG')}
+          <button onClick={handlePNGDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
+            <FaDownload /> PNG
           </button>
-          <button
-            onClick={handlePDFDownload}
-            className="flex items-center justify-center gap-2 bg-[var(--dark-green)] text-[var(--white)] px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-[var(--olive-green)] text-sm sm:text-base w-full sm:w-auto cursor-pointer"
-            aria-label={t('adoptionMechanization.downloadPDFLabel')}
-          >
-            <FaDownload /> {t('adoptionMechanization.downloadPDF')}
+          <button onClick={handlePDFDownload} className="bg-[var(--dark-green)] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-[var(--olive-green)]">
+            <FaDownload /> PDF
           </button>
         </div>
 
-        <div className="mb-4 max-w-full">
-          <label htmlFor="year-select" className="sr-only">
-            {t('adoptionMechanization.yearSelectLabel')}
-          </label>
+        <div className="mb-6">
           <select
-            id="year-select"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
+            className="p-2 border rounded text-[var(--dark-green)]"
           >
-            {availableYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
             ))}
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 max-w-full">
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={t('adoptionMechanization.improvedSeedCard', { year: selectedYear })}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{t('adoptionMechanization.improvedSeed')} ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.improved_seed_use_pct.toFixed(1)}%</p>
-          </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={t('adoptionMechanization.fertilizerCard', { year: selectedYear })}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{t('adoptionMechanization.fertilizerIntensity')} ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.fertilizer_kg_per_ha.toFixed(1)} kg/ha</p>
-          </div>
-          <div className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0" aria-label={t('adoptionMechanization.mechanizationCard', { year: selectedYear })}>
-            <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{t('adoptionMechanization.mechanization')} ({selectedYear})</h3>
-            <p className="text-[var(--wine)] text-base sm:text-lg">{selectedData.mechanization_units_per_1000_farms.toFixed(1)} units/1,000 farms</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {adoptionMechanizationFields.map(field => (
+            <div key={field.key} className="bg-[var(--yellow)] p-3 sm:p-4 rounded shadow min-w-0">
+              <h3 className="text-[var(--dark-green)] font-semibold text-sm sm:text-base">{field.label} ({selectedYear})</h3>
+              <p className="text-[var(--wine)] text-base sm:text-lg">
+                {safeFormat(selectedData[field.key], field.format)}
+              </p>
+            </div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 max-w-full">
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden chart-section" aria-label={t('adoptionMechanization.trendsChart')}>
-            <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              {t('adoptionMechanization.trendsTitle', { year: selectedYear })}
-            </h2>
-            <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
-              <LineChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+        <div className="space-y-10">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">Trends (2006–2025)</h2>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={countryData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  fontSize={10}
-                  angle={-45}
-                  textAnchor="end"
-                  interval="preserveStartEnd"
-                  height={50}
-                  className="sm:text-[12px] sm:angle-0 sm:text-anchor-middle"
-                />
-                <YAxis fontSize={10} className="sm:text-[12px]" />
-                <Tooltip contentStyle={{ fontSize: 12 }} />
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
-                  className="hidden sm:block"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="improved_seed_use_pct"
-                  stroke="var(--olive-green)"
-                  name={t('adoptionMechanization.improvedSeed')}
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="fertilizer_kg_per_ha"
-                  stroke="var(--wine)"
-                  name={t('adoptionMechanization.fertilizerIntensity')}
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="mechanization_units_per_1000_farms"
-                  stroke="#8884d8"
-                  name={t('adoptionMechanization.mechanization')}
-                  strokeWidth={2}
-                />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="improved_seed_use_pct" stroke="var(--dark-green)" name="Improved Seed %" strokeWidth={2} />
+                <Line type="monotone" dataKey="fertilizer_kg_per_ha" stroke="var(--red)" name="Fertilizer kg/ha" strokeWidth={2} />
+                <Line type="monotone" dataKey="mechanization_units_per_1000_farms" stroke="var(--yellow)" name="Mechanization" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-[var(--white)] p-3 sm:p-4 rounded shadow min-w-0 overflow-x-hidden chart-section" aria-label={t('adoptionMechanization.comparisonChart')}>
-            <h2 className="text-base sm:text-lg font-semibold text-[var(--dark-green)] mb-2">
-              {t('adoptionMechanization.comparisonTitle', { country: countryName })}
-            </h2>
-            <label htmlFor="metric-select" className="sr-only">
-              {t('adoptionMechanization.metricSelectLabel')}
-            </label>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4 text-[var(--dark-green)]">Yearly Comparison</h2>
             <select
-              id="metric-select"
               value={selectedMetric}
-              onChange={(e) =>
-                setSelectedMetric(
-                  e.target.value as 'improved_seed_use_pct' | 'fertilizer_kg_per_ha' | 'mechanization_units_per_1000_farms'
-                )
-              }
-              className="mb-2 p-2 border border-[var(--medium-green)] text-[var(--medium-green)] rounded text-sm sm:text-base w-full sm:w-auto"
+              onChange={(e) => setSelectedMetric(e.target.value as unknown)}
+              className="mb-4 p-3 border rounded text-[var(--dark-green)]"
             >
-              {adoptionMechanizationFields.map((field) => (
-                <option key={field.key} value={field.key}>
-                  {field.label}
-                </option>
+              {adoptionMechanizationFields.map(f => (
+                <option key={f.key} value={f.key}>{f.label}</option>
               ))}
             </select>
-            <ResponsiveContainer width="100%" height={400} className="sm:h-[250px]">
-              <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }} barGap={2} barCategoryGap="10%">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={countryData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="year"
-                  fontSize={10}
-                  angle={-45}
-                  textAnchor="end"
-                  interval="preserveStartEnd"
-                  height={50}
-                  className="sm:text-[12px] sm:angle-0 sm:text-anchor-middle"
-                />
-                <YAxis fontSize={10} className="sm:text-[12px]" />
-                <Tooltip contentStyle={{ fontSize: 12 }} />
-                <Bar dataKey={selectedMetric} fill="var(--olive-green)" minPointSize={5} />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey={selectedMetric} fill="var(--olive-green)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
