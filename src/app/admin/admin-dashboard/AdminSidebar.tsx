@@ -42,24 +42,24 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
 
   // Define submenu items
   const productItems = [
-    { label: t('adminSidebar.nav.macro'), href: '/admin//admin-dashboard/data/macro', icon: FaDatabase },
-    { label: t('adminSidebar.nav.agric'), href: '/admin//admin-dashboard/data/agric', icon: FaLeaf },
-    { label: t('adminSidebar.nav.livestock'), href: '/admin//admin-dashboard/data/livestock', icon: FaHorse },
-    { label: t('adminSidebar.nav.nutrition'), href: '/admin//admin-dashboard/data/nutrition', icon: FaAppleAlt },
+    { label: t('adminSidebar.nav.macro'), href: '/admin/admin-dashboard/data/macro', icon: FaDatabase },
+    { label: t('adminSidebar.nav.agric'), href: '/admin/admin-dashboard/data/agric', icon: FaLeaf },
+    { label: t('adminSidebar.nav.livestock'), href: '/admin/admin-dashboard/data/livestock', icon: FaHorse },
+    { label: t('adminSidebar.nav.nutrition'), href: '/admin/admin-dashboard/data/nutrition', icon: FaAppleAlt },
     { label: t('adminSidebar.nav.rice'), href: '/admin//admin-dashboard/data/rice', icon: FaSeedling },
   ];
 
   const topNav = [
-    { label: t('adminSidebar.nav.dashboard'), href: '/admin//admin-dashboard', icon: FaChartBar },
+    { label: t('adminSidebar.nav.dashboard'), href: '/admin/admin-dashboard', icon: FaChartBar },
     { label: t('adminSidebar.nav.users'), href: '/admin/admin-dashboard/users', icon: FaUsers },
-    { label: t('adminSidebar.nav.upload'), href: '/admin//admin-dashboard/data-upload', icon: FaUpload },
-    { label: t('adminSidebar.nav.excel'), href: '/admin//admin-dashboard/adminFilePage', icon: FaUpload },
+    { label: t('adminSidebar.nav.upload'), href: '/admin/admin-dashboard/data-upload', icon: FaUpload },
+    { label: t('adminSidebar.nav.files'), href: '/admin/admin-dashboard/files', icon: FaUpload },
   ];
 
   const bottomNav = [
-    { label: t('adminSidebar.nav.logs'), href: '/admin//admin-dashboard/logs', icon: FaFileAlt },
-    { label: t('adminSidebar.nav.settings'), href: '/admin//admin-dashboard/settings', icon: FaCog },
-    { label: t('adminSidebar.nav.apiKeys'), href: '/admin//admin-dashboard/api-keys', icon: FaKey },
+    { label: t('adminSidebar.nav.logs'), href: '/admin/admin-dashboard/logs', icon: FaFileAlt },
+    { label: t('adminSidebar.nav.settings'), href: '/admin/admin-dashboard/settings', icon: FaCog },
+    { label: t('adminSidebar.nav.apiKeys'), href: '/admin/admin-dashboard/api-keys', icon: FaKey },
   ];
 
   const isActive = (href: string) => pathname === href;
