@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { adminFirestore } from '@/app/lib/firebaseAdmin';
 import { v2 as cloudinary } from 'cloudinary';
 
-// Cloudinary config (safe in server context)
+// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
   api_key: process.env.CLOUDINARY_API_KEY!,
@@ -12,16 +12,20 @@ cloudinary.config({
 
 const db = adminFirestore;
 
+interface DeleteRequestBody {
+  public_id: string;
+}
+
 export async function POST(request: Request) {
   try {
-    const body: unknown = await request.json();
+    const body = await request.json();
 
-    // Type-safe public_id extraction
+    // Strict validation — no `any` anywhere
     if (
       typeof body !== 'object' ||
       body === null ||
       !('public_id' in body) ||
-      typeof (body as any).public_id !== 'string'
+      typeof (body as Record<string, unknown>).public_id !== 'string'
     ) {
       return NextResponse.json(
         { error: 'Invalid or missing public_id' },
@@ -29,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const public_id = (body as { public_id: string }).public_id;
+    const { public_id } = body as DeleteRequestBody;
 
     // Delete from Firestore
     await db.collection('uploads').doc(public_id).delete();
@@ -38,15 +42,14 @@ export async function POST(request: Request) {
     const result = await cloudinary.uploader.destroy(public_id);
 
     if (!['ok', 'not found'].includes(result.result)) {
-      throw new Error(`Cloudinary error: ${result.result}`);
+      throw new Error(`Cloudinary delete failed: ${result.result}`);
     }
 
     return NextResponse.json({ message: 'File deleted successfully' });
   } catch (error: unknown) {
     const message =
-      error instanceof Error ? error.message : 'Unknown error occurred';
+      error instanceof Error ? error.message : 'Unknown deletion error';
     console.error('Delete file error:', error);
-
     return NextResponse.json(
       { error: 'Failed to delete file', details: message },
       { status: 500 }
