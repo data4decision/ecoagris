@@ -1,42 +1,55 @@
+// src/app/api/deleteFile/route.ts
 import { NextResponse } from 'next/server';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { adminFirestore } from '@/app/lib/firebaseAdmin';
 import { v2 as cloudinary } from 'cloudinary';
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!getFirestore()) {
-  initializeApp({
-    credential: applicationDefault(), // or use your service account key
-  });
-}
-
-const db = getFirestore();
-
-// Cloudinary setup
+// Cloudinary config (safe in server context)
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
+
+const db = adminFirestore;
 
 export async function POST(request: Request) {
   try {
-    const { public_id } = await request.json();  // Get the public_id from the request body
+    const body: unknown = await request.json();
 
-    if (!public_id) {
-      return NextResponse.json({ error: 'No public_id provided' }, { status: 400 });
+    // Type-safe public_id extraction
+    if (
+      typeof body !== 'object' ||
+      body === null ||
+      !('public_id' in body) ||
+      typeof (body as any).public_id !== 'string'
+    ) {
+      return NextResponse.json(
+        { error: 'Invalid or missing public_id' },
+        { status: 400 }
+      );
     }
 
-    // Delete the file from Firestore
-    const fileRef = db.collection('uploads').doc(public_id);
-    await fileRef.delete();
+    const public_id = (body as { public_id: string }).public_id;
 
-    // Delete the file from Cloudinary
-    await cloudinary.uploader.destroy(public_id);
+    // Delete from Firestore
+    await db.collection('uploads').doc(public_id).delete();
+
+    // Delete from Cloudinary
+    const result = await cloudinary.uploader.destroy(public_id);
+
+    if (!['ok', 'not found'].includes(result.result)) {
+      throw new Error(`Cloudinary error: ${result.result}`);
+    }
 
     return NextResponse.json({ message: 'File deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting file:', error);
-    return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Delete file error:', error);
+
+    return NextResponse.json(
+      { error: 'Failed to delete file', details: message },
+      { status: 500 }
+    );
   }
 }

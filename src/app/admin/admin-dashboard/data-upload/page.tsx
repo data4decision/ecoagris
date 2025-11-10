@@ -137,7 +137,7 @@ const UploadPage = () => {
           {/* Link to files list */}
           <div className="mt-8 text-center">
             <Link
-              href="admin-dashboard/files"
+              href="/admin/admin-dashboard/files"
               className="text-[var(--olive-green)] underline hover:text-[var(--dark-green)] font-medium"
             >
               ← View all uploaded files

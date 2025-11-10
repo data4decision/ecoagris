@@ -88,7 +88,7 @@ const FilesPage = () => {
               Uploaded Files
             </h2>
             <Link
-              href="/upload"
+              href="/admin/admin-dashboard/data-upload"
               className="bg-[var(--dark-green)] text-white px-6 py-2 rounded-lg font-medium hover:bg-[var(--dark-green)]/90 transition"
             >
               + Upload New
@@ -149,7 +149,7 @@ const FilesPage = () => {
                 {files.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
-                      No files uploaded yet. <Link href="/upload" className="text-[var(--olive-green)] underline">Upload one</Link>
+                      No files uploaded yet. <Link href="admin/admin-dashboard/data-upload" className="text-[var(--olive-green)] underline">Upload one</Link>
                     </td>
                   </tr>
                 ) : (
