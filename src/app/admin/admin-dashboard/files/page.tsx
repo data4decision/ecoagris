@@ -4,10 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { FaTrash, FaDownload, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import Link from 'next/link';
 import { db } from '@/app/lib/firebase';
-import { collection, onSnapshot, DocumentData, QuerySnapshot } from 'firebase/firestore';
+import {
+  collection,
+  onSnapshot,
+  DocumentData,
+  QuerySnapshot,
+  doc,
+  deleteDoc,
+} from 'firebase/firestore';
 
 interface CloudinaryFile {
-  id?: string;
+  id: string;           // Firestore doc ID
   public_id: string;
   secure_url: string;
   format: string;
@@ -50,25 +57,38 @@ const FilesPage = () => {
     return () => unsub();
   }, []);
 
-  const deleteFile = async (public_id: string) => {
+  // DELETE FUNCTION — DELETES FROM BOTH CLOUDINARY AND FIRESTORE
+  const deleteFile = async () => {
+    if (!fileToDelete) return;
+
     setError(null);
+    setStatusMessage('');
+
     try {
       const res = await fetch('/api/deleteFile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id }),
+        body: JSON.stringify({
+          public_id: fileToDelete.public_id,
+          doc_id: fileToDelete.id, // ← This is the Firestore document ID
+        }),
       });
+
       const data = await res.json();
 
-      if (res.status === 200) {
-        setStatusMessage('File deleted successfully!');
-        setFiles((prev) => prev.filter((f) => f.public_id !== public_id));
-        setIsModalOpen(false);
-      } else {
-        setError(data.error || 'Failed to delete file.');
+      if (!res.ok) {
+        throw new Error(data.error || data.details || 'Delete failed');
       }
-    } catch (err) {
-      setError('Network error while deleting.');
+
+      // Remove from UI
+      setFiles((prev) => prev.filter((f) => f.id !== fileToDelete.id));
+      setStatusMessage('File deleted forever!');
+      setIsModalOpen(false);
+      setFileToDelete(null);
+
+    } catch (err: unknown) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to delete file.');
     }
   };
 
@@ -101,20 +121,25 @@ const FilesPage = () => {
               <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
                 <h3 className="text-lg font-bold text-[var(--dark-green)]">Confirm Deletion</h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  Are you sure you want to delete this file? This action cannot be undone.
+                  Are you sure you want to delete <strong>{fileToDelete.public_id}</strong>?
+                  <br />
+                  This will remove it from Cloudinary and your database.
                 </p>
                 <div className="mt-6 flex justify-end gap-4">
                   <button
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setFileToDelete(null);
+                    }}
                     className="px-4 py-2 bg-gray-200 text-[var(--dark-green)] rounded-md"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => deleteFile(fileToDelete.public_id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md"
+                    onClick={deleteFile}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                   >
-                    Delete
+                    Delete Forever
                   </button>
                 </div>
               </div>
@@ -149,12 +174,15 @@ const FilesPage = () => {
                 {files.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
-                      No files uploaded yet. <Link href="admin/admin-dashboard/data-upload" className="text-[var(--olive-green)] underline">Upload one</Link>
+                      No files uploaded yet.{' '}
+                      <Link href="/admin/admin-dashboard/data-upload" className="text-[var(--olive-green)] underline">
+                        Upload one
+                      </Link>
                     </td>
                   </tr>
                 ) : (
                   files.map((f) => (
-                    <tr key={f.public_id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={f.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">{f.public_id}</td>
                       <td className="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">
                         <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">

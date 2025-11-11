@@ -1,4 +1,4 @@
-// src/app/api/deleteFile/route.ts
+// app/api/deleteFile/route.ts
 import { NextResponse } from 'next/server';
 import { adminFirestore } from '@/app/lib/firebaseAdmin';
 import { v2 as cloudinary } from 'cloudinary';
@@ -14,41 +14,46 @@ const db = adminFirestore;
 
 interface DeleteRequestBody {
   public_id: string;
+  doc_id: string; // ← We now require the real Firestore doc ID
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Strict validation — no `any` anywhere
+    // Validate request
     if (
       typeof body !== 'object' ||
       body === null ||
       !('public_id' in body) ||
-      typeof (body as Record<string, unknown>).public_id !== 'string'
+      !('doc_id' in body) ||
+      typeof body.public_id !== 'string' ||
+      typeof body.doc_id !== 'string'
     ) {
       return NextResponse.json(
-        { error: 'Invalid or missing public_id' },
+        { error: 'Invalid request: public_id and doc_id are required' },
         { status: 400 }
       );
     }
 
-    const { public_id } = body as DeleteRequestBody;
+    const { public_id, doc_id } = body as DeleteRequestBody;
 
-    // Delete from Firestore
-    await db.collection('uploads').doc(public_id).delete();
+    // 1. Delete from Cloudinary
+    const cloudinaryResult = await cloudinary.uploader.destroy(public_id);
 
-    // Delete from Cloudinary
-    const result = await cloudinary.uploader.destroy(public_id);
-
-    if (!['ok', 'not found'].includes(result.result)) {
-      throw new Error(`Cloudinary delete failed: ${result.result}`);
+    if (!['ok', 'not found'].includes(cloudinaryResult.result)) {
+      throw new Error(`Cloudinary delete failed: ${cloudinaryResult.result}`);
     }
 
-    return NextResponse.json({ message: 'File deleted successfully' });
+    // 2. Delete from Firestore using the REAL doc ID
+    await db.collection('uploads').doc(doc_id).delete();
+
+    return NextResponse.json({ 
+      message: 'File deleted permanently from Cloudinary and database' 
+    });
+
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : 'Unknown deletion error';
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Delete file error:', error);
     return NextResponse.json(
       { error: 'Failed to delete file', details: message },

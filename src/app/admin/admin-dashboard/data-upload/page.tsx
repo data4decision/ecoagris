@@ -4,6 +4,8 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FaSpinner } from 'react-icons/fa';
 import Link from 'next/link';
+import { db } from '@/app/lib/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 const UploadPage = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -30,7 +32,7 @@ const UploadPage = () => {
     maxSize: 10 * 1024 * 1024, // 10MB
   });
 
-  const uploadFile = () => {
+  const uploadFile = async () => {
     if (!file) return;
 
     setUploading(true);
@@ -43,6 +45,7 @@ const UploadPage = () => {
     formData.append('file', file);
     formData.append('upload_preset', 'ecoagris');
     formData.append('cloud_name', 'dmuvs05yp');
+   
 
     xhr.open('POST', 'https://api.cloudinary.com/v1_1/dmuvs05yp/upload', true);
 
@@ -53,13 +56,30 @@ const UploadPage = () => {
       }
     });
 
-    xhr.onload = () => {
+    xhr.onload = async () => {
       if (xhr.status === 200) {
         const response = JSON.parse(xhr.responseText);
-        setStatusMessage('File uploaded successfully!');
-        setUploading(false);
-        // redirect to files list
-        window.location.href = '/files';
+
+        try {
+          // Save metadata + public_id to Firestore
+          await addDoc(collection(db, 'uploads'), {
+            public_id: response.public_id,    // This is CRUCIAL for deletion
+            url: response.secure_url,
+            title: file.name,
+            size: file.size,
+            format: file.name.split('.').pop()?.toLowerCase(),
+            uploadedAt: serverTimestamp(),
+            uploadedBy: 'admin@ecoagris.org',
+          });
+
+          setStatusMessage('File uploaded successfully!');
+          setUploading(false);
+          window.location.href = '/admin/admin-dashboard/files';
+        } catch (fireErr) {
+          console.error('Firestore save failed:', fireErr);
+          setError('Uploaded to Cloudinary but failed to save record.');
+          setUploading(false);
+        }
       } else {
         setError('Upload failed. Please try again.');
         setUploading(false);
@@ -79,7 +99,7 @@ const UploadPage = () => {
       <div className="max-w-5xl mx-auto">
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8 border border-white/20">
           <h2 className="text-2xl md:text-3xl font-bold text-[var(--dark-green)] mb-6 text-center">
-            Upload File (Excel, PNG, or PDF)
+            Upload File (Excel)
           </h2>
 
           {/* Dropzone */}
@@ -96,7 +116,7 @@ const UploadPage = () => {
                 </svg>
               </div>
               <p className="text-gray-600 font-medium">Drag & drop a file here, or click to select</p>
-              <p className="text-sm text-gray-500 mt-1">(PDF, PNG, or Excel • Max 10MB)</p>
+              <p className="text-sm text-gray-500 mt-1">( Excel • Max 10MB)</p>
             </div>
           </div>
 
