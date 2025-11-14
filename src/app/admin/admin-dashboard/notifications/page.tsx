@@ -32,7 +32,7 @@ interface Notification {
   message: string;
   type: 'info' | 'success' | 'warning' | 'error';
   read: boolean;
-  createdAt: any;
+  createdAt: unknown;
   link?: string;
 }
 
