@@ -9,10 +9,9 @@ import {
   XCircle,
   Trash2,
   Check,
-  Filter,
   Loader2,
 } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { db } from '@/app/lib/firebase';
 import {
   collection,
@@ -23,6 +22,7 @@ import {
   updateDoc,
   deleteDoc,
   writeBatch,
+  Timestamp,
 } from 'firebase/firestore';
 import Link from 'next/link';
 
@@ -32,7 +32,7 @@ interface Notification {
   message: string;
   type: 'info' | 'success' | 'warning' | 'error';
   read: boolean;
-  createdAt: unknown;
+  createdAt: Timestamp;
   link?: string;
 }
 
@@ -46,17 +46,21 @@ export default function NotificationsPage() {
   // Real-time listener
   useEffect(() => {
     const q = query(collection(db, 'adminNotifications'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      })) as Notification[];
-      setNotifications(data);
-      setLoading(false);
-    }, (err) => {
-      console.error(err);
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        })) as Notification[];
+        setNotifications(data);
+        setLoading(false);
+      },
+      (err: unknown) => {
+        console.error('Firestore error:', err);
+        setLoading(false);
+      }
+    );
     return () => unsub();
   }, []);
 
@@ -79,14 +83,15 @@ export default function NotificationsPage() {
     try {
       await updateDoc(doc(db, 'adminNotifications', id), { read: true });
       showNotification('Marked as read', 'success');
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error('Update error:', err);
       showNotification('Failed to update', 'error');
     }
   };
 
   const markAllAsRead = async () => {
     const batch = writeBatch(db);
-    notifications.filter(n => !n.read).forEach(n => {
+    notifications.filter((n) => !n.read).forEach((n) => {
       batch.update(doc(db, 'adminNotifications', n.id), { read: true });
     });
     await batch.commit();
@@ -94,23 +99,32 @@ export default function NotificationsPage() {
   };
 
   const deleteNotification = async (id: string) => {
-    await deleteDoc(doc(db, 'adminNotifications', id));
-    showNotification('Notification deleted', 'success');
+    try {
+      await deleteDoc(doc(db, 'adminNotifications', id));
+      showNotification('Notification deleted', 'success');
+    } catch (err: unknown) {
+      console.error('Delete error:', err);
+      showNotification('Failed to delete', 'error');
+    }
   };
 
   const clearAll = async () => {
     const batch = writeBatch(db);
-    notifications.forEach(n => batch.delete(doc(db, 'adminNotifications', n.id)));
+    notifications.forEach((n) => batch.delete(doc(db, 'adminNotifications', n.id)));
     await batch.commit();
     showNotification('All cleared', 'success');
   };
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
-      case 'success': return <CheckCircle className="w-5 h-5 text-[var(--medium-green)]" />;
-      case 'warning': return <AlertCircle className="w-5 h-5 text-[var(--yellow)]" />;
-      case 'error': return <XCircle className="w-5 h-5 text-[var(--red)]" />;
-      default: return <Info className="w-5 h-5 text-[var(--wine)]" />;
+      case 'success':
+        return <CheckCircle className="w-5 h-5 text-[var(--medium-green)]" />;
+      case 'warning':
+        return <AlertCircle className="w-5 h-5 text-[var(--yellow)]" />;
+      case 'error':
+        return <XCircle className="w-5 h-5 text-[var(--red)]" />;
+      default:
+        return <Info className="w-5 h-5 text-[var(--wine)]" />;
     }
   };
 
@@ -123,7 +137,11 @@ export default function NotificationsPage() {
             showToast.type === 'success' ? 'bg-[var(--medium-green)]' : 'bg-[var(--red)]'
           }`}
         >
-          {showToast.type === 'success' ? <CheckCircle size={22} /> : <AlertCircle size={22} />}
+          {showToast.type === 'success' ? (
+            <CheckCircle size={22} />
+          ) : (
+            <AlertCircle size={22} />
+          )}
           <span>{showToast.message}</span>
         </div>
       )}
@@ -229,7 +247,7 @@ export default function NotificationsPage() {
                               href={n.link}
                               className="inline-block mt-2 text-sm text-[var(--wine)] underline hover:text-[var(--dark-green)]"
                             >
-                              View details →
+                              View details
                             </Link>
                           )}
                           <p className="text-xs text-gray-500 mt-2">
@@ -267,7 +285,7 @@ export default function NotificationsPage() {
                 href="/admin/admin-dashboard"
                 className="text-[var(--olive-green)] underline hover:text-[var(--dark-green)] font-medium"
               >
-                ← Back to Dashboard
+                Back to Dashboard
               </Link>
             </div>
           </div>
@@ -276,10 +294,18 @@ export default function NotificationsPage() {
 
       <style jsx>{`
         @keyframes slide-in-right {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
         }
-        .animate-slide-in-right { animation: slide-in-right 0.4s ease-out; }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.4s ease-out;
+        }
       `}</style>
     </>
   );
