@@ -38,15 +38,13 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
     { label: t('adminSidebar.nav.users'), href: '/admin/admin-dashboard/users', icon: FaUsers },
     { label: t('adminSidebar.nav.upload'), href: '/admin/admin-dashboard/data-upload', icon: FaUpload },
     { label: t('adminSidebar.nav.files'), href: '/admin/admin-dashboard/files', icon: FaUpload },
-    { label: t('adminSidebar.nav.productEditor'), href: '/admin/product-editor', icon: FaDatabase },
   ];
 
   const bottomNav = [
     { label: t('adminSidebar.nav.settings'), href: '/admin/admin-dashboard/settings', icon: FaCog },
-    { label: t('adminSidebar.nav.help'), href: '/admin/help-support', icon: FaQuestionCircle },
-    {
-      label: t('adminSidebar.nav.notifications'),
-      href: '/admin/notifications',
+    { label: t('adminSidebar.nav.help'), href: '/admin/admin-dashboard/help-support', icon: FaQuestionCircle },
+    { label: t('adminSidebar.nav.notifications'),
+      href: '/admin/admin-dashboard/notifications',
       icon: FaBell,
       badge: unreadCount > 0 ? unreadCount : null,
     },
