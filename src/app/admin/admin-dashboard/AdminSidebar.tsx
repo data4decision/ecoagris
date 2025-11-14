@@ -14,20 +14,13 @@ import {
   FaSignOutAlt,
   FaChevronCircleRight,
   FaChevronCircleLeft,
-  FaLeaf,
-  FaHorse,
-  FaAppleAlt,
-  FaSeedling,
   FaDatabase,
-  FaChevronDown,
-  FaChevronUp,
+  FaQuestionCircle,
+  FaBell,
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-
-// const logout = () => {
-//   document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-//   window.location.href = '/admin/login';
-// };
+import { db } from '@/app/lib/firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 interface AdminSidebarProps {
   onCollapseChange: (collapsed: boolean) => void;
@@ -37,33 +30,45 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
   const { t } = useTranslation('common');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [isProductsOpen, setIsProductsOpen] = useState<boolean>(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const pathname = usePathname();
-
-  // Define submenu items
-  const productItems = [
-    { label: t('adminSidebar.nav.macro'), href: '/admin/admin-dashboard/data/macro', icon: FaDatabase },
-    { label: t('adminSidebar.nav.agric'), href: '/admin/admin-dashboard/data/agric', icon: FaLeaf },
-    { label: t('adminSidebar.nav.livestock'), href: '/admin/admin-dashboard/data/livestock', icon: FaHorse },
-    { label: t('adminSidebar.nav.nutrition'), href: '/admin/admin-dashboard/data/nutrition', icon: FaAppleAlt },
-    { label: t('adminSidebar.nav.rice'), href: '/admin//admin-dashboard/data/rice', icon: FaSeedling },
-  ];
 
   const topNav = [
     { label: t('adminSidebar.nav.dashboard'), href: '/admin/admin-dashboard', icon: FaChartBar },
     { label: t('adminSidebar.nav.users'), href: '/admin/admin-dashboard/users', icon: FaUsers },
     { label: t('adminSidebar.nav.upload'), href: '/admin/admin-dashboard/data-upload', icon: FaUpload },
     { label: t('adminSidebar.nav.files'), href: '/admin/admin-dashboard/files', icon: FaUpload },
+    { label: t('adminSidebar.nav.productEditor'), href: '/admin/product-editor', icon: FaDatabase },
   ];
 
   const bottomNav = [
-    { label: t('adminSidebar.nav.logs'), href: '/admin/admin-dashboard/logs', icon: FaFileAlt },
     { label: t('adminSidebar.nav.settings'), href: '/admin/admin-dashboard/settings', icon: FaCog },
-    { label: t('adminSidebar.nav.apiKeys'), href: '/admin/admin-dashboard/api-keys', icon: FaKey },
+    { label: t('adminSidebar.nav.help'), href: '/admin/help-support', icon: FaQuestionCircle },
+    {
+      label: t('adminSidebar.nav.notifications'),
+      href: '/admin/notifications',
+      icon: FaBell,
+      badge: unreadCount > 0 ? unreadCount : null,
+    },
   ];
 
   const isActive = (href: string) => pathname === href;
-  const isProductActive = productItems.some((item) => pathname.startsWith(item.href));
+
+  // Real-time unread count
+  useEffect(() => {
+    const q = query(
+      collection(db, 'adminNotifications'),
+      where('read', '==', false)
+    );
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      setUnreadCount(snapshot.size);
+    }, (err) => {
+      console.error('Failed to fetch unread count:', err);
+    });
+
+    return () => unsub();
+  }, []);
 
   // Mobile & collapse logic
   useEffect(() => {
@@ -86,12 +91,6 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
       onCollapseChange(newState);
       return newState;
     });
-  };
-
-  const toggleProducts = () => {
-    if (!isCollapsed) {
-      setIsProductsOpen((prev) => !prev);
-    }
   };
 
   return (
@@ -117,7 +116,7 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
             <li key={href}>
               <Link
                 href={href}
-                className={`flex items-center gap-3 px-4 py-3 transition-colors text-sm sm:text-[15px] ${
+                className={`flex items-center gap-3 px-4 py-3 transition-colors text-sm sm:text-[15px] relative ${
                   isActive(href)
                     ? 'bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow'
                     : 'hover:bg-[var(--yellow)]/90'
@@ -129,81 +128,31 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
             </li>
           ))}
 
-          {/* Products Editor (Parent + Submenu) */}
-          <li>
-            <button
-              onClick={toggleProducts}
-              className={`w-full flex items-center justify-between gap-3 px-4 py-3 transition-colors text-sm sm:text-[15px] ${
-                isProductActive
-                  ? 'bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow'
-                  : 'hover:bg-[var(--yellow)]/90'
-              }`}
-              aria-expanded={!isCollapsed && isProductsOpen}
-              aria-controls="products-submenu"
-            >
-              <div className="flex items-center gap-3">
-                <FaDatabase className="shrink-0 text-[var(--white)]" />
-                {!isCollapsed && (
-                  <span className="text-sm sm:text-[12px]">{t('adminSidebar.nav.productsEditor')}</span>
-                )}
-              </div>
-              {!isCollapsed && (
-                <span className="text-xs">
-                  {isProductsOpen ? <FaChevronUp /> : <FaChevronDown />}
-                </span>
-              )}
-            </button>
-
-            {/* Submenu */}
-            {!isCollapsed && isProductsOpen && (
-              <ul id="products-submenu" className="ml-8 border-l-2 border-[var(--yellow)]">
-                {productItems.map(({ href, icon: Icon, label }) => (
-                  <li key={href}>
-                    <Link
-                      href={href}
-                      className={`flex items-center gap-3 px-4 py-2 text-xs transition-colors ${
-                        isActive(href)
-                          ? 'text-[var(--yellow)] font-medium'
-                          : 'text-[var(--white)]/80 hover:text-[var(--yellow)]'
-                      }`}
-                    >
-                      <Icon className="text-sm" />
-                      <span>{label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-
           {/* Bottom Items */}
-          {bottomNav.map(({ href, icon: Icon, label }) => (
+          {bottomNav.map(({ href, icon: Icon, label, badge }) => (
             <li key={href}>
               <Link
                 href={href}
-                className={`flex items-center gap-3 px-4 py-3 transition-colors text-sm sm:text-[15px] ${
+                className={`flex items-center gap-3 px-4 py-3 transition-colors text-sm sm:text-[15px] relative ${
                   isActive(href)
                     ? 'bg-[var(--dark-green)] text-[var(--white)] font-semibold shadow'
                     : 'hover:bg-[var(--yellow)]/90'
                 }`}
               >
-                <Icon className="shrink-0 text-[var(--white)]" />
+                <div className="relative">
+                  <Icon className="shrink-0 text-[var(--white)]" />
+                  {badge !== null && (
+                    <span className="absolute -top-1 -right-1 bg-[var(--red)] text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+                      {badge}
+                    </span>
+                  )}
+                </div>
                 {!isCollapsed && <span className="text-sm sm:text-[12px]">{label}</span>}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
-
-      {/* Logout */}
-      {/* <Link href="/"
-        
-        className="flex items-center gap-3 px-4 py-3 text-left text-[var(--white)] hover:text-[var(--yellow)] hover:bg-[var(--wine)]/90 transition-colors"
-      >
-
-        <FaSignOutAlt />
-        {!isCollapsed && <span>{t('adminSidebar.logout')}</span>}
-      </Link> */}
 
       {/* Collapse Toggle */}
       <button

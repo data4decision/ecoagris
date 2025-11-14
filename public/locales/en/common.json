@@ -1402,6 +1402,8 @@
       "agric": "Agriculture",
       "livestock": "Livestock",
       "nutrition": "Nutrition",
+       "help": "Help & Support",
+       "notifications": "Notifications",
       "rice": "Rice",
       "logs": "Audit Logs",
       "settings": "Settings",
