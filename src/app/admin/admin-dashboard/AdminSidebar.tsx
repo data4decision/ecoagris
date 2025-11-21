@@ -17,6 +17,7 @@ import {
   FaDatabase,
   FaQuestionCircle,
   FaBell,
+  FaFile,
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { db } from '@/app/lib/firebase';
@@ -37,17 +38,14 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
     { label: t('adminSidebar.nav.dashboard'), href: '/admin/admin-dashboard', icon: FaChartBar },
     { label: t('adminSidebar.nav.users'), href: '/admin/admin-dashboard/users', icon: FaUsers },
     { label: t('adminSidebar.nav.upload'), href: '/admin/admin-dashboard/data-upload', icon: FaUpload },
-    { label: t('adminSidebar.nav.files'), href: '/admin/admin-dashboard/files', icon: FaUpload },
+    { label: t('adminSidebar.nav.files'), href: '/admin/admin-dashboard/files', icon: FaFile },
+     { label: t('adminSidebar.nav.settings'), href: '/admin/admin-dashboard/settings', icon: FaCog },
+    { label: t('adminSidebar.nav.help'), href: '/admin/admin-dashboard/help-support', icon: FaQuestionCircle },
   ];
 
   const bottomNav = [
-    { label: t('adminSidebar.nav.settings'), href: '/admin/admin-dashboard/settings', icon: FaCog },
-    { label: t('adminSidebar.nav.help'), href: '/admin/admin-dashboard/help-support', icon: FaQuestionCircle },
-    { label: t('adminSidebar.nav.notifications'),
-      href: '/admin/admin-dashboard/notifications',
-      icon: FaBell,
-      badge: unreadCount > 0 ? unreadCount : null,
-    },
+   
+    { label: t('adminSidebar.nav.notifications'), href: '/admin/admin-dashboard/notifications', icon: FaBell, badge: unreadCount > 0 ? unreadCount : null,},
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -138,7 +136,7 @@ const AdminSidebar = ({ onCollapseChange }: AdminSidebarProps) => {
                 }`}
               >
                 <div className="relative">
-                  <Icon className="shrink-0 text-[var(--white)]" />
+                  <Icon className="shrink-0 text-white" />
                   {badge !== null && (
                     <span className="absolute -top-1 -right-1 bg-[var(--red)] text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
                       {badge}
